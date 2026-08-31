@@ -4,48 +4,41 @@
 ---
 
 ### 📌 Resumen Ejecutivo
-Este documento contiene la **estructura de precios, planes de suscripción mensual (MRR)** y el **manual de venta rápida con script de demostración en vivo** para ofrecer el ecosistema inmobiliario a corredores de propiedades, corredoras boutique e inmobiliarias.
+Estructura de precios oficial bajo el modelo **Setup Inicial de Implementación (Pago Único) + Membresía Mensual Recurrente**, diseñado para ofrecer soluciones de software inmobiliario de alto valor a corredores de propiedades, corredoras boutique e inmobiliarias.
 
 ---
 
-## 1. 💰 Estructura de Planes y Precios Recurrentes (MRR)
+## 1. 🏷️ Estructura de Precios Oficial (Mercado Chileno / Regional)
 
-| Plan | Qué Incluye | Precio Sugerido (CLP) |
-| :--- | :--- | :--- |
-| **Plan 1: Portal Web & CRM** | - Landing Page inmobiliaria de lujo (responsive & mobile-first)<br>- Catálogo de propiedades con conversión UF / $ CLP en vivo<br>- Simulador de crédito hipotecario integrado<br>- Módulo de captación de propietarios con carga de fotos<br>- Panel CRM de Leads (Kanban + Modo Tabla Excel)<br>- Buscador universal y alarmas de vencimiento (SLA)<br>- Hosting en Vercel con certificado SSL incluido | **$49.990 / mes** |
-| **Plan 2: Agente WhatsApp IA** | - Línea de WhatsApp Business oficial con YCloud<br>- Asistente de IA entrenado con el catálogo de propiedades<br>- Buffer inteligente con recepción de texto, notas de voz y fotos<br>- Calificación automática de prospectos (presupuesto y crédito)<br>- Agendamiento autónomo de visitas<br>- Derivación y alertas al WhatsApp del corredor<br>- Panel de conversaciones en tiempo real | **$69.990 / mes** |
-| **Plan 3: Ecosistema 360° Full** *(Recomendado / Más Vendido)* | - **Todo lo del Plan Portal Web & CRM**<br>- **Todo lo del Plan Agente WhatsApp IA**<br>- Sincronización bidireccional Web ↔ WhatsApp<br>- El lead que entra por la web activa el bot al instante<br>- Disparo automático de fichas técnicas en PDF por WhatsApp<br>- Soporte técnico prioritario 1-a-1<br>- Actualizaciones mensuales del modelo de IA | **$99.990 / mes** |
-
----
-
-### 🛠️ Servicios y Módulos Adicionales (Up-Sells)
-
-1. **Setup Inicial & Personalización de Marca (Pago Único):**  
-   - **Valor:** `$75.000 CLP` *(Opcional)*
-   - **Incluye:** Carga de logotipo en alta resolución, configuración de colores de marca, conexión de dominio propio `.CL` y carga inicial de las primeras 10 propiedades del corredor.
-
-2. **Desarrollo de Módulos a Medida:**  
-   - **Valor:** `$150.000 a $300.000 CLP` *(Pago Único)*
-   - **Ejemplos:** Calculadora personalizada de rentabilidad de arriendos, mapas 3D de proyectos o integraciones API personalizadas.
-
-3. **Ejecutivo Adicional (Multi-Agente WhatsApp):**  
-   - **Valor:** `$29.990 CLP / mes` por cada corredor adicional con enrutamiento de prospectos por turnos (*Round-Robin*).
+| Concepto | Plan Starter (Web + CRM) | Plan Pro (Web + Agente Web IA) | Plan Full Ecosistema (Web + Agente WhatsApp IA) |
+| :--- | :--- | :--- | :--- |
+| **Setup Inicial (Pago Único)** | **$290.000 - $390.000 CLP** | **$450.000 - $590.000 CLP** | **$690.000 - $890.000 CLP** |
+| *Incluye:* | Diseño a medida, catálogo inicial, CRM y dominio .CL. | Setup Starter + Entrenamiento del Concierge IA con su catálogo. | Setup Pro + Configuración e integración oficial del Agente de WhatsApp (YCloud). |
+| **Membresía Mensual (Recurrencia)** | **$19.900 CLP / mes** | **$39.900 CLP / mes** | **$69.900 - $89.900 CLP / mes** |
+| *Incluye:* | Hosting Vercel, soporte técnico, actualizaciones UF diarias. | Hosting + 1.000 créditos IA/mes + CRM en vivo. | Hosting + 3.000 créditos IA/mes + WhatsApp 24/7 + CRM unificado. |
 
 ---
 
-## 2. 🎯 Guía Rápida de Ventas: Cómo presentar y cerrar al Corredor
+### 💡 Justificación Estratégica del Modelo:
+1. **Cobras el valor de tu trabajo el Día 1:** El setup de $290.000 a $690.000 CLP te entrega flujo de caja inmediato (*cashflow*) para financiar la personalización y puesta en marcha.
+2. **Membresía accesible de por vida:** Una mensualidad de $19.900 a $69.900 CLP es extremadamente económica para el corredor, asegurando que permanezca suscrito durante años sin cancelar.
+3. **Poder de Cierre en la Negociación:** El precio de lista del Setup te permite ofrecer descuentos agresivos de lanzamiento (*"Si cerramos hoy, te dejo el Setup Full en $490.000 en vez de $690.000"*).
 
-### ⏱️ Protocolo de Demostración en 4 Pasos (10 a 15 Minutos)
+---
+
+## 2. 🎯 Guía Rápida de Ventas: Protocolo de Cierre en 4 Pasos
+
+### ⏱️ Estructura de Reunión de 15 Minutos
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Corredor as Corredor de Propiedades
     actor Tu as Consultor de Agencia
-    Tu->>Corredor: Paso 1: El Gancho (Identificar pérdida de leads en portales)
-    Tu->>Corredor: Paso 2: Demo Visual en Celular (Modo Master & WhatsApp en vivo)
-    Tu->>Corredor: Paso 3: Mostrar el CRM (Filtros por propiedad y alarmas)
-    Tu->>Corredor: Paso 4: Cierre por ROI (Una comisión paga 2 años de servicio)
+    Tu->>Corredor: Paso 1: El Gancho (Fuga del 60% de prospectos en portales)
+    Tu->>Corredor: Paso 2: Demo Visual (Modo Master & WhatsApp en 3s)
+    Tu->>Corredor: Paso 3: El CRM (Filtro por propiedad y alarmas de visita)
+    Tu->>Corredor: Paso 4: Cierre por ROI (1 comisión paga 3 años de servicio)
 ```
 
 #### Paso 1: El Gancho de Entrada (El Dolor del Corredor - 2 minutos)
@@ -60,7 +53,7 @@ sequenceDiagram
 > *"Mira tu panel CRM: aquí ves a todos tus clientes ordenados. Puedes filtrar con un solo clic los clientes que tienen visitas hoy, o ver exactamente quiénes consultaron por tu casa en Las Condes sin tener que revolver cientos de chats desordenados de WhatsApp."*
 
 #### Paso 4: El Cierre por Retorno de Inversión (ROI - 2 minutos)
-> *"El plan completo cuesta $99.990 al mes. Con solo UN arriendo o UNA venta que el asistente de IA te ayude a rescatar en todo el año, el sistema ya se pagó solo por los próximos 2 años completos. ¿Te dejamos la plataforma lista y conectada a tu WhatsApp este viernes?"*
+> *"Una sola comisión de venta te genera entre $2.500.000 y $8.000.000 CLP. Con solo UNA operación que el asistente de IA te ayude a rescatar en todo el año, la implementación y la mensualidad ya se pagaron solas por los próximos 3 años completos. ¿Comenzamos con la configuración de tu marca esta semana?"*
 
 ---
 
@@ -84,9 +77,8 @@ sequenceDiagram
 
 ---
 
-## 4. 🚀 Cómo Generar el Archivo PDF Listo para Enviar:
-1. Abre tu navegador y accede a:  
-   `file:///B:/OneDrive/Desarrollo-IA/software/landing-ventas/public/propuesta_comercial_pdf.html`  
-   *(o cuando esté en Vercel en `https://tu-web.vercel.app/propuesta_comercial_pdf.html`)*
-2. Haz clic en el botón superior **"🖨️ Guardar o Imprimir en PDF"** (o presiona `Ctrl + P`).
-3. En destino selecciona **"Guardar como PDF"**. El diseño ya está optimizado con saltos de página limpios y estética ejecutiva de alta gama.
+## 4. 🖨️ Cómo Generar el PDF Listo para Enviar:
+1. Abre en tu navegador:  
+   👉 `file:///B:/OneDrive/Desarrollo-IA/software/landing-ventas/public/propuesta_comercial_pdf.html`
+2. Presiona el botón superior **"🖨️ Guardar o Imprimir en PDF"** (o `Ctrl + P`).
+3. Selecciona **"Guardar como PDF"**. El diseño ejecutivo se ajusta de inmediato sin desconfiguraciones.

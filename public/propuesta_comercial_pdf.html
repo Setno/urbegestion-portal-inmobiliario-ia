@@ -42,7 +42,7 @@
       max-width: 900px;
       margin: 0 auto;
       background: #ffffff;
-      padding: 48px;
+      padding: 44px;
       border-radius: 20px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
       border: 1px solid var(--border);
@@ -54,13 +54,13 @@
       justify-content: space-between;
       align-items: flex-start;
       border-bottom: 2px solid var(--slate-100);
-      padding-bottom: 24px;
-      margin-bottom: 32px;
+      padding-bottom: 20px;
+      margin-bottom: 28px;
     }
 
     .brand-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 700;
       color: var(--slate-900);
       letter-spacing: -0.5px;
@@ -87,10 +87,10 @@
     /* Typography */
     h2 {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 20px;
+      font-size: 19px;
       color: var(--slate-900);
-      margin-top: 32px;
-      margin-bottom: 16px;
+      margin-top: 28px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -99,14 +99,14 @@
     }
 
     h3 {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--slate-900);
       margin-bottom: 8px;
     }
 
     p {
-      font-size: 13px;
+      font-size: 12.5px;
       color: var(--slate-600);
       margin-bottom: 12px;
     }
@@ -116,7 +116,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 16px;
-      margin: 24px 0;
+      margin: 20px 0;
     }
 
     .pricing-card {
@@ -152,40 +152,65 @@
       font-size: 14px;
       font-weight: 800;
       color: var(--slate-900);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
     .plan-desc {
       font-size: 11px;
       color: var(--slate-600);
-      min-height: 32px;
+      min-height: 28px;
       margin-bottom: 12px;
     }
 
-    .plan-price {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 22px;
+    .price-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+
+    .pricing-card.featured .price-box {
+      background: var(--slate-50);
+      border-color: #fde68a;
+    }
+
+    .price-label {
+      font-size: 10px;
+      text-transform: uppercase;
       font-weight: 700;
-      color: var(--primary);
+      color: var(--slate-500);
+      letter-spacing: 0.5px;
+    }
+
+    .price-setup {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--slate-900);
       margin-bottom: 4px;
     }
 
-    .plan-period {
-      font-size: 11px;
-      color: var(--slate-500);
-      font-weight: normal;
+    .price-monthly {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      border-top: 1px dashed var(--border);
+      padding-top: 4px;
+      margin-top: 4px;
     }
 
     .feature-list {
       list-style: none;
-      margin-top: 14px;
+      margin-top: 6px;
       flex-grow: 1;
     }
 
     .feature-list li {
-      font-size: 11.5px;
+      font-size: 11px;
       color: var(--slate-700);
-      padding: 4px 0;
+      padding: 3.5px 0;
       display: flex;
       align-items: flex-start;
       gap: 6px;
@@ -199,7 +224,7 @@
 
     /* Comparison Table */
     .table-container {
-      margin: 20px 0;
+      margin: 18px 0;
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
@@ -208,20 +233,20 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      font-size: 11.5px;
       text-align: left;
     }
 
     th {
       background: var(--slate-100);
-      padding: 10px 14px;
+      padding: 9px 12px;
       font-weight: 700;
       color: var(--slate-800);
       border-bottom: 1px solid var(--border);
     }
 
     td {
-      padding: 10px 14px;
+      padding: 9px 12px;
       border-bottom: 1px solid var(--border);
       color: var(--slate-700);
     }
@@ -235,23 +260,23 @@
       background: #f8fafc;
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
     }
 
     .guide-step {
       display: flex;
-      gap: 14px;
-      margin-bottom: 14px;
+      gap: 12px;
+      margin-bottom: 12px;
     }
 
     .step-number {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 8px;
       background: var(--primary);
       color: white;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -260,14 +285,14 @@
     }
 
     .step-content h4 {
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 700;
       color: var(--slate-900);
       margin-bottom: 2px;
     }
 
     .step-content p {
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--slate-600);
       margin: 0;
     }
@@ -275,27 +300,27 @@
     .script-quote {
       background: #ffffff;
       border-left: 3px solid var(--primary);
-      padding: 10px 14px;
-      font-size: 12px;
+      padding: 8px 12px;
+      font-size: 11.5px;
       font-style: italic;
       color: var(--slate-800);
-      margin: 8px 0;
+      margin: 6px 0;
       border-radius: 0 8px 8px 0;
     }
 
     .objection-item {
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .objection-title {
       font-weight: 700;
       color: #991b1b;
-      font-size: 12.5px;
+      font-size: 12px;
     }
 
     .objection-response {
       color: var(--slate-700);
-      font-size: 12px;
+      font-size: 11.5px;
       margin-top: 2px;
     }
 
@@ -304,7 +329,7 @@
       display: flex;
       justify-content: center;
       gap: 12px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .btn-print {
@@ -361,104 +386,130 @@
     <div class="header-bar">
       <div>
         <div class="brand-title">Ecosistema Inmobiliario & Automatización IA</div>
-        <div class="brand-subtitle">Propuesta de Servicios Comerciales & Manual de Venta Consultiva</div>
+        <div class="brand-subtitle">Propuesta Comercial & Manual de Venta Consultiva (Mercado Chileno / Regional)</div>
       </div>
       <div class="badge-executive">
-        Plan de Suscripción 2026
+        Tarifario Oficial 2026
       </div>
     </div>
 
     <!-- Executive Summary -->
     <p>
-      El presente documento detalla la estructura de precios, alcance de servicios y la metodología de venta consultiva para la implementación del <strong>Ecosistema de Captación y Conversión Inmobiliaria con Inteligencia Artificial</strong>, diseñado específicamente para corredores de propiedades independientes, agencias boutique e inmobiliarias.
+      Estructura de precios bajo el modelo <strong>Setup Inicial de Implementación + Membresía Recurrente</strong>, diseñado para entregar soluciones de software inmobiliario de alto impacto con retorno de inversión garantizado desde la primera operación.
     </p>
 
     <!-- SECTION 1: COMMERCIAL PLANS -->
-    <h2>1. Estructura de Planes y Precios Recurrentes (MRR)</h2>
-    <p>Modelos de suscripción mensual llave en mano, sin contratos de permanencia forzada y con soporte continuo.</p>
+    <h2>1. Estructura de Precios: Setup Inicial + Membresía Mensual</h2>
 
     <div class="pricing-grid">
       
-      <!-- Plan 1 -->
+      <!-- Plan Starter -->
       <div class="pricing-card">
-        <div class="plan-name">Portal Web & CRM</div>
-        <div class="plan-desc">Presencia digital de lujo con gestión automatizada de leads.</div>
-        <div class="plan-price">$49.990 <span class="plan-period">CLP / mes</span></div>
+        <div class="plan-name">Plan Starter</div>
+        <div class="plan-desc">Portal Web Exclusivo + CRM de Leads</div>
+        
+        <div class="price-box">
+          <div class="price-label">Setup Inicial (Pago Único)</div>
+          <div class="price-setup">$290.000 - $390.000 <span style="font-size:10px; font-weight:normal;">CLP</span></div>
+          <div class="price-label" style="margin-top:4px;">Membresía Mensual</div>
+          <div class="price-monthly">$19.900 <span style="font-size:10px; font-weight:normal; color:var(--slate-500);">CLP / mes</span></div>
+        </div>
+
         <ul class="feature-list">
-          <li>Landing Page exclusiva y responsive</li>
-          <li>Catálogo dinámico (UF y $ CLP en vivo)</li>
+          <li>Diseño a medida & colores de marca</li>
+          <li>Catálogo inicial de propiedades (UF/$ CLP)</li>
           <li>Simulador hipotecario interactivo</li>
-          <li>Formulario de captación de propietarios</li>
-          <li>Panel CRM (Kanban + Modo Tabla Excel)</li>
-          <li>Filtro por propiedad y alarmas SLA</li>
-          <li>Hosting en Vercel + Certificado SSL</li>
+          <li>Módulo de captación de propietarios</li>
+          <li>Panel CRM (Kanban + Tabla Excel)</li>
+          <li>Dominio .CL + Hosting Vercel SSL</li>
+          <li>Soporte técnico y actualización UF diaria</li>
         </ul>
       </div>
 
-      <!-- Plan 2 -->
+      <!-- Plan Pro -->
       <div class="pricing-card">
-        <div class="plan-name">Agente WhatsApp IA</div>
-        <div class="plan-desc">Atención y calificación de prospectos 24/7 por WhatsApp.</div>
-        <div class="plan-price">$69.990 <span class="plan-period">CLP / mes</span></div>
+        <div class="plan-name">Plan Pro</div>
+        <div class="plan-desc">Web + Concierge Asistente IA Integrado</div>
+        
+        <div class="price-box">
+          <div class="price-label">Setup Inicial (Pago Único)</div>
+          <div class="price-setup">$450.000 - $590.000 <span style="font-size:10px; font-weight:normal;">CLP</span></div>
+          <div class="price-label" style="margin-top:4px;">Membresía Mensual</div>
+          <div class="price-monthly">$39.900 <span style="font-size:10px; font-weight:normal; color:var(--slate-500);">CLP / mes</span></div>
+        </div>
+
         <ul class="feature-list">
-          <li>Línea oficial de WhatsApp Business (YCloud)</li>
-          <li>IA entrenada con el catálogo del corredor</li>
-          <li>Buffer inteligente (voz, texto e imágenes)</li>
-          <li>Calificación de presupuesto y pre-aprobación</li>
-          <li>Agendamiento de visitas autónomo</li>
-          <li>Derivación al WhatsApp del ejecutivo</li>
-          <li>Dashboard de conversaciones en vivo</li>
+          <li><strong>Todo lo incluido en el Plan Starter</strong></li>
+          <li>Entrenamiento del Asistente IA con el catálogo</li>
+          <li>Concierge flotante 24/7 en la web</li>
+          <li>Recomendación autónoma de propiedades</li>
+          <li>1.000 créditos de IA incluidos al mes</li>
+          <li>Filtro y calificación de crédito de leads</li>
+          <li>Alertas automáticas en el CRM</li>
         </ul>
       </div>
 
-      <!-- Plan 3 (Featured) -->
+      <!-- Plan Full Ecosistema (Featured) -->
       <div class="pricing-card featured">
         <span class="popular-tag">Más Vendido</span>
-        <div class="plan-name">Ecosistema 360° Full</div>
-        <div class="plan-desc">La solución total: Web + CRM + WhatsApp IA sincronizados.</div>
-        <div class="plan-price">$99.990 <span class="plan-period">CLP / mes</span></div>
+        <div class="plan-name">Full Ecosistema</div>
+        <div class="plan-desc">Web + CRM + Agente WhatsApp IA (YCloud)</div>
+        
+        <div class="price-box">
+          <div class="price-label">Setup Inicial (Pago Único)</div>
+          <div class="price-setup">$690.000 - $890.000 <span style="font-size:10px; font-weight:normal;">CLP</span></div>
+          <div class="price-label" style="margin-top:4px;">Membresía Mensual</div>
+          <div class="price-monthly">$69.900 - $89.900 <span style="font-size:10px; font-weight:normal; color:var(--slate-500);">CLP / mes</span></div>
+        </div>
+
         <ul class="feature-list">
-          <li><strong>Todo lo del Plan Web + CRM</strong></li>
-          <li><strong>Todo lo del Agente WhatsApp IA</strong></li>
+          <li><strong>Todo lo incluido en el Plan Pro</strong></li>
+          <li>Línea oficial de WhatsApp Business (YCloud)</li>
+          <li>Buffer inteligente IA (texto, audio y fotos)</li>
+          <li>Agendamiento de visitas por WhatsApp</li>
           <li>Sincronización Web ↔ WhatsApp en tiempo real</li>
-          <li>El lead de la web activa el bot al instante</li>
-          <li>Disparo de fichas en PDF por WhatsApp</li>
-          <li>Soporte técnico prioritario 1-a-1</li>
-          <li>Actualizaciones mensuales de IA sin costo</li>
+          <li>3.000 créditos de IA incluidos al mes</li>
+          <li>Soporte VIP y optimización mensual de prompts</li>
         </ul>
       </div>
 
     </div>
 
-    <!-- Table of Add-ons -->
+    <!-- Table of Comparative Features -->
     <div class="table-container">
       <table>
         <thead>
           <tr>
-            <th>Servicio / Módulo Adicional</th>
-            <th>Tipo de Cobro</th>
-            <th>Valor Estimado</th>
-            <th>Descripción</th>
+            <th>Concepto</th>
+            <th>Plan Starter (Web + CRM)</th>
+            <th>Plan Pro (Web + IA Web)</th>
+            <th>Plan Full Ecosistema (WhatsApp IA)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Setup Inicial & Configuración de Marca</strong></td>
-            <td>Pago Único</td>
-            <td>$75.000 CLP <em>(Opcional)</em></td>
-            <td>Carga de logo, configuración de colores corporativos, dominio personalizado .CL y carga de las primeras 10 propiedades.</td>
+            <td><strong>Setup Inicial (Pago Único)</strong></td>
+            <td><strong>$290.000 - $390.000 CLP</strong></td>
+            <td><strong>$450.000 - $590.000 CLP</strong></td>
+            <td><strong>$690.000 - $890.000 CLP</strong></td>
           </tr>
           <tr>
-            <td><strong>Desarrollo de Módulos a Medida</strong></td>
-            <td>Por Requerimiento</td>
-            <td>$150.000 - $300.000 CLP</td>
-            <td>Calculadoras especiales de rentabilidad, mapas de proyectos 3D o integraciones API con sistemas internos.</td>
+            <td><strong>Membresía Mensual</strong></td>
+            <td><strong>$19.900 CLP / mes</strong></td>
+            <td><strong>$39.900 CLP / mes</strong></td>
+            <td><strong>$69.900 - $89.900 CLP / mes</strong></td>
           </tr>
           <tr>
-            <td><strong>Agente Extra para Segundo Ejecutivo</strong></td>
-            <td>Mensual</td>
-            <td>$29.990 CLP / agente</td>
-            <td>Enrutamiento inteligente por turnos (Round-Robin) para equipos de más de 2 corredores.</td>
+            <td><strong>Alcance de Implementación</strong></td>
+            <td>Diseño a medida, catálogo inicial, CRM y dominio.</td>
+            <td>Setup Starter + Entrenamiento Concierge IA.</td>
+            <td>Setup Pro + Integración oficial Agente WhatsApp.</td>
+          </tr>
+          <tr>
+            <td><strong>Mantenimiento & Consumo</strong></td>
+            <td>Hosting, soporte técnico y UF diaria.</td>
+            <td>Hosting + 1.000 créditos IA/mes + CRM en vivo.</td>
+            <td>Hosting + 3.000 créditos IA + WhatsApp 24/7.</td>
           </tr>
         </tbody>
       </table>
@@ -468,8 +519,8 @@
     <div class="page-break"></div>
 
     <!-- SECTION 2: SALES GUIDE & PITCH SCRIPT -->
-    <h2>2. Guía Rápida de Ventas: Cómo presentar y cerrar corredores</h2>
-    <p>Sigue esta estructura de 4 pasos durante tu llamada o reunión presencial de 15 minutos:</p>
+    <h2>2. Guía Rápida de Ventas: Protocolo de Cierre en 4 Pasos</h2>
+    <p>Estructura consultiva para reuniones de 15 minutos con corredores de propiedades:</p>
 
     <div class="guide-box">
       
@@ -478,7 +529,7 @@
         <div class="step-number">1</div>
         <div class="step-content">
           <h4>El Gancho de Entrada (El Dolor del Corredor - 2 minutos)</h4>
-          <p>Abre la conversación identificando el problema de la pérdida de prospectos:</p>
+          <p>Identifica la fuga de clientes en los portales tradicionales:</p>
           <div class="script-quote">
             "Estimado [Nombre], la mayoría de los corredores pierde el 60% de los interesados que consultan en Portales Inmobiliarios porque nadie les responde en los primeros 15 minutos o porque sus propiedades están mezcladas con las de su competencia. Nosotros implementamos un ecosistema privado que atiende y califica clientes en 10 segundos las 24 horas del día."
           </div>
@@ -490,11 +541,10 @@
         <div class="step-number">2</div>
         <div class="step-content">
           <h4>La Demostración Visual en Vivo (5 minutos)</h4>
-          <p>Abre la landing en tu celular o tablet y muéstrale el poder del sistema:</p>
-          <ul style="padding-left: 18px; font-size: 12px; color: var(--slate-700); margin-top: 4px;">
-            <li><strong>Personalización Instantánea:</strong> Abre el Modo Master en vivo y cambia el logo o la paleta de color para demostrar que la página se adapta 100% a su marca.</li>
-            <li><strong>Fichas UF/CLP:</strong> Muestra cómo los precios se calculan automáticamente con el valor diario de la UF.</li>
-            <li><strong>El Bot de WhatsApp en Vivo:</strong> Pídele que le envíe un mensaje al número de WhatsApp de prueba. Que vea cómo el bot le responde en 3 segundos, le pide sus datos de compraventa y le ofrece agendar una visita.</li>
+          <p>Muestra el sistema operando en vivo en tu celular:</p>
+          <ul style="padding-left: 18px; font-size: 11.5px; color: var(--slate-700); margin-top: 4px;">
+            <li><strong>Personalización Instantánea:</strong> Abre el Modo Master en vivo y cambia el logo o colores para que el corredor vea su marca en segundos.</li>
+            <li><strong>El Bot de WhatsApp en Vivo:</strong> Pídele que le envíe un mensaje al WhatsApp de prueba. Que vea cómo responde en 3 segundos, le pregunta su presupuesto y le ofrece agendar una visita.</li>
           </ul>
         </div>
       </div>
@@ -503,10 +553,10 @@
       <div class="guide-step">
         <div class="step-number">3</div>
         <div class="step-content">
-          <h4>El Panel de Control de Alto Volumen (3 minutos)</h4>
-          <p>Muestra el CRM y la resolución a su desorden operativo:</p>
+          <h4>El Panel CRM de Alto Volumen (3 minutos)</h4>
+          <p>Muestra la solución a su desorden operativo:</p>
           <div class="script-quote">
-            "Mira tu panel: aquí ves a todos tus clientes organizados. Puedes filtrar con un clic solo los que tienen visitas hoy, o ver exactamente quiénes consultaron por tu casa en Las Condes sin tener que buscar entre cientos de chats de WhatsApp."
+            "Mira tu panel: aquí ves a todos tus clientes ordenados. Puedes filtrar con un solo clic los que tienen visitas hoy, o ver exactamente quiénes consultaron por tu casa en Las Condes sin tener que buscar entre cientos de chats de WhatsApp."
           </div>
         </div>
       </div>
@@ -516,9 +566,9 @@
         <div class="step-number">4</div>
         <div class="step-content">
           <h4>El Cierre por Retorno de Inversión (ROI - 2 minutos)</h4>
-          <p>Haz evidente que el costo es insignificante comparado con una sola comisión:</p>
+          <p>Haz evidente que la inversión se recupera con una sola operación:</p>
           <div class="script-quote">
-            "El plan completo cuesta $99.990 al mes. Con solo UN arriendo o UNA venta que el asistente de IA te ayude a rescatar en todo el año, el sistema ya se pagó solo por los próximos 2 años completos. ¿Te dejamos la plataforma lista y conectada a tu WhatsApp este viernes?"
+            "Una sola comisión de venta te genera entre $2.500.000 y $8.000.000 CLP. Con solo UNA operación que el asistente de IA te ayude a rescatar en todo el año, la implementación y la mensualidad ya se pagaron solas por los próximos 3 años. ¿Comenzamos con la configuración de tu marca esta semana?"
           </div>
         </div>
       </div>
@@ -533,7 +583,7 @@
       <div class="objection-item">
         <div class="objection-title">❌ "Ya publico en PortalInmobiliario y TocToc, no necesito otra web."</div>
         <div class="objection-response">
-          💡 <strong>Respuesta:</strong> <em>"Exacto, los portales son geniales para publicar, pero ahí tu propiedad compite al lado de otras 50 similares. Este ecosistema es tu canal privado de cierre donde el cliente no ve a otros corredores y donde nuestro agente de IA atiende y califica de inmediato a los prospectos que llegan de tus redes o de tus letreros físicos."</em>
+          💡 <strong>Respuesta:</strong> <em>"Exacto, los portales son geniales para publicar, pero ahí tu propiedad compite al lado de otras 50 similares. Este ecosistema es tu canal privado de cierre donde el cliente no ve a otros corredores y donde nuestro agente de IA atiende y califica de inmediato a los prospectos que llegan de tus redes o letreros."</em>
         </div>
       </div>
 
@@ -554,8 +604,8 @@
     </div>
 
     <!-- Footer Note -->
-    <div style="text-align: center; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 30px; font-size: 11px; color: var(--slate-400);">
-      Documento Confidencial de Estrategia Comercial &bull; Ecosistema Inmobiliario con IA &bull; Versión 2026.1
+    <div style="text-align: center; border-top: 1px solid var(--border); padding-top: 18px; margin-top: 24px; font-size: 11px; color: var(--slate-400);">
+      Documento Oficial de Estrategia Comercial &bull; Ecosistema Inmobiliario con IA &bull; Versión 2026.2
     </div>
 
   </div>
