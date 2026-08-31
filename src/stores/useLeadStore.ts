@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Lead, LeadStatus } from '../types/lead';
+import { webhookService } from '../services/webhookService';
 
 interface LeadStore {
   leads: Lead[];
@@ -109,11 +110,18 @@ export const useLeadStore = create<LeadStore>((set) => {
         id: newId,
         createdAt: new Date().toISOString().split('T')[0],
       };
+
       set((state) => {
         const updated = [newLead, ...state.leads];
         saveToStorage(updated);
         return { leads: updated };
       });
+
+      // Dispatch automatically to GoHighLevel / Webhook asynchronously
+      webhookService.dispatchLeadToGHL(newLead).catch((err) => {
+        console.warn('Auto GHL webhook dispatch note:', err);
+      });
+
       return newId;
     },
 

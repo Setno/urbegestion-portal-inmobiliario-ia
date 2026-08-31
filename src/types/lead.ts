@@ -12,6 +12,14 @@ export type LeadSource =
   | 'formulario_contacto' 
   | 'captacion_propietarios';
 
+export interface LeadAttachment {
+  id: string;
+  name: string;
+  url: string; // Base64 or Blob URL
+  type: 'image' | 'video' | 'document';
+  size?: string;
+}
+
 export interface Lead {
   id: string;
   fullName: string;
@@ -29,6 +37,14 @@ export interface Lead {
   appointmentTime?: string;
   notes: string[];
   source: LeadSource;
+  attachments?: string[]; // URLs or Base64 images/docs
+  propertySpecs?: {
+    operation?: 'venta' | 'arriendo';
+    propertyType?: string;
+    commune?: string;
+    areaM2?: string;
+    bedrooms?: string;
+  };
   createdAt: string;
 }
 

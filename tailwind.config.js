@@ -2,6 +2,7 @@
 export default {
   content: [
     "./index.html",
+    "./index-02.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
@@ -21,6 +22,7 @@ export default {
       },
       fontFamily: {
         sans: ['Lato', 'Inter', 'system-ui', 'sans-serif'],
+        lato: ['Lato', 'sans-serif'],
       },
     },
   },

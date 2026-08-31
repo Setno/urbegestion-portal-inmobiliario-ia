@@ -27,6 +27,7 @@ export interface Property {
   featured: boolean;
   status: PropertyStatus;
   images: string[];
+  videoUrl?: string;
   description: string;
   features: string[];
   virtualTourUrl?: string;

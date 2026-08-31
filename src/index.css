@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .font-lato {
+    font-family: 'Lato', sans-serif;
+  }
+}
+
 @layer base {
   html {
     font-family: 'Lato', 'Inter', system-ui, sans-serif;

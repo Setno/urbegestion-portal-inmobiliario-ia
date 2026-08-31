@@ -8,31 +8,41 @@ import { PropertyModal } from './components/properties/PropertyModal';
 import { OwnerValuation } from './components/owners/OwnerValuation';
 import { AboutSection } from './components/sections/AboutSection';
 import { TestimonialsSection } from './components/sections/TestimonialsSection';
-import { InstagramSection } from './components/sections/InstagramSection';
 import { Footer } from './components/layout/Footer';
 import { MobileQuickBar } from './components/layout/MobileQuickBar';
 import { AiChatWidget } from './components/chat/AiChatWidget';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { AdminLoginModal } from './components/auth/AdminLoginModal';
 import { Property } from './types/property';
 
 export const App: React.FC = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isValuationOpen, setIsValuationOpen] = useState(false);
 
   const handleOpenBooking = (property: Property) => {
     setSelectedProperty(property);
   };
 
+  const handleRequestAdminAccess = () => {
+    const isAuth = sessionStorage.getItem('urbe_admin_authenticated') === 'true';
+    if (isAuth) {
+      setIsAdminOpen(true);
+    } else {
+      setIsLoginModalOpen(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-900 font-sans selection:bg-urbe-accent/30 selection:text-urbe-primary">
       
       {/* Top Demo Pitch Banner for AI Agency Presentations */}
-      <AgencyPitchBanner onOpenAdmin={() => setIsAdminOpen(true)} />
+      <AgencyPitchBanner onOpenAdmin={handleRequestAdminAccess} />
 
       {/* Main Sticky Navbar (Mobile-First) */}
       <Navbar 
-        onOpenAdmin={() => setIsAdminOpen(true)} 
+        onOpenAdmin={handleRequestAdminAccess} 
         onOpenValuation={() => setIsValuationOpen(true)} 
       />
 
@@ -51,9 +61,6 @@ export const App: React.FC = () => {
 
         {/* About & Trust Section (Pilar Osorio - 25+ Years Experience) */}
         <AboutSection />
-
-        {/* Instagram Community Section (@urbegestion) */}
-        <InstagramSection />
 
         {/* Real Testimonials from Former ACOP President & Clients */}
         <TestimonialsSection />
@@ -80,10 +87,17 @@ export const App: React.FC = () => {
         onClose={() => setIsValuationOpen(false)} 
       />
 
-      {/* Auto-Manageable Admin Dashboard & CRM Kanban (Mobile Optimized) */}
+      {/* Protected Admin Dashboard & CRM Kanban */}
       <AdminDashboard 
         isOpen={isAdminOpen} 
         onClose={() => setIsAdminOpen(false)} 
+      />
+
+      {/* Role-Based Authentication / Login Modal */}
+      <AdminLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={() => setIsAdminOpen(true)}
       />
 
     </div>
