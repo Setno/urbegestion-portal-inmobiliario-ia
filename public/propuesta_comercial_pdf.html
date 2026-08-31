@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propuesta Comercial & Guía de Venta - Ecosistema Inmobiliario con IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #164e63;
+      --primary-dark: #082f49;
+      --accent: #c59b27;
+      --accent-light: #fef3c7;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --border: #e2e8f0;
+      --emerald: #059669;
+      --purple: #7e22ce;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: #f1f5f9;
+      color: var(--slate-800);
+      line-height: 1.55;
+      padding: 24px;
+    }
+
+    .document-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 48px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      border: 1px solid var(--border);
+    }
+
+    /* Header */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--slate-100);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--slate-900);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--slate-600);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .badge-executive {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      border-radius: 30px;
+    }
+
+    /* Typography */
+    h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      color: var(--slate-900);
+      margin-top: 32px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--slate-900);
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 13px;
+      color: var(--slate-600);
+      margin-bottom: 12px;
+    }
+
+    /* Cards & Grid */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .pricing-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      background: var(--slate-50);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pricing-card.featured {
+      background: #ffffff;
+      border: 2px solid var(--accent);
+      box-shadow: 0 10px 20px -3px rgba(197, 155, 39, 0.15);
+    }
+
+    .pricing-card.featured .popular-tag {
+      position: absolute;
+      top: -11px;
+      right: 16px;
+      background: var(--accent);
+      color: #000;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    .plan-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--slate-900);
+      margin-bottom: 4px;
+    }
+
+    .plan-desc {
+      font-size: 11px;
+      color: var(--slate-600);
+      min-height: 32px;
+      margin-bottom: 12px;
+    }
+
+    .plan-price {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .plan-period {
+      font-size: 11px;
+      color: var(--slate-500);
+      font-weight: normal;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-top: 14px;
+      flex-grow: 1;
+    }
+
+    .feature-list li {
+      font-size: 11.5px;
+      color: var(--slate-700);
+      padding: 4px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .feature-list li::before {
+      content: "✓";
+      color: var(--emerald);
+      font-weight: 800;
+    }
+
+    /* Comparison Table */
+    .table-container {
+      margin: 20px 0;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--slate-100);
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--slate-800);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--slate-700);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Sales Guide Box */
+    .guide-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .guide-step {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      shrink: 0;
+    }
+
+    .step-content h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--slate-900);
+      margin-bottom: 2px;
+    }
+
+    .step-content p {
+      font-size: 12px;
+      color: var(--slate-600);
+      margin: 0;
+    }
+
+    .script-quote {
+      background: #ffffff;
+      border-left: 3px solid var(--primary);
+      padding: 10px 14px;
+      font-size: 12px;
+      font-style: italic;
+      color: var(--slate-800);
+      margin: 8px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .objection-item {
+      margin-bottom: 12px;
+    }
+
+    .objection-title {
+      font-weight: 700;
+      color: #991b1b;
+      font-size: 12.5px;
+    }
+
+    .objection-response {
+      color: var(--slate-700);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    /* Print Button */
+    .print-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn-print {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(22, 78, 99, 0.25);
+    }
+
+    .btn-print:hover {
+      background: var(--primary-dark);
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .document-container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .print-actions {
+        display: none;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen Only Print Bar -->
+  <div class="print-actions">
+    <button onclick="window.print()" class="btn-print">
+      🖨️ Guardar o Imprimir en PDF
+    </button>
+  </div>
+
+  <div class="document-container">
+    
+    <!-- Header -->
+    <div class="header-bar">
+      <div>
+        <div class="brand-title">Ecosistema Inmobiliario & Automatización IA</div>
+        <div class="brand-subtitle">Propuesta de Servicios Comerciales & Manual de Venta Consultiva</div>
+      </div>
+      <div class="badge-executive">
+        Plan de Suscripción 2026
+      </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <p>
+      El presente documento detalla la estructura de precios, alcance de servicios y la metodología de venta consultiva para la implementación del <strong>Ecosistema de Captación y Conversión Inmobiliaria con Inteligencia Artificial</strong>, diseñado específicamente para corredores de propiedades independientes, agencias boutique e inmobiliarias.
+    </p>
+
+    <!-- SECTION 1: COMMERCIAL PLANS -->
+    <h2>1. Estructura de Planes y Precios Recurrentes (MRR)</h2>
+    <p>Modelos de suscripción mensual llave en mano, sin contratos de permanencia forzada y con soporte continuo.</p>
+
+    <div class="pricing-grid">
+      
+      <!-- Plan 1 -->
+      <div class="pricing-card">
+        <div class="plan-name">Portal Web & CRM</div>
+        <div class="plan-desc">Presencia digital de lujo con gestión automatizada de leads.</div>
+        <div class="plan-price">$49.990 <span class="plan-period">CLP / mes</span></div>
+        <ul class="feature-list">
+          <li>Landing Page exclusiva y responsive</li>
+          <li>Catálogo dinámico (UF y $ CLP en vivo)</li>
+          <li>Simulador hipotecario interactivo</li>
+          <li>Formulario de captación de propietarios</li>
+          <li>Panel CRM (Kanban + Modo Tabla Excel)</li>
+          <li>Filtro por propiedad y alarmas SLA</li>
+          <li>Hosting en Vercel + Certificado SSL</li>
+        </ul>
+      </div>
+
+      <!-- Plan 2 -->
+      <div class="pricing-card">
+        <div class="plan-name">Agente WhatsApp IA</div>
+        <div class="plan-desc">Atención y calificación de prospectos 24/7 por WhatsApp.</div>
+        <div class="plan-price">$69.990 <span class="plan-period">CLP / mes</span></div>
+        <ul class="feature-list">
+          <li>Línea oficial de WhatsApp Business (YCloud)</li>
+          <li>IA entrenada con el catálogo del corredor</li>
+          <li>Buffer inteligente (voz, texto e imágenes)</li>
+          <li>Calificación de presupuesto y pre-aprobación</li>
+          <li>Agendamiento de visitas autónomo</li>
+          <li>Derivación al WhatsApp del ejecutivo</li>
+          <li>Dashboard de conversaciones en vivo</li>
+        </ul>
+      </div>
+
+      <!-- Plan 3 (Featured) -->
+      <div class="pricing-card featured">
+        <span class="popular-tag">Más Vendido</span>
+        <div class="plan-name">Ecosistema 360° Full</div>
+        <div class="plan-desc">La solución total: Web + CRM + WhatsApp IA sincronizados.</div>
+        <div class="plan-price">$99.990 <span class="plan-period">CLP / mes</span></div>
+        <ul class="feature-list">
+          <li><strong>Todo lo del Plan Web + CRM</strong></li>
+          <li><strong>Todo lo del Agente WhatsApp IA</strong></li>
+          <li>Sincronización Web ↔ WhatsApp en tiempo real</li>
+          <li>El lead de la web activa el bot al instante</li>
+          <li>Disparo de fichas en PDF por WhatsApp</li>
+          <li>Soporte técnico prioritario 1-a-1</li>
+          <li>Actualizaciones mensuales de IA sin costo</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Table of Add-ons -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Servicio / Módulo Adicional</th>
+            <th>Tipo de Cobro</th>
+            <th>Valor Estimado</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Setup Inicial & Configuración de Marca</strong></td>
+            <td>Pago Único</td>
+            <td>$75.000 CLP <em>(Opcional)</em></td>
+            <td>Carga de logo, configuración de colores corporativos, dominio personalizado .CL y carga de las primeras 10 propiedades.</td>
+          </tr>
+          <tr>
+            <td><strong>Desarrollo de Módulos a Medida</strong></td>
+            <td>Por Requerimiento</td>
+            <td>$150.000 - $300.000 CLP</td>
+            <td>Calculadoras especiales de rentabilidad, mapas de proyectos 3D o integraciones API con sistemas internos.</td>
+          </tr>
+          <tr>
+            <td><strong>Agente Extra para Segundo Ejecutivo</strong></td>
+            <td>Mensual</td>
+            <td>$29.990 CLP / agente</td>
+            <td>Enrutamiento inteligente por turnos (Round-Robin) para equipos de más de 2 corredores.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGE BREAK FOR CLEAN PRINTING -->
+    <div class="page-break"></div>
+
+    <!-- SECTION 2: SALES GUIDE & PITCH SCRIPT -->
+    <h2>2. Guía Rápida de Ventas: Cómo presentar y cerrar corredores</h2>
+    <p>Sigue esta estructura de 4 pasos durante tu llamada o reunión presencial de 15 minutos:</p>
+
+    <div class="guide-box">
+      
+      <!-- Step 1 -->
+      <div class="guide-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>El Gancho de Entrada (El Dolor del Corredor - 2 minutos)</h4>
+          <p>Abre la conversación identificando el problema de la pérdida de prospectos:</p>
+          <div class="script-quote">
+            "Estimado [Nombre], la mayoría de los corredores pierde el 60% de los interesados que consultan en Portales Inmobiliarios porque nadie les responde en los primeros 15 minutos o porque sus propiedades están mezcladas con las de su competencia. Nosotros implementamos un ecosistema privado que atiende y califica clientes en 10 segundos las 24 horas del día."
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="guide-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>La Demostración Visual en Vivo (5 minutos)</h4>
+          <p>Abre la landing en tu celular o tablet y muéstrale el poder del sistema:</p>
+          <ul style="padding-left: 18px; font-size: 12px; color: var(--slate-700); margin-top: 4px;">
+            <li><strong>Personalización Instantánea:</strong> Abre el Modo Master en vivo y cambia el logo o la paleta de color para demostrar que la página se adapta 100% a su marca.</li>
+            <li><strong>Fichas UF/CLP:</strong> Muestra cómo los precios se calculan automáticamente con el valor diario de la UF.</li>
+            <li><strong>El Bot de WhatsApp en Vivo:</strong> Pídele que le envíe un mensaje al número de WhatsApp de prueba. Que vea cómo el bot le responde en 3 segundos, le pide sus datos de compraventa y le ofrece agendar una visita.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="guide-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>El Panel de Control de Alto Volumen (3 minutos)</h4>
+          <p>Muestra el CRM y la resolución a su desorden operativo:</p>
+          <div class="script-quote">
+            "Mira tu panel: aquí ves a todos tus clientes organizados. Puedes filtrar con un clic solo los que tienen visitas hoy, o ver exactamente quiénes consultaron por tu casa en Las Condes sin tener que buscar entre cientos de chats de WhatsApp."
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="guide-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h4>El Cierre por Retorno de Inversión (ROI - 2 minutos)</h4>
+          <p>Haz evidente que el costo es insignificante comparado con una sola comisión:</p>
+          <div class="script-quote">
+            "El plan completo cuesta $99.990 al mes. Con solo UN arriendo o UNA venta que el asistente de IA te ayude a rescatar en todo el año, el sistema ya se pagó solo por los próximos 2 años completos. ¿Te dejamos la plataforma lista y conectada a tu WhatsApp este viernes?"
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION 3: OBJECTION HANDLING -->
+    <h2>3. Manejo de Objeciones Frecuentes</h2>
+
+    <div class="guide-box">
+      
+      <div class="objection-item">
+        <div class="objection-title">❌ "Ya publico en PortalInmobiliario y TocToc, no necesito otra web."</div>
+        <div class="objection-response">
+          💡 <strong>Respuesta:</strong> <em>"Exacto, los portales son geniales para publicar, pero ahí tu propiedad compite al lado de otras 50 similares. Este ecosistema es tu canal privado de cierre donde el cliente no ve a otros corredores y donde nuestro agente de IA atiende y califica de inmediato a los prospectos que llegan de tus redes o de tus letreros físicos."</em>
+        </div>
+      </div>
+
+      <div class="objection-item">
+        <div class="objection-title">❌ "Yo prefiero responder el WhatsApp personalmente a mis clientes."</div>
+        <div class="objection-response">
+          💡 <strong>Respuesta:</strong> <em>"Por supuesto, tú eres el experto cerrando ventas. El agente de IA no reemplaza tu llamada; solo hace el trabajo repetitivo de filtrar curiosos a las 11 de la noche, verificar si tienen crédito pre-aprobado y entregarte el cliente listo en bandeja para que tú solo vayas a mostrar la propiedad."</em>
+        </div>
+      </div>
+
+      <div class="objection-item">
+        <div class="objection-title">❌ "No tengo tiempo ni conocimientos técnicos para administrar una plataforma."</div>
+        <div class="objection-response">
+          💡 <strong>Respuesta:</strong> <em>"Nosotros nos encargamos del 100% de la parte técnica. Te entregamos la web y el WhatsApp listos para operar. Para subir una propiedad solo arrastras las fotos desde tu computador en 1 minuto o nos envías los datos por correo y nosotros lo configuramos."</em>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer Note -->
+    <div style="text-align: center; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 30px; font-size: 11px; color: var(--slate-400);">
+      Documento Confidencial de Estrategia Comercial &bull; Ecosistema Inmobiliario con IA &bull; Versión 2026.1
+    </div>
+
+  </div>
+
+</body>
+</html>
