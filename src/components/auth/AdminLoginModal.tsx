@@ -61,8 +61,14 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-60 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 relative overflow-hidden">
+    <div 
+      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 relative overflow-hidden my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Subtle decorative glow */}
         <div className="absolute -top-12 -right-12 w-36 h-36 bg-urbe-accent/20 rounded-full blur-2xl pointer-events-none" />
@@ -71,6 +77,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+          aria-label="Cerrar modal"
         >
           <X className="w-4 h-4" />
         </button>
