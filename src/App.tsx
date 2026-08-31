@@ -17,7 +17,7 @@ import { useBrandStore } from './stores/useBrandStore';
 import { Property } from './types/property';
 
 export const App: React.FC = () => {
-  const { themeColors } = useBrandStore();
+  const { themeColors, layoutConfig } = useBrandStore();
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -60,7 +60,7 @@ export const App: React.FC = () => {
         <HeroSection onOpenValuation={() => setIsValuationOpen(true)} />
 
         {/* Real-Time Multi-Filter Search Bar */}
-        <SearchFilterBar />
+        {layoutConfig.showSearchFilter && <SearchFilterBar />}
 
         {/* Dynamic Property Catalog Grid */}
         <PropertyGrid 
@@ -68,11 +68,11 @@ export const App: React.FC = () => {
           onOpenBooking={handleOpenBooking}
         />
 
-        {/* About & Trust Section (Pilar Osorio - 25+ Years Experience) */}
-        <AboutSection />
+        {/* About & Trust Section */}
+        {layoutConfig.showAboutSection && <AboutSection />}
 
         {/* Real Testimonials from Former ACOP President & Clients */}
-        <TestimonialsSection />
+        {layoutConfig.showTestimonialsSection && <TestimonialsSection />}
       </main>
 
       {/* Footer */}
@@ -82,7 +82,9 @@ export const App: React.FC = () => {
       <MobileQuickBar />
 
       {/* 24/7 AI Concierge Chatbot Widget */}
-      <AiChatWidget onOpenPropertyModal={(prop) => setSelectedProperty(prop)} />
+      {layoutConfig.showAiChat && (
+        <AiChatWidget onOpenPropertyModal={(prop) => setSelectedProperty(prop)} />
+      )}
 
       {/* Full Property Technical Sheet Modal with Location Map */}
       <PropertyModal 

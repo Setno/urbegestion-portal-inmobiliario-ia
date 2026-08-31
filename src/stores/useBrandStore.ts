@@ -8,13 +8,22 @@ export interface ThemeColors {
   accentHover: string;
 }
 
+export interface BrandLayoutConfig {
+  showSearchFilter: boolean;
+  showAboutSection: boolean;
+  showTestimonialsSection: boolean;
+  showAiChat: boolean;
+}
+
 export interface BrandStore {
   config: RealEstateBrandConfig;
   themeColors: ThemeColors;
+  layoutConfig: BrandLayoutConfig;
   
   // Actions
   updateBrandConfig: (partial: Partial<RealEstateBrandConfig>) => void;
   updateThemeColors: (colors: Partial<ThemeColors>) => void;
+  updateLayoutConfig: (layout: Partial<BrandLayoutConfig>) => void;
   resetToDefault: () => void;
 }
 
@@ -23,6 +32,13 @@ const defaultThemeColors: ThemeColors = {
   primaryDark: '#0f3a4b',
   accent: '#c59b27',
   accentHover: '#b0881e',
+};
+
+const defaultLayoutConfig: BrandLayoutConfig = {
+  showSearchFilter: true,
+  showAboutSection: true,
+  showTestimonialsSection: true,
+  showAiChat: true,
 };
 
 // Color Presets for Real Estate Brokers
@@ -77,10 +93,12 @@ function applyCssVariables(colors: ThemeColors) {
 export const useBrandStore = create<BrandStore>((set) => {
   let initialConfig = { ...defaultAgencyConfig };
   let initialColors = { ...defaultThemeColors };
+  let initialLayout = { ...defaultLayoutConfig };
 
   if (typeof window !== 'undefined') {
     const savedConfig = localStorage.getItem('urbe_brand_config');
     const savedColors = localStorage.getItem('urbe_theme_colors');
+    const savedLayout = localStorage.getItem('urbe_layout_config');
 
     if (savedConfig) {
       try {
@@ -98,12 +116,21 @@ export const useBrandStore = create<BrandStore>((set) => {
       }
     }
 
+    if (savedLayout) {
+      try {
+        initialLayout = { ...defaultLayoutConfig, ...JSON.parse(savedLayout) };
+      } catch (e) {
+        console.warn('Error parsing saved layout config:', e);
+      }
+    }
+
     applyCssVariables(initialColors);
   }
 
   return {
     config: initialConfig,
     themeColors: initialColors,
+    layoutConfig: initialLayout,
 
     updateBrandConfig: (partial) => {
       set((state) => {
@@ -144,16 +171,28 @@ export const useBrandStore = create<BrandStore>((set) => {
       });
     },
 
+    updateLayoutConfig: (layout) => {
+      set((state) => {
+        const updatedLayout = { ...state.layoutConfig, ...layout };
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('urbe_layout_config', JSON.stringify(updatedLayout));
+        }
+        return { layoutConfig: updatedLayout };
+      });
+    },
+
     resetToDefault: () => {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('urbe_brand_config');
         localStorage.removeItem('urbe_theme_colors');
+        localStorage.removeItem('urbe_layout_config');
         applyCssVariables(defaultThemeColors);
       }
 
       set({
         config: { ...defaultAgencyConfig },
         themeColors: { ...defaultThemeColors },
+        layoutConfig: { ...defaultLayoutConfig },
       });
     },
   };

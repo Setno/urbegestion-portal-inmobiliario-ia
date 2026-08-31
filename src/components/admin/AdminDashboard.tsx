@@ -198,6 +198,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const brokerPhotoInputRef = useRef<HTMLInputElement>(null);
 
+  // Layout Modular Toggles State
+  const { layoutConfig, updateLayoutConfig } = useBrandStore();
+  const [bShowSearch, setBShowSearch] = useState(layoutConfig.showSearchFilter);
+  const [bShowAbout, setBShowAbout] = useState(layoutConfig.showAboutSection);
+  const [bShowTestimonials, setBShowTestimonials] = useState(layoutConfig.showTestimonialsSection);
+  const [bShowAiChat, setBShowAiChat] = useState(layoutConfig.showAiChat);
+
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -250,6 +257,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       accentHover: bAccentColor,
     });
 
+    updateLayoutConfig({
+      showSearchFilter: bShowSearch,
+      showAboutSection: bShowAbout,
+      showTestimonialsSection: bShowTestimonials,
+      showAiChat: bShowAiChat,
+    });
+
     setBrandSavedToast(true);
     setTimeout(() => setBrandSavedToast(false), 3000);
   };
@@ -259,6 +273,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       resetBrand();
       const defaultC = useBrandStore.getState().config;
       const defaultT = useBrandStore.getState().themeColors;
+      const defaultL = useBrandStore.getState().layoutConfig;
       setBBrandName(defaultC.brandName);
       setBTagline(defaultC.tagline);
       setBLogoUrl(defaultC.logoUrl);
@@ -272,6 +287,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       setBInstagram(defaultC.contact.instagram);
       setBPrimaryColor(defaultT.primary);
       setBAccentColor(defaultT.accent);
+      setBShowSearch(defaultL.showSearchFilter);
+      setBShowAbout(defaultL.showAboutSection);
+      setBShowTestimonials(defaultL.showTestimonialsSection);
+      setBShowAiChat(defaultL.showAiChat);
       setBrandSavedToast(true);
       setTimeout(() => setBrandSavedToast(false), 3000);
     }
@@ -1692,6 +1711,90 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 >
                   <Check className="w-4 h-4" />
                   <span>{brandSavedToast ? '¡Marca Guardada con Éxito!' : 'Guardar y Aplicar a Toda la Web'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Card 5: Architecture & Modular Section Toggles */}
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider text-urbe-primary flex items-center gap-2">
+                  <LayoutDashboard className="w-4 h-4" />
+                  5. Arquitectura & Módulos Activos de la Landing Page
+                </h4>
+                <p className="text-xs text-slate-500 mt-1">
+                  Activa o desactiva secciones completas de la página según el tipo de cliente o modelo de negocio:
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                {/* Module 1: Search Bar */}
+                <label className="flex items-start gap-3 p-3 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={bShowSearch}
+                    onChange={(e) => setBShowSearch(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded text-urbe-primary focus:ring-urbe-primary"
+                  />
+                  <div>
+                    <span className="font-bold text-xs text-slate-900 block">🔍 Buscador Multifiltro Superior</span>
+                    <span className="text-[11px] text-slate-500">Muestra la barra de búsqueda por comuna, tipo y rango de precio en UF.</span>
+                  </div>
+                </label>
+
+                {/* Module 2: About Broker */}
+                <label className="flex items-start gap-3 p-3 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={bShowAbout}
+                    onChange={(e) => setBShowAbout(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded text-urbe-primary focus:ring-urbe-primary"
+                  />
+                  <div>
+                    <span className="font-bold text-xs text-slate-900 block">👤 Sección "Sobre Mí" / Corredor</span>
+                    <span className="text-[11px] text-slate-500">Muestra la biografía, años de trayectoria y credenciales del broker.</span>
+                  </div>
+                </label>
+
+                {/* Module 3: Testimonials */}
+                <label className="flex items-start gap-3 p-3 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={bShowTestimonials}
+                    onChange={(e) => setBShowTestimonials(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded text-urbe-primary focus:ring-urbe-primary"
+                  />
+                  <div>
+                    <span className="font-bold text-xs text-slate-900 block">⭐ Reseñas & Testimonios</span>
+                    <span className="text-[11px] text-slate-500">Muestra las opiniones y casos de éxito de clientes anteriores.</span>
+                  </div>
+                </label>
+
+                {/* Module 4: AI Chat Widget */}
+                <label className="flex items-start gap-3 p-3 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={bShowAiChat}
+                    onChange={(e) => setBShowAiChat(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded text-urbe-primary focus:ring-urbe-primary"
+                  />
+                  <div>
+                    <span className="font-bold text-xs text-slate-900 block">🤖 Asistente Virtual IA Flotante</span>
+                    <span className="text-[11px] text-slate-500">Muestra el widget de chat 24/7 en la esquina inferior derecha.</span>
+                  </div>
+                </label>
+
+              </div>
+
+              <div className="pt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveBrand}
+                  className="px-6 py-2.5 rounded-xl bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold shadow-md transition-colors flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>{brandSavedToast ? '¡Estructura Guardada con Éxito!' : 'Guardar y Aplicar Estructura'}</span>
                 </button>
               </div>
             </div>
