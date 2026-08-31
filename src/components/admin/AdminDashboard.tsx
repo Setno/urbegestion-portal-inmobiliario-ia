@@ -53,6 +53,7 @@ import { REGION_METROPOLITANA_ZONES } from '../../data/chileanLocations';
 import { Lead, LeadStatus } from '../../types/lead';
 import { Property, PropertyType, OperationType, PropertyStatus } from '../../types/property';
 import { webhookService } from '../../services/webhookService';
+import { getAiConfig, saveAiConfig, AiProviderType } from '../../services/aiService';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -103,6 +104,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [isTestingGhl, setIsTestingGhl] = useState(false);
   const [ghlTestResult, setGhlTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState(false);
+
+  // AI Assistant Engine State
+  const [aiProvider, setAiProvider] = useState<AiProviderType>(() => getAiConfig().provider);
+  const [aiApiKey, setAiApiKey] = useState(() => getAiConfig().apiKey || '');
+  const [aiModelName, setAiModelName] = useState(() => getAiConfig().modelName || 'gpt-4o-mini');
+  const [aiSystemPrompt, setAiSystemPrompt] = useState(() => getAiConfig().systemPrompt || '');
+  const [showAiKey, setShowAiKey] = useState(false);
 
   if (!isOpen) return null;
 
@@ -257,6 +265,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       ghlWebhookUrl,
       calComUrl,
       isEnabled: true,
+    });
+    saveAiConfig({
+      provider: aiProvider,
+      apiKey: aiApiKey,
+      modelName: aiModelName,
+      systemPrompt: aiSystemPrompt,
     });
     setSaveSuccessMsg(true);
     setTimeout(() => setSaveSuccessMsg(false), 2500);
@@ -768,6 +782,106 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 </div>
               </div>
 
+            </div>
+
+            {/* Integration 3: AI Assistant LLM Gateway & Custom Prompt */}
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-cyan-100 text-cyan-700 font-bold">
+                    <Sparkles className="w-5 h-5 text-urbe-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">Motor del Asistente Virtual IA</h4>
+                    <span className="text-[10px] text-slate-400 font-medium">Selección de Modelo, API Key & Reglas del Bot</span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-800 border border-cyan-200 w-fit">
+                  {aiProvider === 'local_rules' ? '⚡ Motor Local (0 Costo)' : `🤖 LLM Activo: ${aiProvider.toUpperCase()}`}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Proveedor de Inteligencia Artificial
+                  </label>
+                  <select
+                    value={aiProvider}
+                    onChange={(e) => setAiProvider(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
+                  >
+                    <option value="local_rules">⚡ Motor Local Experto (Gratis, Ilimitado, Ultrarrápido - Ideal Demo)</option>
+                    <option value="openai">🟢 OpenAI (GPT-4o / GPT-4o-mini)</option>
+                    <option value="deepseek">🔵 DeepSeek V3 (Ultracosteable y Potente)</option>
+                    <option value="openrouter">🟣 OpenRouter (Claude 3.5 Haiku, Gemini Flash, etc.)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Modelo Específico (Ej: gpt-4o-mini, deepseek-chat)
+                  </label>
+                  <input
+                    type="text"
+                    value={aiModelName}
+                    onChange={(e) => setAiModelName(e.target.value)}
+                    placeholder="gpt-4o-mini"
+                    disabled={aiProvider === 'local_rules'}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              {aiProvider !== 'local_rules' && (
+                <div className="space-y-1 text-xs">
+                  <label className="block font-bold text-slate-700">
+                    API Key del Proveedor ({aiProvider.toUpperCase()})
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showAiKey ? 'text' : 'password'}
+                      value={aiApiKey}
+                      onChange={(e) => setAiApiKey(e.target.value)}
+                      placeholder={`sk-... (Clave de ${aiProvider})`}
+                      className="w-full px-3 py-2 pr-20 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAiKey(!showAiKey)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-500 hover:text-slate-800 px-2 py-1 bg-white border border-slate-200 rounded-lg"
+                    >
+                      {showAiKey ? 'Ocultar' : 'Mostrar'}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    Tu API Key se almacena localmente de forma segura en tu navegador y nunca se expone en código fuente.
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Prompt del Sistema / Reglas de Negocio del Agente
+                </label>
+                <textarea
+                  rows={3}
+                  value={aiSystemPrompt}
+                  onChange={(e) => setAiSystemPrompt(e.target.value)}
+                  placeholder="Instrucciones para el tono de voz, calificación de clientes..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveIntegrations}
+                  className="px-5 py-2.5 rounded-xl bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold shadow transition-colors"
+                >
+                  {saveSuccessMsg ? '¡Configuración IA Guardada!' : 'Guardar Ajustes de IA'}
+                </button>
+              </div>
             </div>
 
             {/* Financial Parameters */}

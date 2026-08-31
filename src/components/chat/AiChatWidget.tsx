@@ -44,7 +44,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || inputVal;
     if (!text.trim()) return;
 
@@ -55,10 +55,10 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
     });
     setInputVal('');
 
-    // 2. Simulate AI thinking & processing
+    // 2. AI thinking & processing
     setIsTyping(true);
-    setTimeout(() => {
-      const response = processAiChatMessage(text, properties);
+    try {
+      const response = await processAiChatMessage(text, properties);
       
       addMessage({
         sender: 'bot',
@@ -66,8 +66,14 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
         suggestedProperties: response.suggestedProperties,
         actionRequired: response.actionRequired,
       });
+    } catch (err) {
+      addMessage({
+        sender: 'bot',
+        text: 'Disculpa, tuve un momento de congestión. Puedes contactar directamente a Pilar Osorio al +56 9 7909 4519.',
+      });
+    } finally {
       setIsTyping(false);
-    }, 850);
+    }
   };
 
   const handleRegisterLead = (e: React.FormEvent) => {

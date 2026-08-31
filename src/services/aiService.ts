@@ -2,14 +2,152 @@ import { Property } from '../types/property';
 import { agencyConfig } from '../config/agencyConfig';
 import { useLeadStore } from '../stores/useLeadStore';
 
-interface AiResponseResult {
+export type AiProviderType = 'local_rules' | 'openai' | 'openrouter' | 'deepseek' | 'gemini';
+
+export interface AiModelConfig {
+  provider: AiProviderType;
+  apiKey?: string;
+  modelName?: string;
+  systemPrompt?: string;
+  temperature?: number;
+}
+
+export interface AiResponseResult {
   text: string;
   suggestedProperties?: string[];
   actionRequired?: 'select_date' | 'provide_contact' | 'view_properties';
   leadCreated?: boolean;
 }
 
-export function processAiChatMessage(
+const DEFAULT_SYSTEM_PROMPT = `Eres UrbeBot Concierge, el asistente inmobiliario de alta gama para la corredora de propiedades UrbeGestión (liderada por Pilar Osorio con más de 25 años de experiencia en Santiago de Chile y propiedades agrícolas). 
+Tu objetivo es asesorar con amabilidad y elegancia a compradores, arrendatarios y propietarios, responder dudas sobre precios en UF y financiamiento hipotecario, y calificar al prospecto para agendar una visita privada con Pilar Osorio.`;
+
+export function getAiConfig(): AiModelConfig {
+  const env = (import.meta as any).env || {};
+  const savedProvider = localStorage.getItem('urbe_ai_provider') as AiProviderType;
+  const savedApiKey = localStorage.getItem('urbe_ai_apikey');
+  const savedModel = localStorage.getItem('urbe_ai_model');
+  const savedPrompt = localStorage.getItem('urbe_ai_prompt');
+
+  return {
+    provider: savedProvider || env.VITE_AI_PROVIDER || 'local_rules',
+    apiKey: savedApiKey || env.VITE_OPENAI_API_KEY || '',
+    modelName: savedModel || env.VITE_AI_MODEL || 'gpt-4o-mini',
+    systemPrompt: savedPrompt || DEFAULT_SYSTEM_PROMPT,
+    temperature: 0.7,
+  };
+}
+
+export function saveAiConfig(config: Partial<AiModelConfig>): void {
+  if (config.provider) localStorage.setItem('urbe_ai_provider', config.provider);
+  if (config.apiKey !== undefined) localStorage.setItem('urbe_ai_apikey', config.apiKey.trim());
+  if (config.modelName) localStorage.setItem('urbe_ai_model', config.modelName);
+  if (config.systemPrompt !== undefined) localStorage.setItem('urbe_ai_prompt', config.systemPrompt.trim());
+}
+
+/**
+ * Main AI Message Processing Gateway (Local Heuristic Engine or Live LLM API)
+ */
+export async function processAiChatMessage(
+  userText: string,
+  properties: Property[]
+): Promise<AiResponseResult> {
+  const config = getAiConfig();
+
+  // If live LLM API key is provided and provider is active, use LLM gateway
+  if (config.provider !== 'local_rules' && config.apiKey) {
+    try {
+      const llmResponse = await callLlmApi(userText, properties, config);
+      if (llmResponse) return llmResponse;
+    } catch (err) {
+      console.warn('[AI Service] Fallback to local heuristic engine:', err);
+    }
+  }
+
+  // Fast, zero-cost, context-aware local real estate engine
+  return processLocalRuleEngine(userText, properties);
+}
+
+/**
+ * Live LLM API Gateway (OpenAI / OpenRouter / DeepSeek / Gemini)
+ */
+async function callLlmApi(
+  userText: string,
+  properties: Property[],
+  config: AiModelConfig
+): Promise<AiResponseResult | null> {
+  let endpoint = 'https://api.openai.com/v1/chat/completions';
+  let defaultModel = config.modelName || 'gpt-4o-mini';
+
+  if (config.provider === 'openrouter') {
+    endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+    defaultModel = config.modelName || 'deepseek/deepseek-chat';
+  } else if (config.provider === 'deepseek') {
+    endpoint = 'https://api.deepseek.com/v1/chat/completions';
+    defaultModel = config.modelName || 'deepseek-chat';
+  }
+
+  // Feed active properties inventory into LLM system prompt context
+  const propertyCatalogContext = properties.map(p => 
+    `- [ID: ${p.id}] ${p.title} (${p.propertyType} en ${p.commune}) - Precio: ${p.priceUf} UF. ${p.bedrooms} dorm, ${p.bathrooms} baños, ${p.builtAreaM2 || p.totalAreaM2} m². Operación: ${p.operation}.`
+  ).join('\n');
+
+  const fullSystemPrompt = `${config.systemPrompt || DEFAULT_SYSTEM_PROMPT}
+
+VALOR ACTUAL UF: $${agencyConfig.market.ufValueClp.toLocaleString('es-CL')} CLP.
+CONTACTO PILAR OSORIO: WhatsApp/Teléfono ${agencyConfig.contact.phoneDisplay}.
+
+INVENTARIO ACTUAL DE PROPIEDADES DISPONIBLES:
+${propertyCatalogContext}
+
+INSTRUCCIONES DE RESPUESTA:
+- Responde de forma concisa, cálida y profesional (máximo 3 párrafos cortos).
+- Si el usuario busca una propiedad, menciona opciones de este inventario.
+- Invita siempre a coordinar una visita presencial o simular el dividendo hipotecario.`;
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: defaultModel,
+      messages: [
+        { role: 'system', content: fullSystemPrompt },
+        { role: 'user', content: userText }
+      ],
+      temperature: config.temperature || 0.7,
+      max_tokens: 350
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`LLM API returned status ${response.status}`);
+  }
+
+  const data = await response.json();
+  const replyText = data.choices?.[0]?.message?.content || '';
+
+  // Extract property matches
+  const matchedIds = properties
+    .filter(p => replyText.toLowerCase().includes(p.commune.toLowerCase()) || replyText.includes(p.id))
+    .slice(0, 3)
+    .map(p => p.id);
+
+  return {
+    text: replyText,
+    suggestedProperties: matchedIds.length > 0 ? matchedIds : undefined,
+    actionRequired: replyText.toLowerCase().includes('visita') || replyText.toLowerCase().includes('agendar') 
+      ? 'select_date' 
+      : undefined
+  };
+}
+
+/**
+ * Local Context-Aware Real Estate Engine
+ */
+function processLocalRuleEngine(
   userText: string,
   properties: Property[]
 ): AiResponseResult {
@@ -40,7 +178,7 @@ export function processAiChatMessage(
     query.includes('poner en arriendo')
   ) {
     return {
-      text: `En UrbeGestión contamos con más de 25 años de experiencia valorando y comercializando inmuebles urbanos y agrícolas en la Región Metropolitana con un tiempo promedio de venta de 42 días.\n\nTe invitamos a utilizar nuestra sección "Vende con Nosotros" o ingresar tu teléfono para que Pilar Osorio te contacte con un estudio de mercado comparativo preliminar sin costo.`,
+      text: `En UrbeGestión contamos con más de 25 años de experiencia valorando y comercializando inmuebles urbanos y agrícolas en la Región Metropolitana con un tiempo promedio de venta de 42 días.\n\nTe invitamos a utilizar nuestra sección "Vende con Nosotros" para subir fotos desde tu celular o ingresar tu teléfono para que Pilar Osorio te contacte con un estudio de mercado sin costo.`,
       actionRequired: 'provide_contact',
     };
   }
