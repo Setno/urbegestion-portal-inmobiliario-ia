@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-urbe-primary: #164e63;
+  --color-urbe-primary-dark: #0f3a4b;
+  --color-urbe-accent: #c59b27;
+  --color-urbe-accent-hover: #b0881e;
+}
+
 @layer utilities {
   .font-lato {
     font-family: 'Lato', sans-serif;

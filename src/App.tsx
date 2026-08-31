@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AgencyPitchBanner } from './components/pitch/AgencyPitchBanner';
 import { Navbar } from './components/layout/Navbar';
 import { HeroSection } from './components/hero/HeroSection';
@@ -13,13 +13,22 @@ import { MobileQuickBar } from './components/layout/MobileQuickBar';
 import { AiChatWidget } from './components/chat/AiChatWidget';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AdminLoginModal } from './components/auth/AdminLoginModal';
+import { useBrandStore } from './stores/useBrandStore';
 import { Property } from './types/property';
 
 export const App: React.FC = () => {
+  const { themeColors } = useBrandStore();
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isValuationOpen, setIsValuationOpen] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--color-urbe-primary', themeColors.primary);
+    document.documentElement.style.setProperty('--color-urbe-primary-dark', themeColors.primaryDark);
+    document.documentElement.style.setProperty('--color-urbe-accent', themeColors.accent);
+    document.documentElement.style.setProperty('--color-urbe-accent-hover', themeColors.accentHover);
+  }, [themeColors]);
 
   const handleOpenBooking = (property: Property) => {
     setSelectedProperty(property);

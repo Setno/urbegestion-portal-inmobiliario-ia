@@ -18,10 +18,10 @@ export default {
       colors: {
         urbe: {
           dark: '#0d1b1e',      // Slate obsidian
-          primary: '#164e63',   // Deep Ocean Cyan/Teal
-          primaryDark: '#0f3a4b',
-          accent: '#c59b27',    // Luxury Champagne Gold
-          accentHover: '#b0881e',
+          primary: 'var(--color-urbe-primary, #164e63)',   // Dynamic Deep Ocean Cyan/Teal
+          primaryDark: 'var(--color-urbe-primary-dark, #0f3a4b)',
+          accent: 'var(--color-urbe-accent, #c59b27)',    // Dynamic Luxury Gold / Accent
+          accentHover: 'var(--color-urbe-accent-hover, #b0881e)',
           light: '#f8fafc',
           muted: '#64748b',
           card: '#ffffff',
