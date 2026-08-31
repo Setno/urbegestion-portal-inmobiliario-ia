@@ -10,9 +10,10 @@ import {
   Mail,
   MapPin
 } from 'lucide-react';
-import { agencyConfig } from '../../config/agencyConfig';
+import { useBrandStore } from '../../stores/useBrandStore';
 
 export const AboutSection: React.FC = () => {
+  const { config: agencyConfig } = useBrandStore();
   return (
     <section id="sobre-mi" className="py-16 sm:py-24 bg-white border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

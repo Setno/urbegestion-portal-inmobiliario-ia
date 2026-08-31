@@ -13,6 +13,7 @@ import { agencyConfig } from '../../config/agencyConfig';
 import { usePropertyStore } from '../../stores/usePropertyStore';
 import { useLeadStore } from '../../stores/useLeadStore';
 import { useChatStore } from '../../stores/useChatStore';
+import { useBrandStore } from '../../stores/useBrandStore';
 
 interface NavbarProps {
   onOpenAdmin: () => void;
@@ -24,6 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
   const { currency, setCurrency } = usePropertyStore();
   const { leads } = useLeadStore();
   const { toggleChat } = useChatStore();
+  const { config: agencyConfig } = useBrandStore();
 
   const newLeadsCount = leads.filter(l => l.status === 'nuevo' || l.status === 'visita_agendada').length;
 

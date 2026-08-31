@@ -9,8 +9,8 @@ import {
   Phone,
   Instagram
 } from 'lucide-react';
-import { agencyConfig } from '../../config/agencyConfig';
 import { useChatStore } from '../../stores/useChatStore';
+import { useBrandStore } from '../../stores/useBrandStore';
 
 interface HeroSectionProps {
   onOpenValuation: () => void;
@@ -18,6 +18,7 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => {
   const { toggleChat } = useChatStore();
+  const { config: agencyConfig } = useBrandStore();
 
   return (
     <section id="inicio" className="relative min-h-[85vh] lg:min-h-screen flex items-center justify-center overflow-hidden pt-16 sm:pt-20">

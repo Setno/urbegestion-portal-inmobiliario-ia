@@ -7,9 +7,10 @@ import {
   Instagram, 
   ArrowUp 
 } from 'lucide-react';
-import { agencyConfig } from '../../config/agencyConfig';
+import { useBrandStore } from '../../stores/useBrandStore';
 
 export const Footer: React.FC = () => {
+  const { config: agencyConfig } = useBrandStore();
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
