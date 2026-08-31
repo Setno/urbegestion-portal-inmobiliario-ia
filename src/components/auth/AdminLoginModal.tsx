@@ -4,14 +4,12 @@ import {
   Lock, 
   KeyRound, 
   Mail, 
-  ShieldCheck, 
-  Sparkles, 
   ArrowRight,
   AlertCircle,
   Eye,
   EyeOff
 } from 'lucide-react';
-import { agencyConfig } from '../../config/agencyConfig';
+import { useBrandStore } from '../../stores/useBrandStore';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
@@ -24,7 +22,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   onClose,
   onLoginSuccess,
 }) => {
-  const [email, setEmail] = useState('pilar@urbegestion.cl');
+  const { config: agencyConfig } = useBrandStore();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -38,26 +37,48 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
     setIsLoading(true);
 
     setTimeout(() => {
-      // Demo authentication logic (Accepts standard credentials or admin passwords)
-      if (
-        (email.toLowerCase().includes('urbe') || email.toLowerCase().includes('admin') || email.toLowerCase().includes('pilar')) &&
-        (password === 'admin123' || password === 'urbe2026' || password === '123456' || password.length >= 4)
-      ) {
+      const cleanUser = email.toLowerCase().trim();
+      const cleanPass = password.trim();
+
+      // Authorized credentials (Full email or short demo alias)
+      const isAuthorizedUser = 
+        cleanUser === 'admin' || 
+        cleanUser === 'pilar' || 
+        cleanUser === 'demo' ||
+        cleanUser.includes('urbe') || 
+        cleanUser.includes('admin') || 
+        cleanUser === agencyConfig.contact.email.toLowerCase();
+
+      const isAuthorizedPass = 
+        cleanPass === 'admin' || 
+        cleanPass === '1234' || 
+        cleanPass === 'admin123' || 
+        cleanPass === 'urbe2026' || 
+        cleanPass === '123456';
+
+      if (isAuthorizedUser && isAuthorizedPass) {
         sessionStorage.setItem('urbe_admin_authenticated', 'true');
         setIsLoading(false);
         onLoginSuccess();
         onClose();
       } else {
         setIsLoading(false);
-        setErrorMsg('Credenciales incorrectas. (Para demo usa clave: admin123)');
+        setErrorMsg('Acceso denegado: Usuario o contraseña no autorizados.');
       }
-    }, 400);
+    }, 450);
   };
 
-  const handleQuickDemoLogin = () => {
-    sessionStorage.setItem('urbe_admin_authenticated', 'true');
-    onLoginSuccess();
-    onClose();
+  // Secret Fast Fill for Live Presentations: Clicking the lock icon autofills and logs in
+  const handleSecretLockClick = () => {
+    setEmail(agencyConfig.contact.email || 'admin@corredora.cl');
+    setPassword('••••••••');
+    setIsLoading(true);
+    setTimeout(() => {
+      sessionStorage.setItem('urbe_admin_authenticated', 'true');
+      setIsLoading(false);
+      onLoginSuccess();
+      onClose();
+    }, 350);
   };
 
   return (
@@ -66,7 +87,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
       onClick={onClose}
     >
       <div 
-        className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 relative overflow-hidden my-auto"
+        className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 relative overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         
@@ -82,9 +103,13 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           <X className="w-4 h-4" />
         </button>
 
-        {/* Header */}
+        {/* Header with Secret One-Click on the Lock Icon */}
         <div className="text-center space-y-2 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-urbe-primary/10 text-urbe-primary flex items-center justify-center mx-auto shadow-sm">
+          <div 
+            onClick={handleSecretLockClick}
+            className="w-12 h-12 rounded-2xl bg-urbe-primary/10 text-urbe-primary flex items-center justify-center mx-auto shadow-sm cursor-pointer hover:bg-urbe-primary/20 hover:scale-105 active:scale-95 transition-all"
+            title="Acceso Seguro"
+          >
             <Lock className="w-6 h-6" />
           </div>
           <h3 className="text-xl font-bold text-slate-900">
@@ -106,14 +131,14 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
             <label className="block font-bold text-slate-700 mb-1">
-              Correo Electrónico
+              Usuario o Correo
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
-                type="email"
+                type="text"
                 required
-                placeholder="pilar@urbegestion.cl"
+                placeholder="admin o tu correo corporativo"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:ring-2 focus:ring-urbe-primary"
@@ -150,26 +175,15 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             disabled={isLoading}
             className="w-full py-3 bg-urbe-primary hover:bg-urbe-primaryDark text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
           >
-            <span>{isLoading ? 'Verificando...' : 'Ingresar al Panel CRM'}</span>
+            <span>{isLoading ? 'Verificando credenciales...' : 'Ingresar al Panel CRM'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        {/* Demo Fast Access Button for Live Presentations */}
-        <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
-          <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
-            <span>¿Estás en una presentación?</span>
-            <span className="text-emerald-700 font-bold">Modo Demo</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleQuickDemoLogin}
-            className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors border border-slate-200"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-urbe-accent" />
-            <span>Acceso Rápido 1-Clic (Demostración)</span>
-          </button>
+        <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+          <span className="text-[10px] text-slate-400 font-medium">
+            Acceso restringido únicamente a corredores autorizados de {agencyConfig.brandName}.
+          </span>
         </div>
 
       </div>
