@@ -52,12 +52,17 @@ export async function processAiChatMessage(
   userText: string,
   properties: Property[]
 ): Promise<AiResponseResult> {
+  const sanitizedText = userText.trim().slice(0, 500);
+  if (!sanitizedText) {
+    return { text: 'Por favor escribe tu consulta sobre nuestras propiedades.' };
+  }
+
   const config = getAiConfig();
 
   // If live LLM API key is provided and provider is active, use LLM gateway
   if (config.provider !== 'local_rules' && config.apiKey) {
     try {
-      const llmResponse = await callLlmApi(userText, properties, config);
+      const llmResponse = await callLlmApi(sanitizedText, properties, config);
       if (llmResponse) return llmResponse;
     } catch (err) {
       console.warn('[AI Service] Fallback to local heuristic engine:', err);
@@ -65,7 +70,7 @@ export async function processAiChatMessage(
   }
 
   // Fast, zero-cost, context-aware local real estate engine
-  return processLocalRuleEngine(userText, properties);
+  return processLocalRuleEngine(sanitizedText, properties);
 }
 
 /**
@@ -105,43 +110,51 @@ INSTRUCCIONES DE RESPUESTA:
 - Si el usuario busca una propiedad, menciona opciones de este inventario.
 - Invita siempre a coordinar una visita presencial o simular el dividendo hipotecario.`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${config.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: defaultModel,
-      messages: [
-        { role: 'system', content: fullSystemPrompt },
-        { role: 'user', content: userText }
-      ],
-      temperature: config.temperature || 0.7,
-      max_tokens: 350
-    })
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 seconds max timeout
 
-  if (!response.ok) {
-    throw new Error(`LLM API returned status ${response.status}`);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: defaultModel,
+        messages: [
+          { role: 'system', content: fullSystemPrompt },
+          { role: 'user', content: userText }
+        ],
+        temperature: config.temperature || 0.7,
+        max_tokens: 350
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`LLM API returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    const replyText = data.choices?.[0]?.message?.content || '';
+
+    // Extract property matches
+    const matchedIds = properties
+      .filter(p => replyText.toLowerCase().includes(p.commune.toLowerCase()) || replyText.includes(p.id))
+      .slice(0, 3)
+      .map(p => p.id);
+
+    return {
+      text: replyText,
+      suggestedProperties: matchedIds.length > 0 ? matchedIds : undefined,
+      actionRequired: replyText.toLowerCase().includes('visita') || replyText.toLowerCase().includes('agendar') 
+        ? 'select_date' 
+        : undefined
+    };
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  const data = await response.json();
-  const replyText = data.choices?.[0]?.message?.content || '';
-
-  // Extract property matches
-  const matchedIds = properties
-    .filter(p => replyText.toLowerCase().includes(p.commune.toLowerCase()) || replyText.includes(p.id))
-    .slice(0, 3)
-    .map(p => p.id);
-
-  return {
-    text: replyText,
-    suggestedProperties: matchedIds.length > 0 ? matchedIds : undefined,
-    actionRequired: replyText.toLowerCase().includes('visita') || replyText.toLowerCase().includes('agendar') 
-      ? 'select_date' 
-      : undefined
-  };
 }
 
 /**

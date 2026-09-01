@@ -53,16 +53,36 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
 
   if (!isOpen) return null;
 
+  const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
+  const MAX_TOTAL_FILES = 8;
+
   const handleFileProcess = (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
-    Array.from(files).forEach((file) => {
+    if (uploadedFiles.length >= MAX_TOTAL_FILES) {
+      alert(`Límite alcanzado: Máximo ${MAX_TOTAL_FILES} archivos por solicitud.`);
+      return;
+    }
+
+    const availableSlots = MAX_TOTAL_FILES - uploadedFiles.length;
+    const filesToProcess = Array.from(files).slice(0, availableSlots);
+
+    filesToProcess.forEach((file) => {
+      // Validate file size (Max 15 MB)
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        alert(`El archivo "${file.name}" supera el tamaño máximo permitido de 15 MB.`);
+        return;
+      }
+
       // Validate file type
       const isImage = file.type.startsWith('image/');
       const isVideo = file.type.startsWith('video/');
       const isPdf = file.type === 'application/pdf';
 
-      if (!isImage && !isVideo && !isPdf) return;
+      if (!isImage && !isVideo && !isPdf) {
+        alert(`El archivo "${file.name}" no tiene un formato válido (solo imágenes, videos o PDF).`);
+        return;
+      }
 
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -79,7 +99,10 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
           size: sizeFormatted,
         };
 
-        setUploadedFiles((prev) => [...prev, newAttachment]);
+        setUploadedFiles((prev) => {
+          if (prev.length >= MAX_TOTAL_FILES) return prev;
+          return [...prev, newAttachment];
+        });
       };
       reader.readAsDataURL(file);
     });

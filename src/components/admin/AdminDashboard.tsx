@@ -355,19 +355,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     if (updated) setSelectedLead(updated);
   };
 
-  // Media files handler from PC (Images / Videos)
+  // Media files handler from PC (Images / Videos) with 15MB limit
   const handlePropertyMediaFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
+    const MAX_PROPERTY_MEDIA_SIZE = 15 * 1024 * 1024; // 15 MB
+    const MAX_PROP_IMAGES = 15;
+
     Array.from(files).forEach((file) => {
+      if (file.size > MAX_PROPERTY_MEDIA_SIZE) {
+        alert(`El archivo "${file.name}" supera el tamaño máximo permitido de 15 MB.`);
+        return;
+      }
+
       const isVideo = file.type.startsWith('video/');
+      const isImage = file.type.startsWith('image/');
+
+      if (!isVideo && !isImage) {
+        alert(`Formato no soportado para "${file.name}". Solo imágenes o videos.`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const url = e.target?.result as string;
         if (isVideo) {
           setPropVideoUrl(url);
         } else {
-          setPropImages((prev) => [...prev, url]);
+          setPropImages((prev) => {
+            if (prev.length >= MAX_PROP_IMAGES) return prev;
+            return [...prev, url];
+          });
         }
       };
       reader.readAsDataURL(file);
