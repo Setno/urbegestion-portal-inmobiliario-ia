@@ -1,0 +1,57 @@
+# CI de metodo-apps ajustado al stack (Node + Vite). Corre en GitHub Actions, no despliega nada.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'chore/**']
+
+permissions:
+  contents: read
+
+jobs:
+  calidad:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Pendiente H-001: agregar el paso de lint cuando exista `npm run lint`.
+      # Pendiente H-002: agregar el paso de tests cuando exista un framework de pruebas.
+
+      - name: Tipos
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      # Informativo hasta resolver H-003 (hallazgos de vite/postcss en herramientas de desarrollo).
+      - name: Auditoría de dependencias
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  seguridad:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secretos en el historial (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: SAST (Semgrep)
+        run: |
+          pip install semgrep
+          semgrep scan --config auto --error

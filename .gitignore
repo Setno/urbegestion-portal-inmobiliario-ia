@@ -40,3 +40,20 @@ credentials*
 
 # Archivo local: material desechado (no se versiona ni se sube a GitHub)
 _archivo/
+
+# metodo-apps
+# Secretos
+secrets/
+# Claude Code local
+.claude/settings.local.json
+# Dependencias y builds
+node_modules/
+dist/
+build/
+.next/
+__pycache__/
+.venv/
+coverage/
+.pytest_cache/
+# Sistema
+Thumbs.db
