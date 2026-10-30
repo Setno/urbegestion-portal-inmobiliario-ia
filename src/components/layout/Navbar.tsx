@@ -1,3 +1,4 @@
+import { ADMIN_ENABLED } from '../../config/adminAccess';
 import React, { useState } from 'react';
 import { 
   Phone, 
@@ -107,6 +108,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
             </a>
 
             {/* Admin CRM Button */}
+            {ADMIN_ENABLED && (
             <button
               onClick={onOpenAdmin}
               className="relative px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] sm:text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition-colors"
@@ -120,6 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
                 </span>
               )}
             </button>
+            )}
 
             {/* Phone Quick Call */}
             <a
@@ -228,6 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               <Phone className="w-4 h-4" />
               WhatsApp Directo ({agencyConfig.contact.phoneDisplay})
             </a>
+            {ADMIN_ENABLED && (
             <button
               onClick={() => { onOpenAdmin(); setMobileMenuOpen(false); }}
               className="w-full py-2.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 border border-slate-200"
@@ -235,6 +239,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               <LayoutDashboard className="w-4 h-4 text-urbe-primary" />
               Panel de Administración y CRM ({leads.length} Leads)
             </button>
+            )}
           </div>
         </div>
       )}

@@ -2,14 +2,10 @@ import { Property } from '../types/property';
 import { agencyConfig } from '../config/agencyConfig';
 import { useLeadStore } from '../stores/useLeadStore';
 
-export type AiProviderType = 'local_rules' | 'openai' | 'openrouter' | 'deepseek' | 'gemini';
+export type AiProviderType = 'local_rules' | 'server';
 
 export interface AiModelConfig {
   provider: AiProviderType;
-  apiKey?: string;
-  modelName?: string;
-  systemPrompt?: string;
-  temperature?: number;
 }
 
 export interface AiResponseResult {
@@ -25,24 +21,11 @@ Tu objetivo es asesorar con amabilidad y elegancia a compradores, arrendatarios 
 export function getAiConfig(): AiModelConfig {
   const env = (import.meta as any).env || {};
   const savedProvider = localStorage.getItem('urbe_ai_provider') as AiProviderType;
-  const savedApiKey = localStorage.getItem('urbe_ai_apikey');
-  const savedModel = localStorage.getItem('urbe_ai_model');
-  const savedPrompt = localStorage.getItem('urbe_ai_prompt');
-
-  return {
-    provider: savedProvider || env.VITE_AI_PROVIDER || 'local_rules',
-    apiKey: savedApiKey || env.VITE_OPENAI_API_KEY || '',
-    modelName: savedModel || env.VITE_AI_MODEL || 'gpt-4o-mini',
-    systemPrompt: savedPrompt || DEFAULT_SYSTEM_PROMPT,
-    temperature: 0.7,
-  };
+  return { provider: savedProvider || (env.VITE_AI_PROVIDER === 'server' ? 'server' : 'local_rules') };
 }
 
 export function saveAiConfig(config: Partial<AiModelConfig>): void {
   if (config.provider) localStorage.setItem('urbe_ai_provider', config.provider);
-  if (config.apiKey !== undefined) localStorage.setItem('urbe_ai_apikey', config.apiKey.trim());
-  if (config.modelName) localStorage.setItem('urbe_ai_model', config.modelName);
-  if (config.systemPrompt !== undefined) localStorage.setItem('urbe_ai_prompt', config.systemPrompt.trim());
 }
 
 /**
@@ -59,10 +42,10 @@ export async function processAiChatMessage(
 
   const config = getAiConfig();
 
-  // If live LLM API key is provided and provider is active, use LLM gateway
-  if (config.provider !== 'local_rules' && config.apiKey) {
+  // Si el LLM del servidor está activo, se consulta /api/chat (la clave nunca está en el navegador)
+  if (config.provider === 'server') {
     try {
-      const llmResponse = await callLlmApi(sanitizedText, properties, config);
+      const llmResponse = await callLlmApi(sanitizedText, properties);
       if (llmResponse) return llmResponse;
     } catch (err) {
       console.warn('[AI Service] Fallback to local heuristic engine:', err);
@@ -74,70 +57,40 @@ export async function processAiChatMessage(
 }
 
 /**
- * Live LLM API Gateway (OpenAI / OpenRouter / DeepSeek / Gemini)
+ * Live LLM Gateway: llama a la función serverless /api/chat
  */
 async function callLlmApi(
   userText: string,
-  properties: Property[],
-  config: AiModelConfig
+  properties: Property[]
 ): Promise<AiResponseResult | null> {
-  let endpoint = 'https://api.openai.com/v1/chat/completions';
-  let defaultModel = config.modelName || 'gpt-4o-mini';
-
-  if (config.provider === 'openrouter') {
-    endpoint = 'https://openrouter.ai/api/v1/chat/completions';
-    defaultModel = config.modelName || 'deepseek/deepseek-chat';
-  } else if (config.provider === 'deepseek') {
-    endpoint = 'https://api.deepseek.com/v1/chat/completions';
-    defaultModel = config.modelName || 'deepseek-chat';
-  }
-
-  // Feed active properties inventory into LLM system prompt context
-  const propertyCatalogContext = properties.map(p => 
-    `- [ID: ${p.id}] ${p.title} (${p.propertyType} en ${p.commune}) - Precio: ${p.priceUf} UF. ${p.bedrooms} dorm, ${p.bathrooms} baños, ${p.builtAreaM2 || p.totalAreaM2} m². Operación: ${p.operation}.`
-  ).join('\n');
-
-  const fullSystemPrompt = `${config.systemPrompt || DEFAULT_SYSTEM_PROMPT}
-
-VALOR ACTUAL UF: $${agencyConfig.market.ufValueClp.toLocaleString('es-CL')} CLP.
-CONTACTO PILAR OSORIO: WhatsApp/Teléfono ${agencyConfig.contact.phoneDisplay}.
-
-INVENTARIO ACTUAL DE PROPIEDADES DISPONIBLES:
-${propertyCatalogContext}
-
-INSTRUCCIONES DE RESPUESTA:
-- Responde de forma concisa, cálida y profesional (máximo 3 párrafos cortos).
-- Si el usuario busca una propiedad, menciona opciones de este inventario.
-- Invita siempre a coordinar una visita presencial o simular el dividendo hipotecario.`;
+  const catalog = properties.map(p => ({
+    id: p.id,
+    title: p.title,
+    propertyType: p.propertyType,
+    commune: p.commune,
+    price: `${p.priceUf} UF`,
+    specs: `${p.bedrooms} dorm, ${p.bathrooms} baños, ${p.builtAreaM2 || p.totalAreaM2} m²`,
+    operation: p.operation,
+  }));
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 seconds max timeout
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch('/api/chat', {
       method: 'POST',
       signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: defaultModel,
-        messages: [
-          { role: 'system', content: fullSystemPrompt },
-          { role: 'user', content: userText }
-        ],
-        temperature: config.temperature || 0.7,
-        max_tokens: 350
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: userText, catalog }),
     });
 
     if (!response.ok) {
-      throw new Error(`LLM API returned status ${response.status}`);
+      throw new Error(`LLM endpoint returned status ${response.status}`);
     }
 
     const data = await response.json();
-    const replyText = data.choices?.[0]?.message?.content || '';
+    const replyText: string = data.reply || '';
+    if (!replyText) return null;
 
     // Extract property matches
     const matchedIds = properties
@@ -148,8 +101,8 @@ INSTRUCCIONES DE RESPUESTA:
     return {
       text: replyText,
       suggestedProperties: matchedIds.length > 0 ? matchedIds : undefined,
-      actionRequired: replyText.toLowerCase().includes('visita') || replyText.toLowerCase().includes('agendar') 
-        ? 'select_date' 
+      actionRequired: replyText.toLowerCase().includes('visita') || replyText.toLowerCase().includes('agendar')
+        ? 'select_date'
         : undefined
     };
   } finally {

@@ -1,3 +1,4 @@
+import { ADMIN_ENABLED } from '../../config/adminAccess';
 import React, { useState } from 'react';
 import { Sparkles, TrendingUp, ShieldAlert, CheckCircle2, ChevronRight, X } from 'lucide-react';
 
@@ -34,12 +35,14 @@ export const AgencyPitchBanner: React.FC<AgencyPitchBannerProps> = ({ onOpenAdmi
             <ChevronRight className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
           </button>
 
+          {ADMIN_ENABLED && (
           <button
             onClick={onOpenAdmin}
             className="px-3 py-1 bg-urbe-accent text-slate-950 font-bold rounded-lg text-[11px] hover:bg-urbe-accentHover transition-colors shadow"
           >
             Abrir CRM Auto-Gestionable
           </button>
+          )}
 
           <button
             onClick={() => setIsVisible(false)}

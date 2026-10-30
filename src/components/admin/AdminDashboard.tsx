@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, 
   LayoutDashboard, 
@@ -63,7 +63,7 @@ import { agencyConfig } from '../../config/agencyConfig';
 import { REGION_METROPOLITANA_ZONES } from '../../data/chileanLocations';
 import { Lead, LeadStatus } from '../../types/lead';
 import { Property, PropertyType, OperationType, PropertyStatus } from '../../types/property';
-import { webhookService } from '../../services/webhookService';
+import { webhookService, WebhookStatus } from '../../services/webhookService';
 import { getAiConfig, saveAiConfig, AiProviderType } from '../../services/aiService';
 
 interface AdminDashboardProps {
@@ -323,18 +323,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [currentUf, setCurrentUf] = useState(agencyConfig.market.ufValueClp);
 
   // Integration Settings State (GoHighLevel & Cal.com)
-  const [ghlWebhookUrl, setGhlWebhookUrl] = useState(() => webhookService.getWebhookConfig().ghlWebhookUrl);
   const [calComUrl, setCalComUrl] = useState(() => webhookService.getWebhookConfig().calComUrl);
   const [isTestingGhl, setIsTestingGhl] = useState(false);
+  const [webhookStatus, setWebhookStatus] = useState<WebhookStatus | 'checking'>('checking');
   const [ghlTestResult, setGhlTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState(false);
 
   // AI Assistant Engine State
   const [aiProvider, setAiProvider] = useState<AiProviderType>(() => getAiConfig().provider);
-  const [aiApiKey, setAiApiKey] = useState(() => getAiConfig().apiKey || '');
-  const [aiModelName, setAiModelName] = useState(() => getAiConfig().modelName || 'gpt-4o-mini');
-  const [aiSystemPrompt, setAiSystemPrompt] = useState(() => getAiConfig().systemPrompt || '');
-  const [showAiKey, setShowAiKey] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'settings') return;
+    let cancelled = false;
+    setWebhookStatus('checking');
+    webhookService.checkStatus().then((status) => {
+      if (!cancelled) setWebhookStatus(status);
+    });
+    return () => { cancelled = true; };
+  }, [isOpen, activeTab]);
 
   if (!isOpen) return null;
 
@@ -504,15 +510,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   const handleSaveIntegrations = () => {
     webhookService.saveWebhookConfig({
-      ghlWebhookUrl,
       calComUrl,
       isEnabled: true,
     });
     saveAiConfig({
       provider: aiProvider,
-      apiKey: aiApiKey,
-      modelName: aiModelName,
-      systemPrompt: aiSystemPrompt,
     });
     setSaveSuccessMsg(true);
     setTimeout(() => setSaveSuccessMsg(false), 2500);
@@ -521,8 +523,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const handleTestGHL = async () => {
     setIsTestingGhl(true);
     setGhlTestResult(null);
-    const res = await webhookService.testConnection(ghlWebhookUrl);
+    const res = await webhookService.testConnection();
     setGhlTestResult(res);
+    setWebhookStatus(await webhookService.checkStatus());
     setIsTestingGhl(false);
   };
 
@@ -590,7 +593,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
             <button
               onClick={() => {
-                sessionStorage.removeItem('urbe_admin_authenticated');
                 onClose();
               }}
               className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-300 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors"
@@ -1158,8 +1160,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                         <span className="text-[10px] text-slate-400 font-medium">Inbound Leads & Automation Trigger</span>
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      Webhook Activo
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                      webhookStatus === 'active' ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                      : webhookStatus === 'checking' ? 'bg-slate-100 text-slate-600 border-slate-200'
+                      : 'bg-rose-100 text-rose-800 border-rose-200'
+                    }`}>
+                      {webhookStatus === 'active' ? 'Webhook Activo'
+                        : webhookStatus === 'checking' ? 'Verificando...'
+                        : webhookStatus === 'inactive' ? 'Webhook Inactivo: sin configurar'
+                        : 'Sin conexión con el servidor'}
                     </span>
                   </div>
 
@@ -1167,18 +1176,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                     Cada vez que un prospecto solicite una tasación, suba fotos de su casa o consulte por una propiedad, se enviará el contacto con sus etiquetas y campos personalizados en tiempo real a GoHighLevel.
                   </p>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      URL del Webhook de GoHighLevel (o Zapier / Make)
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://services.leadconnectorhq.com/hooks/..."
-                      value={ghlWebhookUrl}
-                      onChange={(e) => setGhlWebhookUrl(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono"
-                    />
-                  </div>
+                  <p className="text-[11px] text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                    La URL del webhook se configura en el servidor (variable GHL_WEBHOOK_URL) y ya no se guarda en el navegador.
+                  </p>
 
                   {ghlTestResult && (
                     <div className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
@@ -1194,7 +1194,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                   <button
                     type="button"
                     onClick={handleTestGHL}
-                    disabled={isTestingGhl || !ghlWebhookUrl}
+                    disabled={isTestingGhl || webhookStatus === 'inactive'}
                     className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isTestingGhl ? 'animate-spin' : ''}`} />
@@ -1279,11 +1279,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm">Motor del Asistente Virtual IA</h4>
-                    <span className="text-[10px] text-slate-400 font-medium">Selección de Modelo, API Key & Reglas del Bot</span>
+                    <span className="text-[10px] text-slate-400 font-medium">Motor local o LLM configurado en el servidor</span>
                   </div>
                 </div>
                 <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-800 border border-cyan-200 w-fit">
-                  {aiProvider === 'local_rules' ? '⚡ Motor Local (0 Costo)' : `🤖 LLM Activo: ${aiProvider.toUpperCase()}`}
+                  {aiProvider === 'local_rules' ? '⚡ Motor Local (0 Costo)' : '🤖 LLM del servidor'}
                 </span>
               </div>
 
@@ -1298,66 +1298,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
                   >
                     <option value="local_rules">⚡ Motor Local Experto (Gratis, Ilimitado, Ultrarrápido - Ideal Demo)</option>
-                    <option value="openai">🟢 OpenAI (GPT-4o / GPT-4o-mini)</option>
-                    <option value="deepseek">🔵 DeepSeek V3 (Ultracosteable y Potente)</option>
-                    <option value="openrouter">🟣 OpenRouter (Claude 3.5 Haiku, Gemini Flash, etc.)</option>
+                    <option value="server">🤖 LLM del servidor (requiere configurar el endpoint /api/chat)</option>
                   </select>
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">
-                    Modelo Específico (Ej: gpt-4o-mini, deepseek-chat)
-                  </label>
-                  <input
-                    type="text"
-                    value={aiModelName}
-                    onChange={(e) => setAiModelName(e.target.value)}
-                    placeholder="gpt-4o-mini"
-                    disabled={aiProvider === 'local_rules'}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono disabled:opacity-50"
-                  />
-                </div>
               </div>
 
-              {aiProvider !== 'local_rules' && (
-                <div className="space-y-1 text-xs">
-                  <label className="block font-bold text-slate-700">
-                    API Key del Proveedor ({aiProvider.toUpperCase()})
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showAiKey ? 'text' : 'password'}
-                      value={aiApiKey}
-                      onChange={(e) => setAiApiKey(e.target.value)}
-                      placeholder={`sk-... (Clave de ${aiProvider})`}
-                      className="w-full px-3 py-2 pr-20 bg-slate-50 border border-slate-200 rounded-xl font-mono"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowAiKey(!showAiKey)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-500 hover:text-slate-800 px-2 py-1 bg-white border border-slate-200 rounded-lg"
-                    >
-                      {showAiKey ? 'Ocultar' : 'Mostrar'}
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-slate-400">
-                    Tu API Key se almacena localmente de forma segura en tu navegador y nunca se expone en código fuente.
-                  </p>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Prompt del Sistema / Reglas de Negocio del Agente
-                </label>
-                <textarea
-                  rows={3}
-                  value={aiSystemPrompt}
-                  onChange={(e) => setAiSystemPrompt(e.target.value)}
-                  placeholder="Instrucciones para el tono de voz, calificación de clientes..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                />
-              </div>
+              <p className="text-[11px] text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                La clave del proveedor, el modelo y las instrucciones del asistente se configuran en el servidor (variables LLM_API_KEY, AI_PROVIDER y AI_MODEL). Nunca se guardan en el navegador.
+              </p>
 
               <div className="pt-2 flex justify-end">
                 <button

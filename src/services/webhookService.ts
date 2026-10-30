@@ -1,8 +1,9 @@
 import { Lead } from '../types/lead';
 import { agencyConfig } from '../config/agencyConfig';
 
+export type WebhookStatus = 'active' | 'inactive' | 'unreachable';
+
 export interface WebhookConfig {
-  ghlWebhookUrl: string;
   calComUrl: string;
   isEnabled: boolean;
   lastDispatchedAt?: string;
@@ -23,23 +24,18 @@ export class WebhookService {
 
   public getWebhookConfig(): WebhookConfig {
     const env = (import.meta as any).env || {};
-    const localUrl = localStorage.getItem('urbe_ghl_webhook') || '';
     const localCal = localStorage.getItem('urbe_cal_url') || '';
     const isEnabled = localStorage.getItem('urbe_ghl_enabled') !== 'false';
 
     return {
-      ghlWebhookUrl: localUrl || env.VITE_GHL_WEBHOOK_URL || '',
       calComUrl: localCal || env.VITE_CAL_COM_URL || agencyConfig.aiAgent.calendarUrl || 'https://cal.com/urbegestion/visita-propiedad',
-      isEnabled: Boolean(localUrl || env.VITE_GHL_WEBHOOK_URL) && isEnabled,
+      isEnabled,
       lastDispatchedAt: localStorage.getItem('urbe_ghl_last_dispatch') || undefined,
       lastStatus: (localStorage.getItem('urbe_ghl_last_status') as any) || null
     };
   }
 
-  public saveWebhookConfig(config: { ghlWebhookUrl?: string; calComUrl?: string; isEnabled?: boolean }): void {
-    if (config.ghlWebhookUrl !== undefined) {
-      localStorage.setItem('urbe_ghl_webhook', config.ghlWebhookUrl.trim());
-    }
+  public saveWebhookConfig(config: { calComUrl?: string; isEnabled?: boolean }): void {
     if (config.calComUrl !== undefined) {
       localStorage.setItem('urbe_cal_url', config.calComUrl.trim());
       agencyConfig.aiAgent.calendarUrl = config.calComUrl.trim();
@@ -50,13 +46,27 @@ export class WebhookService {
   }
 
   /**
+   * Consulta al servidor si el webhook está configurado (no revela la URL)
+   */
+  public async checkStatus(): Promise<WebhookStatus> {
+    try {
+      const response = await fetch('/api/lead-webhook', { method: 'GET' });
+      if (!response.ok) return 'unreachable';
+      const data = await response.json();
+      return data.configured ? 'active' : 'inactive';
+    } catch {
+      return 'unreachable';
+    }
+  }
+
+  /**
    * Dispatches a captured lead to GoHighLevel (or Zapier / Make / n8n) via Webhook
    */
   public async dispatchLeadToGHL(lead: Lead): Promise<{ success: boolean; message: string }> {
     const config = this.getWebhookConfig();
 
-    if (!config.ghlWebhookUrl) {
-      return { success: false, message: 'No hay URL de Webhook GoHighLevel configurada.' };
+    if (!config.isEnabled) {
+      return { success: false, message: 'El envío de leads está desactivado.' };
     }
 
     // Split name into first and last name for GHL contact mapping
@@ -102,48 +112,30 @@ export class WebhookService {
     };
 
     try {
-      const response = await fetch(config.ghlWebhookUrl, {
+      const response = await fetch('/api/lead-webhook', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      const isOk = response.ok || response.status === 200 || response.status === 201 || response.type === 'opaque';
       const nowStr = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
       localStorage.setItem('urbe_ghl_last_dispatch', nowStr);
-      localStorage.setItem('urbe_ghl_last_status', isOk ? 'success' : 'error');
+      localStorage.setItem('urbe_ghl_last_status', response.ok ? 'success' : 'error');
 
-      return {
-        success: true,
-        message: `Lead sincronizado con GoHighLevel exitosamente (${nowStr}).`
-      };
-    } catch (err: any) {
-      console.warn('[WebhookService] Note on webhook delivery:', err);
-      // For CORS in client-side testing, standard no-cors or fetch is recorded
-      const nowStr = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-      localStorage.setItem('urbe_ghl_last_dispatch', nowStr);
-      localStorage.setItem('urbe_ghl_last_status', 'success');
-
-      return {
-        success: true,
-        message: `Lead enviado al Webhook de GoHighLevel (${nowStr}).`
-      };
+      return response.ok
+        ? { success: true, message: `Lead sincronizado con GoHighLevel exitosamente (${nowStr}).` }
+        : { success: false, message: response.status === 503 ? 'El webhook no está configurado en el servidor (GHL_WEBHOOK_URL).' : response.status === 404 ? 'El servidor de envío no está disponible (en local usa vercel dev; en producción, revisa el despliegue).' : `El servidor respondió con error ${response.status}.` };
+    } catch (err) {
+      console.warn('[WebhookService] No se pudo contactar /api/lead-webhook:', err);
+      localStorage.setItem('urbe_ghl_last_status', 'error');
+      return { success: false, message: 'No se pudo contactar el servidor de envío de leads.' };
     }
   }
 
   /**
    * Test connection with a sample lead
    */
-  public async testConnection(targetUrl?: string): Promise<{ success: boolean; message: string }> {
-    const url = targetUrl || this.getWebhookConfig().ghlWebhookUrl;
-    if (!url) {
-      return { success: false, message: 'Por favor ingresa una URL de Webhook válida de GoHighLevel.' };
-    }
-
+  public async testConnection(): Promise<{ success: boolean; message: string }> {
     const sampleLead: Lead = {
       id: `test-${Date.now()}`,
       fullName: 'Prospecto Prueba GoHighLevel',
