@@ -16,7 +16,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 | Correr en local | `npm run dev` → http://localhost:3000 (panel admin habilitado solo en dev) |
 | Tests rápidos | no existen aún (historia H-002) |
 | Suite completa | no existe aún (H-002) |
-| Lint | no existe aún (H-001) |
+| Lint | `npm run lint` (0 errores; la deuda previa está suprimida en `eslint-suppressions.json`, ver H-015) |
 | Tipos | `npx tsc --noEmit` |
 | Build | `npm run build` (ejecuta `tsc && vite build`) |
 | Probar producción local | `npm run preview` → http://localhost:4173 (el panel admin no debe aparecer) |

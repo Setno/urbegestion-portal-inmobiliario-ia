@@ -21,7 +21,9 @@
 - Paso 1 (commit 3344273): panel por pestañas, capa de datos y estructura por módulos.
 
 ## Siguiente paso
-Aprobar y unir a main la rama `chore/adoptar-metodologia`. Luego H-002 (tests de caracterización) y H-001 (lint), y después H-008 (Supabase).
+H-001 (lint) en revisión en la rama `feat/h-001-lint`. Siguiente: H-002 (tests de caracterización) y después dividir H-008 (Supabase).
+
+Nota sobre las puertas: G2, G4 (pruebas dinámicas en staging) y G6 suponen desplegar. Como el despliegue será único y al final, quedan pendientes hasta entonces; mientras tanto se usan equivalentes locales (`npm run build` + `npm run preview`, y `vercel dev` para `/api`).
 
 ## Supuestos abiertos
 - El proyecto de Vercel puede estar enlazado a GitHub: `vercel.json` desactiva los despliegues automáticos, pero conviene confirmarlo en el panel de Vercel.

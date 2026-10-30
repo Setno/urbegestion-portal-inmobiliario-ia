@@ -25,7 +25,9 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      # Pendiente H-001: agregar el paso de lint cuando exista `npm run lint`.
+      - name: Lint
+        run: npm run lint
+
       # Pendiente H-002: agregar el paso de tests cuando exista un framework de pruebas.
 
       - name: Tipos
