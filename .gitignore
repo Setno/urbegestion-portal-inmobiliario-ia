@@ -37,3 +37,6 @@ credentials*
 *.njsproj
 *.sln
 *.sw?
+
+# Archivo local: material desechado (no se versiona ni se sube a GitHub)
+_archivo/

@@ -1,5 +1,7 @@
 # AUDITORÍA – `landing-ventas` frente al Blueprint (30-oct-2026)
 
+> Instantánea del estado previo a la reestructuración del Paso 1 (las rutas de archivos de este informe son las antiguas). La estructura vigente está en ESTRUCTURA.md.
+
 Auditoría de solo lectura. No se modificó código ni se instalaron dependencias. No existe `.env` en la carpeta; solo `.env.example` (versionado, sin secretos reales, solo claves vacías de Instagram).
 
 ## 1. Qué es hoy el proyecto

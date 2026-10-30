@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { AgencyPitchBanner } from './components/pitch/AgencyPitchBanner';
-import { Navbar } from './components/layout/Navbar';
-import { HeroSection } from './components/hero/HeroSection';
-import { SearchFilterBar } from './components/search/SearchFilterBar';
-import { PropertyGrid } from './components/properties/PropertyGrid';
-import { PropertyModal } from './components/properties/PropertyModal';
-import { OwnerValuation } from './components/owners/OwnerValuation';
-import { AboutSection } from './components/sections/AboutSection';
-import { TestimonialsSection } from './components/sections/TestimonialsSection';
-import { Footer } from './components/layout/Footer';
-import { MobileQuickBar } from './components/layout/MobileQuickBar';
-import { AiChatWidget } from './components/chat/AiChatWidget';
-import { AdminDashboard } from './components/admin/AdminDashboard';
-import { ADMIN_ENABLED } from './config/adminAccess';
-import { useBrandStore } from './stores/useBrandStore';
-import { Property } from './types/property';
+import { AgencyPitchBanner } from './site/components/AgencyPitchBanner';
+import { Navbar } from './site/components/Navbar';
+import { HeroSection } from './site/components/HeroSection';
+import { SearchFilterBar } from './modules/catalogo/components/SearchFilterBar';
+import { PropertyGrid } from './modules/catalogo/components/PropertyGrid';
+import { PropertyModal } from './modules/catalogo/components/PropertyModal';
+import { OwnerValuation } from './modules/captacion/components/OwnerValuation';
+import { AboutSection } from './site/components/AboutSection';
+import { TestimonialsSection } from './site/components/TestimonialsSection';
+import { Footer } from './site/components/Footer';
+import { MobileQuickBar } from './site/components/MobileQuickBar';
+import { AiChatWidget } from './modules/captacion/components/AiChatWidget';
+import { AdminDashboard } from './core/admin/AdminDashboard';
+import { ADMIN_ENABLED } from './core/config/adminAccess';
+import { useBrandStore } from './core/brand/useBrandStore';
+import { Property } from './modules/catalogo/types/property';
 
 export const App: React.FC = () => {
   const { themeColors, layoutConfig } = useBrandStore();

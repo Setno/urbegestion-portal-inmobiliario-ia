@@ -1,0 +1,180 @@
+import { create } from 'zustand';
+import { RealEstateBrandConfig, agencyConfig as defaultAgencyConfig } from '../config/agencyConfig';
+import { createLocalStore } from '../storage/localStore';
+
+export interface ThemeColors {
+  primary: string;
+  primaryDark: string;
+  accent: string;
+  accentHover: string;
+}
+
+export interface BrandLayoutConfig {
+  showSearchFilter: boolean;
+  showAboutSection: boolean;
+  showTestimonialsSection: boolean;
+  showAiChat: boolean;
+}
+
+export interface BrandStore {
+  config: RealEstateBrandConfig;
+  themeColors: ThemeColors;
+  layoutConfig: BrandLayoutConfig;
+  
+  // Actions
+  updateBrandConfig: (partial: Partial<RealEstateBrandConfig>) => void;
+  updateThemeColors: (colors: Partial<ThemeColors>) => void;
+  updateLayoutConfig: (layout: Partial<BrandLayoutConfig>) => void;
+  resetToDefault: () => void;
+}
+
+const defaultThemeColors: ThemeColors = {
+  primary: '#164e63',
+  primaryDark: '#0f3a4b',
+  accent: '#c59b27',
+  accentHover: '#b0881e',
+};
+
+const defaultLayoutConfig: BrandLayoutConfig = {
+  showSearchFilter: true,
+  showAboutSection: true,
+  showTestimonialsSection: true,
+  showAiChat: true,
+};
+
+// Color Presets for Real Estate Brokers
+export const BRAND_COLOR_PRESETS: { name: string; primary: string; primaryDark: string; accent: string; accentHover: string }[] = [
+  {
+    name: 'Azul Océano & Oro (Clásico Urbe)',
+    primary: '#164e63',
+    primaryDark: '#0f3a4b',
+    accent: '#c59b27',
+    accentHover: '#b0881e',
+  },
+  {
+    name: 'Esmeralda Lujo & Champán',
+    primary: '#064e3b',
+    primaryDark: '#022c22',
+    accent: '#d97706',
+    accentHover: '#b45309',
+  },
+  {
+    name: 'Negro Obsidiana & Oro Real (Ultra Lujo)',
+    primary: '#0f172a',
+    primaryDark: '#020617',
+    accent: '#eab308',
+    accentHover: '#ca8a04',
+  },
+  {
+    name: 'Borgoña & Oro Rosa (Boutique)',
+    primary: '#4c0519',
+    primaryDark: '#2e020d',
+    accent: '#fb7185',
+    accentHover: '#e11d48',
+  },
+  {
+    name: 'Azul Zafiro & Platino',
+    primary: '#1e3a8a',
+    primaryDark: '#172554',
+    accent: '#38bdf8',
+    accentHover: '#0284c7',
+  }
+];
+
+function applyCssVariables(colors: ThemeColors) {
+  if (typeof document !== 'undefined') {
+    const root = document.documentElement;
+    root.style.setProperty('--color-urbe-primary', colors.primary);
+    root.style.setProperty('--color-urbe-primary-dark', colors.primaryDark);
+    root.style.setProperty('--color-urbe-accent', colors.accent);
+    root.style.setProperty('--color-urbe-accent-hover', colors.accentHover);
+  }
+}
+
+const brandConfigStorage = createLocalStore<Partial<RealEstateBrandConfig>>('urbe_brand_config');
+const themeColorsStorage = createLocalStore<Partial<ThemeColors>>('urbe_theme_colors');
+const layoutConfigStorage = createLocalStore<Partial<BrandLayoutConfig>>('urbe_layout_config');
+
+export const useBrandStore = create<BrandStore>((set) => {
+  let initialConfig = { ...defaultAgencyConfig };
+  let initialColors = { ...defaultThemeColors };
+  let initialLayout = { ...defaultLayoutConfig };
+
+  if (typeof window !== 'undefined') {
+    initialConfig = { ...defaultAgencyConfig, ...brandConfigStorage.load() };
+    initialColors = { ...defaultThemeColors, ...themeColorsStorage.load() };
+    initialLayout = { ...defaultLayoutConfig, ...layoutConfigStorage.load() };
+
+    applyCssVariables(initialColors);
+  }
+
+  return {
+    config: initialConfig,
+    themeColors: initialColors,
+    layoutConfig: initialLayout,
+
+    updateBrandConfig: (partial) => {
+      set((state) => {
+        const updatedConfig = {
+          ...state.config,
+          ...partial,
+          contact: {
+            ...state.config.contact,
+            ...(partial.contact || {}),
+          },
+          stats: {
+            ...state.config.stats,
+            ...(partial.stats || {}),
+          },
+        };
+
+        if (typeof window !== 'undefined') {
+          brandConfigStorage.save(updatedConfig);
+        }
+
+        // Keep default export in sync
+        Object.assign(defaultAgencyConfig, updatedConfig);
+
+        return { config: updatedConfig };
+      });
+    },
+
+    updateThemeColors: (newColors) => {
+      set((state) => {
+        const updatedColors = { ...state.themeColors, ...newColors };
+        
+        if (typeof window !== 'undefined') {
+          themeColorsStorage.save(updatedColors);
+          applyCssVariables(updatedColors);
+        }
+
+        return { themeColors: updatedColors };
+      });
+    },
+
+    updateLayoutConfig: (layout) => {
+      set((state) => {
+        const updatedLayout = { ...state.layoutConfig, ...layout };
+        if (typeof window !== 'undefined') {
+          layoutConfigStorage.save(updatedLayout);
+        }
+        return { layoutConfig: updatedLayout };
+      });
+    },
+
+    resetToDefault: () => {
+      if (typeof window !== 'undefined') {
+        brandConfigStorage.clear();
+        themeColorsStorage.clear();
+        layoutConfigStorage.clear();
+        applyCssVariables(defaultThemeColors);
+      }
+
+      set({
+        config: { ...defaultAgencyConfig },
+        themeColors: { ...defaultThemeColors },
+        layoutConfig: { ...defaultLayoutConfig },
+      });
+    },
+  };
+});

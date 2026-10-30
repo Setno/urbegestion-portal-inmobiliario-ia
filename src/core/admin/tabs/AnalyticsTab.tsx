@@ -1,0 +1,72 @@
+import React from 'react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+import { useLeadStore } from '../../../modules/crm/stores/useLeadStore';
+import { usePropertyStore } from '../../../modules/catalogo/stores/usePropertyStore';
+
+export const AnalyticsTab: React.FC = () => {
+  const { leads } = useLeadStore();
+  const { properties } = usePropertyStore();
+
+  // Analytics Data
+  const leadSourceData = [
+    { name: 'Asistente IA Concierge', value: leads.filter(l => l.source === 'asistente_ia').length, color: '#164e63' },
+    { name: 'Ficha de Propiedad', value: leads.filter(l => l.source === 'ficha_propiedad').length, color: '#c59b27' },
+    { name: 'Captación Propietarios', value: leads.filter(l => l.source === 'captacion_propietarios').length, color: '#059669' },
+  ];
+
+  const propertyTypeStats = [
+    { name: 'Deptos', count: properties.filter(p => p.propertyType === 'departamento').length },
+    { name: 'Casas', count: properties.filter(p => p.propertyType === 'casa').length },
+    { name: 'Agrícolas', count: properties.filter(p => p.propertyType === 'parcela_agricola').length },
+    { name: 'Oficinas', count: properties.filter(p => p.propertyType === 'oficina_comercial').length },
+  ];
+
+  return (
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50 space-y-6">
+        <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1">Métricas de Captación</h3>
+        <p className="text-[11px] sm:text-xs text-slate-500 mb-4">Rendimiento en tiempo real de prospectos y catálogo.</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 className="text-xs font-bold text-slate-700 uppercase mb-4">Origen de Prospectos</h4>
+            <div className="h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={leadSourceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                    {leadSourceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 className="text-xs font-bold text-slate-700 uppercase mb-4">Distribución de Propiedades</h4>
+            <div className="h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={propertyTypeStats}>
+                  <XAxis dataKey="name" stroke="#888888" fontSize={11} />
+                  <YAxis stroke="#888888" fontSize={11} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#164e63" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </div>
+  );
+};
