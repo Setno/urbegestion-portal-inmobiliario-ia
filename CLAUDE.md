@@ -14,8 +14,8 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 | --- | --- |
 | Instalar | `npm ci` (validado con `--dry-run`) |
 | Correr en local | `npm run dev` → http://localhost:3000 (panel admin habilitado solo en dev) |
-| Tests rápidos | no existen aún (historia H-002) |
-| Suite completa | no existe aún (H-002) |
+| Tests rápidos | `npm test` (Vitest + jsdom, ~3 s); `npm run test:watch` para desarrollo |
+| Suite completa | `npm test` (40 pruebas de caracterización; sin cobertura medida aún) |
 | Lint | `npm run lint` (0 errores; la deuda previa está suprimida en `eslint-suppressions.json`, ver H-015) |
 | Tipos | `npx tsc --noEmit` |
 | Build | `npm run build` (ejecuta `tsc && vite build`) |
@@ -30,7 +30,7 @@ Las rutas `api/*` no existen bajo `npm run dev`; requieren `vercel dev` o un des
 - Estado: tiendas Zustand que persisten vía `createLocalStore`; ningún componente debe llamar a `localStorage` directo para datos de negocio.
 - Manejo de errores: `try/catch` con `console.warn` y degradación silenciosa (por ejemplo, el chat cae al motor local si falla el LLM).
 - Secretos: nunca en el cliente. Las claves viven en variables de entorno del servidor (`api/*`); las `VITE_*` son públicas.
-- Tests: un archivo de test por módulo, nombres que describen el comportamiento (aún sin framework).
+- Tests: un `*.test.ts` junto al módulo, nombres que describen el comportamiento. Las pruebas de caracterización fijan lo que el código hace hoy; los comportamientos incorrectos se marcan `BUG CONOCIDO` y se corrigen en su propia historia (no cambiar la prueba para esconderlos).
 
 ## Reglas de este proyecto (pedidas por el usuario)
 - El usuario tiene conocimientos bajos de programación y es ingeniero civil y de procesos: explicar en español claro, sin jerga innecesaria, y dar pasos concretos para probar.
@@ -41,7 +41,7 @@ Las rutas `api/*` no existen bajo `npm run dev`; requieren `vercel dev` o un des
 - `BLUEPRINT Inmobiliario.md` es del usuario: no se versiona sin permiso.
 
 ## Definición de terminado
-Criterios de aceptación con tests que pasan; suite, lint, tipos y build en verde (hoy: tipos y build); revisión del subagente sin bloqueantes; sin secretos ni datos reales; PR o rama con evidencia.
+Criterios de aceptación con tests que pasan; suite, lint, tipos y build en verde (hoy: lint, tipos, tests y build); revisión del subagente sin bloqueantes; sin secretos ni datos reales; PR o rama con evidencia.
 
 ## Prohibido
 - Modificar migraciones ya aplicadas; crear una nueva.
@@ -49,7 +49,7 @@ Criterios de aceptación con tests que pasan; suite, lint, tipos y build en verd
 - Instalar paquetes sin justificar y verificar que existen y se mantienen.
 - Leer o imprimir `.env` o credenciales.
 - Desplegar a producción sin confirmación explícita.
-- Tocar `src/modules/crm`, `src/modules/captacion` o `src/core/storage` sin tests de caracterización (H-002) cuando existan.
+- Cambiar `src/modules/crm`, `src/modules/captacion`, `src/modules/catalogo/stores` o `src/core/storage` sin que `npm test` esté en verde.
 
 ## Flujo
 Explorar → plan (aprobado) → test que falla → implementar → verificar → revisión → rama + commit + push → unión a main con aprobación.

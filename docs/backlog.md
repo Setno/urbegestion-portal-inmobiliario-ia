@@ -6,7 +6,7 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | ID | Historia | Prioridad | Tamaño | Estado | Depende de |
 | --- | --- | --- | --- | --- | --- |
 | H-001 | Agregar lint (ESLint) y script `npm run lint` | Alta | S | en revisión | — |
-| H-002 | Tests de caracterización de flujos críticos | Alta | M | pendiente | — |
+| H-002 | Tests de caracterización de flujos críticos | Alta | M | en revisión | — |
 | H-003 | Actualizar dependencias con vulnerabilidades (`vite`, `postcss`, `source-map-js`) | Alta | S | pendiente | H-002 |
 | H-004 | Cabeceras CSP y HSTS en `vercel.json` | Media | S | pendiente | — |
 | H-005 | Límite de tasa y validación extra en `api/*` | Media | M | pendiente | — |
@@ -19,6 +19,8 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-012 | Consentimiento y finalidad de datos en formularios (Ley 21.719) | Alta | M | pendiente | H-008 |
 | H-014 | Decidir qué hacer con la sección de Instagram (sin uso en el sitio): activarla o archivarla; si se activa, corregir los hooks de `InstagramPostModal` | Baja | S | pendiente | — |
 | H-015 | Reducir la deuda de lint suprimida (45 variables sin usar, 10 hooks, 13 `any`) y vaciar `eslint-suppressions.json` | Media | M | pendiente | H-002 |
+| H-016 | Ids únicos para leads y propiedades (hoy `Date.now()` puede repetirse en el mismo milisegundo y un cambio afecta a ambos) | Media | S | pendiente | H-002 |
+| H-017 | Corregir el motor local del chat: la intención de crédito atrapa mensajes con "propiedades" (contienen "pie") y la búsqueda combina comuna, tipo y operación con "o" | Media | S | pendiente | H-002 |
 | H-013 | Despliegue final: reactivar despliegues en `vercel.json`, cargar variables y smoke test | Alta | S | bloqueada hasta nuevo aviso | todas las fases |
 
 Las historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes de empezar.
@@ -44,7 +46,7 @@ Las historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes 
 1. Dado `localStore`, cuando guardo, cargo y borro un valor y cuando el contenido está corrupto, entonces devuelve lo guardado, `null` tras borrar y `null` ante datos corruptos sin lanzar error.
 2. Dado la tienda de leads, cuando agrego un lead, cambio su estado y agrego una nota, entonces la lista y el almacenamiento reflejan los tres cambios (la nota debe verse sin recargar).
 3. Dado la tienda de propiedades, cuando agrego, edito y borro, entonces el almacenamiento queda consistente.
-4. Dado el motor local del chat, cuando pregunto por "casas en Lo Barnechea", entonces recomienda solo propiedades de esa comuna.
+4. Dado el motor local del chat, cuando pregunto por "casas en Lo Barnechea", entonces recomienda la casa de esa comuna (y hoy también casas de otras comunas: bug conocido H-017).
 5. Dado `webhookService`, cuando `/api/lead-webhook` responde 503 o 404, entonces el resultado es un fallo con mensaje claro y no una excepción.
 
 **Notas técnicas:** requiere un framework de pruebas (Vitest + Testing Library). Usar `metodo-apps:qa-tester`.
@@ -52,6 +54,8 @@ Las historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes 
 **Tamaño:** M
 
 **Resultado (2026-10-30):** ESLint 10 con typescript-eslint y react-hooks sobre `src/` y `api/`. Estado inicial: 57 errores y 12 advertencias (45 variables sin usar, 10 errores de hooks, 13 `any`, 1 dependencia de efecto). Los errores existentes se suprimieron con la línea base de ESLint (`eslint-suppressions.json`), de modo que `npm run lint` termina en 0 y cualquier error nuevo falla. Los 10 errores de hooks están todos en `InstagramPostModal`, que hoy no se usa en el sitio (H-014).
+
+**Resultado (2026-10-30):** Vitest 5 + jsdom (sin Testing Library, no hay pruebas de pantallas). 40 pruebas en 5 archivos: `localStore` (6), tienda de leads (9), tienda de propiedades (5), motor local del chat (11) y `webhookService` (9). Comprobado con una mutación: al romper el guardado de notas fallan 2 pruebas. Bugs conocidos fijados y documentados en las pruebas: ids repetidos en el mismo milisegundo (H-016) y el motor del chat (H-017). Sin medición de cobertura todavía (requiere un paquete adicional) y sin pruebas de componentes ni E2E.
 
 ## H-003 Dependencias vulnerables
 `npm audit` (2026-10-30): 3 hallazgos, 2 altos (vite, source-map-js) y 1 moderado (postcss). Afectan al servidor de desarrollo y al compilador, no al sitio compilado. Actualizar tras H-002 y comprobar `build` y las pruebas.
