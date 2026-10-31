@@ -21,6 +21,13 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-015 | Reducir la deuda de lint suprimida (45 variables sin usar, 10 hooks, 13 `any`) y vaciar `eslint-suppressions.json` | Media | M | pendiente | H-002 |
 | H-016 | Ids únicos para leads y propiedades (hoy `Date.now()` puede repetirse en el mismo milisegundo y un cambio afecta a ambos) | Media | S | pendiente | H-002 |
 | H-017 | Corregir el motor local del chat: la intención de crédito atrapa mensajes con "propiedades" (contienen "pie") y la búsqueda combina comuna, tipo y operación con "o" | Media | S | pendiente | H-002 |
+| H-018 | Pruebas de `api/chat.ts` y `api/lead-webhook.ts` como parte de la suite (hoy solo se verificaron con scripts temporales que no se guardaron) | Alta | S | pendiente | H-002 |
+| H-019 | Medir cobertura de pruebas (paquete adicional) y fijar un umbral mínimo en el CI | Media | S | pendiente | H-002 |
+| H-020 | Pruebas de pantallas del CRM (Kanban, filtros, ficha del lead, notas, exportación CSV) con Testing Library | Media | M | pendiente | H-002; hacerla antes de rediseñar el CRM |
+| H-021 | Pruebas de pantallas de catálogo y captación (filtros, formulario de propiedades, chat, valorizador de 4 pasos, agenda) y del cálculo del dividendo hipotecario | Media | M | pendiente | H-002 |
+| H-022 | Pruebas de la tienda de marca y de la pestaña de Identidad y Marca | Baja | S | pendiente | H-002 |
+| H-023 | Prueba E2E con Playwright del flujo de negocio: un visitante deja sus datos y el lead aparece en el CRM | Media | M | pendiente | H-008 (con datos reales) |
+| H-024 | Línea base de accesibilidad (axe) y rendimiento (Lighthouse) del sitio y la consola | Media | S | pendiente | — |
 | H-013 | Despliegue final: reactivar despliegues en `vercel.json`, cargar variables y smoke test | Alta | S | bloqueada hasta nuevo aviso | todas las fases |
 
 Las historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes de empezar.
@@ -55,7 +62,7 @@ Las historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes 
 
 **Resultado (2026-10-30):** ESLint 10 con typescript-eslint y react-hooks sobre `src/` y `api/`. Estado inicial: 57 errores y 12 advertencias (45 variables sin usar, 10 errores de hooks, 13 `any`, 1 dependencia de efecto). Los errores existentes se suprimieron con la línea base de ESLint (`eslint-suppressions.json`), de modo que `npm run lint` termina en 0 y cualquier error nuevo falla. Los 10 errores de hooks están todos en `InstagramPostModal`, que hoy no se usa en el sitio (H-014).
 
-**Resultado (2026-10-30):** Vitest 5 + jsdom (sin Testing Library, no hay pruebas de pantallas). 40 pruebas en 5 archivos: `localStore` (6), tienda de leads (9), tienda de propiedades (5), motor local del chat (11) y `webhookService` (9). Comprobado con una mutación: al romper el guardado de notas fallan 2 pruebas. Bugs conocidos fijados y documentados en las pruebas: ids repetidos en el mismo milisegundo (H-016) y el motor del chat (H-017). Sin medición de cobertura todavía (requiere un paquete adicional) y sin pruebas de componentes ni E2E.
+**Resultado (2026-10-30):** Vitest 5 + jsdom (sin Testing Library, no hay pruebas de pantallas). 40 pruebas en 5 archivos: `localStore` (6), tienda de leads (9), tienda de propiedades (5), motor local del chat (11) y `webhookService` (9). Comprobado con una mutación: al romper el guardado de notas fallan 2 pruebas. Bugs conocidos fijados y documentados en las pruebas: ids repetidos en el mismo milisegundo (H-016) y el motor del chat (H-017). **Lo que H-002 no cubre y dónde quedó registrado:** funciones de `api/` (H-018), medición de cobertura (H-019), pantallas del CRM (H-020), pantallas de catálogo y captación y cálculo hipotecario (H-021), tienda de marca (H-022), E2E (H-023) y accesibilidad/rendimiento (H-024). La sección de Instagram queda fuera a propósito (H-014: código sin uso). Mientras esas historias no existan, cualquier cambio en pantallas se prueba a mano en local.
 
 ## H-003 Dependencias vulnerables
 `npm audit` (2026-10-30): 3 hallazgos, 2 altos (vite, source-map-js) y 1 moderado (postcss). Afectan al servidor de desarrollo y al compilador, no al sitio compilado. Actualizar tras H-002 y comprobar `build` y las pruebas.
