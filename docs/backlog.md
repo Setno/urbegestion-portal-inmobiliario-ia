@@ -9,7 +9,7 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-002 | Tests de caracterización de flujos críticos | Alta | M | hecha | — |
 | H-003 | Actualizar dependencias con vulnerabilidades (`vite`, `postcss`, `source-map-js`) | Alta | S | hecha | H-002 |
 | H-008 | Proyecto Supabase + esquema Core (tenants, usuarios, roles, RLS) y login real | Alta | M+ | dividida en H-008.1 a H-008.7 | decisión ADR-004 |
-| H-008.1 | Spike: dónde corre Supabase en desarrollo (nube gratuita o local con Docker), cómo se guardan las claves y cómo se manejan las migraciones; resultado: ADR-007 | Alta (Must) | S | pendiente | ADR-004 |
+| H-008.1 | Spike: dónde corre Supabase en desarrollo (nube gratuita o local con Docker), cómo se guardan las claves y cómo se manejan las migraciones; resultado: ADR-007 | Alta (Must) | S | en revisión | ADR-004 |
 | H-008.2 | Login real del panel: ingresar con correo y clave, cerrar sesión, y panel visible solo con sesión | Alta (Must) | M | pendiente | H-008.1 |
 | H-008.3 | Corredora (tenant) y rol: cada usuario pertenece a una corredora con un rol y el panel lo muestra; aislamiento entre corredoras con RLS | Alta (Must) | M | pendiente | H-008.2 |
 | H-008.4 | Permisos por rol en el panel: administrador ve todo; agente no ve Integraciones ni Identidad y Marca | Media (Should) | S | pendiente | H-008.3 |
@@ -191,3 +191,5 @@ Hoy los datos viven en el navegador y el panel solo se protege con `import.meta.
 
 **Notas técnicas:** puede posponerse mientras haya una sola corredora piloto; se vuelve necesaria con el plan SaaS (H-033).
 **Tamaño:** M
+
+**Resultado H-008.1 (2026-10-31):** ADR-007 (`docs/adr/007-entorno-supabase-desarrollo-y-produccion.md`): dos proyectos separados (`urbegestion-dev` en plan gratuito, región São Paulo, y `urbegestion-prod` en plan de pago al desplegar), claves publicables en `.env.local` y secretas solo en servidor, migraciones como SQL versionado y aprobado. Proyecto de desarrollo creado y verificado con `npm run verificar:supabase` (conexión correcta, registro público desactivado, confirmación de correo exigida). `@supabase/supabase-js` se instala en H-008.2.

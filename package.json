@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
+    "verificar:supabase": "node --env-file=.env.local scripts/verificar-supabase.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
