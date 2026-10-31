@@ -8,7 +8,14 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-001 | Agregar lint (ESLint) y script `npm run lint` | Alta | S | hecha | — |
 | H-002 | Tests de caracterización de flujos críticos | Alta | M | hecha | — |
 | H-003 | Actualizar dependencias con vulnerabilidades (`vite`, `postcss`, `source-map-js`) | Alta | S | hecha | H-002 |
-| H-008 | Proyecto Supabase + esquema Core (tenants, usuarios, roles, RLS) y login real | Alta | M+ (dividir) | pendiente | decisión ADR-004 |
+| H-008 | Proyecto Supabase + esquema Core (tenants, usuarios, roles, RLS) y login real | Alta | M+ | dividida en H-008.1 a H-008.7 | decisión ADR-004 |
+| H-008.1 | Spike: dónde corre Supabase en desarrollo (nube gratuita o local con Docker), cómo se guardan las claves y cómo se manejan las migraciones; resultado: ADR-007 | Alta (Must) | S | pendiente | ADR-004 |
+| H-008.2 | Login real del panel: ingresar con correo y clave, cerrar sesión, y panel visible solo con sesión | Alta (Must) | M | pendiente | H-008.1 |
+| H-008.3 | Corredora (tenant) y rol: cada usuario pertenece a una corredora con un rol y el panel lo muestra; aislamiento entre corredoras con RLS | Alta (Must) | M | pendiente | H-008.2 |
+| H-008.4 | Permisos por rol en el panel: administrador ve todo; agente no ve Integraciones ni Identidad y Marca | Media (Should) | S | pendiente | H-008.3 |
+| H-008.5 | El administrador invita a un agente por correo a su corredora | Media (Should) | M | pendiente | H-008.3 |
+| H-008.6 | Recuperar contraseña por correo | Baja (Should) | S | pendiente | H-008.2 |
+| H-008.7 | Alta de una corredora nueva con su primer administrador (onboarding de tenant) | Baja (Could) | M | pendiente | H-008.3 |
 | H-009 | Leads y CRM en Supabase con evento `lead.created` entre Captación y CRM | Alta | M+ (dividir) | pendiente | H-008 |
 | H-010 | Extraer textos de interfaz a archivos de traducción (es-419 e inglés) | Media | M+ (dividir) | pendiente | — |
 | H-011 | Paquete de mercado Chile (UF, comunas, RUT, ley de datos) | Media | M | pendiente | H-010 |
@@ -48,7 +55,7 @@ Decisión del 2026-10-31: mientras no haya despliegue, el trabajo se centra en q
 | H-023 | Prueba E2E con Playwright del flujo de negocio: un visitante deja sus datos y el lead aparece en el CRM | Media | M | estacionada | H-008 (con datos reales) |
 | H-024 | Línea base de accesibilidad (axe) y rendimiento (Lighthouse) del sitio y la consola | Media | S | estacionada | — |
 
-Las historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes de empezar.
+H-008 se dividió el 2026-10-31 con `story-slicer` (detalle al final de este archivo). Las demás historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes de empezar.
 
 H-025 a H-035 salen de la decisión del 2026-10-30 de incluir el sitio con plantillas en el producto base (ADR-005 y ADR-006). H-004 (CSP y HSTS) debe contemplar los dominios de Supabase y de los sitios por corredora.
 
@@ -97,3 +104,90 @@ H-025 a H-035 salen de la decisión del 2026-10-30 de incluir el sitio con plant
 
 ## H-014 Archivar la sección de Instagram
 **Resultado (2026-10-31):** `InstagramSection`, `InstagramPostModal`, `instagramService` y los tipos de Instagram se movieron a `_archivo/instagram/` (con entrada en `_archivo/LEEME.md`) y se quitaron del repositorio; seguían en el historial de git. Ninguno estaba importado desde el sitio (era código sin uso). Se quitaron también las variables `VITE_INSTAGRAM_*` de `src/vite-env.d.ts` y las supresiones de lint asociadas (los 10 errores de hooks del modal desaparecen con él). Se mantiene el botón de enlace al perfil en el menú (`agencyConfig.contact.instagram`). Verificado: 69 pruebas, lint (0 errores), `tsc`, `build` (CSS del bundle baja de 62 a 52 kB) y el sitio carga en local con las 8 propiedades.
+
+## H-008 dividida: Supabase, login y roles
+Hoy los datos viven en el navegador y el panel solo se protege con `import.meta.env.DEV` o `VITE_ENABLE_ADMIN` (`src/core/config/adminAccess.ts`). Se corta por lo que el usuario puede ver: primero entrar de verdad (H-008.2), después saber a qué corredora pertenece (H-008.3) y recién entonces qué puede hacer (H-008.4). Las tablas no son historias por sí solas: nacen dentro de la historia que las necesita. Los leads y propiedades en Supabase son H-009. Cada migración requiere aprobación explícita antes de crearla (regla del proyecto). Crear la cuenta de Supabase y guardar sus claves lo hace el responsable del proyecto; las claves nunca pasan por el chat.
+
+### H-008.1 Spike del entorno Supabase
+**Como** responsable del proyecto **quiero** decidir dónde corre Supabase mientras desarrollamos **para** no gastar ni exponer claves por error.
+
+**Criterios de aceptación**
+1. Dado el spike (máximo medio día), cuando termina, entonces existe `docs/adr/007-*.md` que compara nube gratuita y local con Docker (costo, límites, esfuerzo, riesgo de perder datos) y recomienda una.
+2. Dado el entorno elegido, cuando se sigue la guía escrita, entonces un cliente de prueba lee la salud del proyecto con las claves en `.env.local` (ignorado por git), sin claves en el repositorio.
+3. Dado el ADR, cuando se revisa, entonces define cómo se crean y aprueban las migraciones (carpeta, nombres, quién las aprueba) y cómo se separan desarrollo y producción.
+
+**Notas técnicas:** el resultado es una decisión, no código de producción. Verificar que `@supabase/supabase-js` existe y se mantiene antes de instalarlo (regla de paquetes).
+**Fuera de alcance:** tablas, login, despliegue.
+**Tamaño:** S
+
+### H-008.2 Login real del panel
+**Como** administradora de la corredora **quiero** entrar al panel con mi correo y clave **para** que nadie más vea mis leads.
+
+**Criterios de aceptación**
+1. Dado un usuario creado en Supabase, cuando ingresa correo y clave correctos, entonces ve el panel (Leads, Propiedades, Analítica, Integraciones, Marca) y su correo en la cabecera.
+2. Dado que no hay sesión, cuando abre el panel, entonces ve solo la pantalla de ingreso y ningún dato de leads.
+3. Dado un correo o clave incorrectos, cuando intenta entrar, entonces ve un mensaje de error claro y no entra (sin revelar cuál de los dos falló).
+4. Dado una sesión activa, cuando cierra sesión, entonces vuelve a la pantalla de ingreso y recargar la página no la recupera.
+5. Dado Supabase sin conexión, cuando intenta entrar, entonces ve "no se pudo conectar" y la pantalla no se rompe.
+
+**Notas técnicas:** reemplaza el control por `VITE_ENABLE_ADMIN`/`DEV` de `adminAccess.ts`; la sesión la maneja el cliente de Supabase. En desarrollo hay un usuario de prueba creado por seed. El "Modo Master" (`?agency=true`) no se toca aquí (H-006, estacionada). Pruebas con el cliente simulado.
+**Fuera de alcance:** roles, recuperar clave, registro público.
+**Tamaño:** M
+
+### H-008.3 Corredora (tenant) y rol
+**Como** administradora **quiero** que mi usuario pertenezca a mi corredora con un rol **para** que el sistema sepa qué datos son míos.
+
+**Criterios de aceptación**
+1. Dado un usuario con membresía en la corredora A con rol administrador, cuando entra, entonces el panel muestra el nombre de la corredora y su rol.
+2. Dado un usuario autenticado sin membresía, cuando entra, entonces ve "tu cuenta aún no está asociada a una corredora" y no ve el panel.
+3. Dado un usuario de la corredora A, cuando consulta corredoras y membresías, entonces recibe solo las de A (prueba contra la base real con dos corredoras: no puede leer ni modificar las de B).
+4. Dado el esquema, cuando se revisa, entonces `tenants` y `memberships` tienen RLS activo y hay una convención documentada (`tenant_id` obligatorio) para las tablas futuras.
+
+**Notas técnicas:** primera migración real; requiere aprobación. El rol vive en la membresía, no en el usuario. Roles iniciales: `admin` y `agente` (jefe de equipo y vendedor quedan para después).
+**Fuera de alcance:** equipos, permisos por módulo, datos de leads.
+**Tamaño:** M
+
+### H-008.4 Permisos por rol en el panel
+**Como** administradora **quiero** que mis agentes no vean la configuración **para** proteger integraciones y marca.
+
+**Criterios de aceptación**
+1. Dado un administrador, cuando abre el panel, entonces ve todas las pestañas.
+2. Dado un agente, cuando abre el panel, entonces ve Leads, Propiedades y Analítica, y no ve Integraciones ni Identidad y Marca.
+3. Dado un agente, cuando intenta abrir una pestaña restringida (por estado guardado), entonces vuelve a una pestaña permitida.
+4. Dado el cambio de rol de un usuario en la base, cuando vuelve a entrar, entonces ve las pestañas del nuevo rol.
+
+**Notas técnicas:** la restricción visual no sustituye la de la base; las reglas de datos por rol llegan con H-009.
+**Tamaño:** S
+
+### H-008.5 Invitar a un agente
+**Como** administradora **quiero** invitar a un agente por correo **para** que trabaje en mi corredora sin compartir mi clave.
+
+**Criterios de aceptación**
+1. Dado un administrador, cuando ingresa el correo de un agente y lo invita, entonces el agente recibe un correo con un enlace y, al aceptarlo y fijar su clave, entra a la corredora con rol agente.
+2. Dado un agente, cuando intenta invitar a alguien, entonces no tiene la opción y la base lo rechaza.
+3. Dado un correo ya invitado o ya miembro, cuando se invita de nuevo, entonces ve un aviso y no se duplica la membresía.
+4. Dado un correo mal escrito, cuando se envía, entonces ve un error de validación.
+
+**Notas técnicas:** la invitación necesita una función en el servidor (la clave de servicio nunca va en el navegador); el envío real de correos depende del entorno elegido en H-008.1.
+**Tamaño:** M
+
+### H-008.6 Recuperar contraseña
+**Como** usuario **quiero** restablecer mi clave por correo **para** volver a entrar si la olvido.
+
+**Criterios de aceptación**
+1. Dado un correo registrado, cuando pido recuperar la clave, entonces recibo un correo con un enlace y puedo fijar una clave nueva con la que entro.
+2. Dado un correo no registrado, cuando pido recuperar la clave, entonces veo el mismo mensaje de éxito (no se revela qué correos existen).
+3. Dado un enlace vencido o ya usado, cuando lo abro, entonces veo un error claro y puedo pedir otro.
+
+**Tamaño:** S
+
+### H-008.7 Alta de una corredora nueva
+**Como** dueño del producto **quiero** crear una corredora con su primer administrador **para** sumar clientes sin tocar la base a mano.
+
+**Criterios de aceptación**
+1. Dado el formulario de alta con nombre de corredora y correo del administrador, cuando se envía, entonces se crea el tenant y se invita al administrador.
+2. Dado un usuario que no es dueño del producto, cuando intenta el alta, entonces no puede.
+3. Dado un nombre de corredora repetido, cuando se envía, entonces ve un aviso y no se crea otro tenant.
+
+**Notas técnicas:** puede posponerse mientras haya una sola corredora piloto; se vuelve necesaria con el plan SaaS (H-033).
+**Tamaño:** M
