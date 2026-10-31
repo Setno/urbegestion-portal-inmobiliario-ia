@@ -28,9 +28,22 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-022 | Pruebas de la tienda de marca y de la pestaña de Identidad y Marca | Baja | S | pendiente | H-002 |
 | H-023 | Prueba E2E con Playwright del flujo de negocio: un visitante deja sus datos y el lead aparece en el CRM | Media | M | pendiente | H-008 (con datos reales) |
 | H-024 | Línea base de accesibilidad (axe) y rendimiento (Lighthouse) del sitio y la consola | Media | S | pendiente | — |
+| H-025 | Exportación completa de los datos de una corredora (propiedades, contactos, notas) en CSV/JSON | Media | M | pendiente | H-008 |
+| H-026 | Pasar el repositorio a monorepo: `apps/consola` (React + Vite) y `apps/sitio` (Next.js) con paquetes compartidos | Alta | M+ (dividir) | pendiente | ADR-006 |
+| H-027 | Modelo de plantilla: datos del sitio en la base de datos y separación entre contenido y diseño | Alta | M+ (dividir) | pendiente | H-008, H-026 |
+| H-028 | Plantilla 1: adaptar la landing actual (`src/site/`) al sitio Next.js | Alta | M | pendiente | H-027 |
+| H-029 | Plantilla 2 y prueba de intercambio de plantilla sin perder datos | Media | M | pendiente | H-028 |
+| H-030 | Dominio propio o subdominio por corredora: resolución por dominio y guía de registros DNS | Alta | M+ (dividir) | pendiente | H-027 |
+| H-031 | SEO del sitio: fichas indexables, mapa del sitio y metadatos | Media | S | pendiente | H-028 |
+| H-032 | Editor de datos del sitio para la corredora (logo, colores, textos, fotos; sin cambiar la estructura) | Alta | M+ (dividir) | pendiente | H-027, H-008 |
+| H-033 | Planes y límites por plan (Completo y Solo herramientas) en el Core | Media | M | pendiente | H-008 |
+| H-034 | Widget embebible y API pública para el plan Solo herramientas | Media | M+ (dividir) | pendiente | H-008, H-033 |
+| H-035 | Editor de estructura del sitio (mover, agregar y quitar secciones) | Baja | M+ | fuera del MVP | H-032 |
 | H-013 | Despliegue final: reactivar despliegues en `vercel.json`, cargar variables y smoke test | Alta | S | bloqueada hasta nuevo aviso | todas las fases |
 
 Las historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes de empezar.
+
+H-025 a H-035 salen de la decisión del 2026-10-30 de incluir el sitio con plantillas en el producto base (ADR-005 y ADR-006). H-004 (CSP y HSTS) debe contemplar los dominios de Supabase y de los sitios por corredora.
 
 ---
 

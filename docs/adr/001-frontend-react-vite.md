@@ -1,6 +1,6 @@
 # ADR-001: Frontend en React + TypeScript + Vite con Tailwind y Zustand
 
-- Estado: aceptada (retroactiva)
+- Estado: aceptada (retroactiva); revisada parcialmente por ADR-006: el sitio público pasa a Next.js, la consola y el widget siguen en React + Vite
 - Fecha: 2026-10-30
 
 ## Contexto

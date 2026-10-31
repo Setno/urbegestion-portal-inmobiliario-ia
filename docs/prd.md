@@ -6,6 +6,7 @@ Versión: 0.1 · Reconstruido desde el código el 2026-10-30 · Visión objetivo
 
 ## Objetivos y no-objetivos
 **Objetivos hoy:** que una corredora retenga el tráfico de sus propiedades en un sitio propio, capte contactos con ayuda de un asistente de IA y gestione esos contactos en un CRM sencillo.
+**Objetivo del producto (decidido el 2026-10-30):** ofrecer, además del CRM, un sitio web propio con plantillas intercambiables (plan Completo) o solo las herramientas conectadas al sitio actual (plan Solo herramientas). En el MVP la corredora solo modifica datos del sitio, no su estructura.
 **No-objetivos hoy:** multi-corredora (tenants), cuentas y roles reales, cobros, contratos y gestión de arriendos, portales y WhatsApp.
 
 ## Usuarios y roles
@@ -39,7 +40,11 @@ Versión: 0.1 · Reconstruido desde el código el 2026-10-30 · Visión objetivo
 | RF-07 | Autenticación y roles | M | **No existe** | H-006, H-008 |
 | RF-08 | Multi-tenancy | M | **No existe** | H-008 |
 | RF-09 | Textos traducibles y paquete de mercado | S | **No existe** | H-010, H-011 |
-| RF-10 | Widget embebible y API pública | M | **No existe** | por detallar |
+| RF-10 | Widget embebible y API pública (plan Solo herramientas) | M | **No existe** | H-034 |
+| RF-11 | Sitio por corredora con plantillas intercambiables y edición de datos | M | **No existe** (la landing actual es la semilla de la plantilla 1) | H-027 a H-029, H-032 |
+| RF-12 | Dominio propio o subdominio por corredora y SEO | M | **No existe** | H-030, H-031 |
+| RF-13 | Planes y límites por plan | S | **No existe** | H-033 |
+| RF-14 | Exportación completa de datos de la corredora | S | **No existe** | H-025 |
 
 ## Requisitos no funcionales
 | Atributo | Objetivo | Cómo se verifica |

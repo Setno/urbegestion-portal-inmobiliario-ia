@@ -7,6 +7,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 ## Stack
 - Lenguaje / framework: TypeScript, React 18, Vite 6, Tailwind 3, Zustand, Recharts, Framer Motion.
 - Base de datos: ninguna todavía (datos en `localStorage` mediante `src/core/storage/localStore.ts`). Destino decidido: Supabase (PostgreSQL), ver docs/adr/004.
+- Sitio público por corredora (decidido, sin implementar): Next.js, ver docs/adr/006; la consola y el widget siguen en React + Vite.
 - Hosting: Vercel (SPA + funciones en `api/`). **No hay despliegue hasta nuevo aviso**; solo habrá uno final.
 
 ## Comandos (verificados el 2026-10-30)
