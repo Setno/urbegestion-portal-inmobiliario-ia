@@ -37,10 +37,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Informativo hasta resolver H-003 (hallazgos de vite/postcss en herramientas de desarrollo).
       - name: Auditoría de dependencias
         run: npm audit --audit-level=high
-        continue-on-error: true
 
   seguridad:
     runs-on: ubuntu-latest

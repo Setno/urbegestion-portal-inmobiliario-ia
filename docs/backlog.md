@@ -7,7 +7,7 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | --- | --- | --- | --- | --- | --- |
 | H-001 | Agregar lint (ESLint) y script `npm run lint` | Alta | S | en revisión | — |
 | H-002 | Tests de caracterización de flujos críticos | Alta | M | en revisión | — |
-| H-003 | Actualizar dependencias con vulnerabilidades (`vite`, `postcss`, `source-map-js`) | Alta | S | pendiente | H-002 |
+| H-003 | Actualizar dependencias con vulnerabilidades (`vite`, `postcss`, `source-map-js`) | Alta | S | en revisión | H-002 |
 | H-004 | Cabeceras CSP y HSTS en `vercel.json` | Media | S | pendiente | — |
 | H-005 | Límite de tasa y validación extra en `api/*` | Media | M | pendiente | — |
 | H-006 | Reemplazar el "Modo Master" (PIN fijo y `?agency=true`) por control real | Media | S | bloqueada (necesita auth, H-008) | H-008 |
@@ -66,3 +66,5 @@ Las historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes 
 
 ## H-003 Dependencias vulnerables
 `npm audit` (2026-10-30): 3 hallazgos, 2 altos (vite, source-map-js) y 1 moderado (postcss). Afectan al servidor de desarrollo y al compilador, no al sitio compilado. Actualizar tras H-002 y comprobar `build` y las pruebas.
+
+**Resultado (2026-10-30):** `npm audit fix` sin `--force`; solo cambió `package-lock.json`: vite 6.4.3 → 6.4.5, postcss-selector-parser → 6.1.5 y source-map-js → 1.2.2 (todos cambios de parche). `npm audit`: 0 vulnerabilidades. Verificado: lint (0 errores), `tsc`, 40 pruebas, `build`, `npm ci --dry-run` y comprobación manual del sitio y de las 5 pestañas del panel en local. El bundle compilado no cambió de tamaño (420,75 kB). El CI ahora **falla** ante vulnerabilidades altas (antes era informativo).

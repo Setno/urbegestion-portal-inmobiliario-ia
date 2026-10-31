@@ -12,7 +12,7 @@
 | G1 Historias verificables | en curso: H-001 a H-003 detalladas, el resto por dividir | | docs/backlog.md |
 | G2 Esqueleto en staging, CI verde | pendiente (no hay staging: sin despliegues hasta nuevo aviso) | | .github/workflows/ci.yml |
 | G3 Historias del incremento cerradas | pendiente | | |
-| G4 Verificación sin críticos/altos | pendiente (3 vulnerabilidades de desarrollo abiertas, H-003) | | `npm audit` |
+| G4 Verificación sin críticos/altos | parcial: `npm audit` en 0 (H-003); faltan pruebas dinámicas en staging, que dependen del despliegue final | 2026-10-30 | `npm audit`, CI |
 | G5 Presupuestos de rendimiento y costo | pendiente | | |
 | G6 Producción con smoke OK y alertas | pendiente (despliegue final) | | |
 
@@ -21,7 +21,7 @@
 - Paso 1 (commit 3344273): panel por pestañas, capa de datos y estructura por módulos.
 
 ## Siguiente paso
-H-001 (lint) hecha y unida a main. H-002 (tests de caracterización) en revisión en la rama `feat/h-002-tests`. Siguiente: H-003 (dependencias vulnerables) y después dividir H-008 (Supabase).
+H-001 (lint) y H-002 (tests de caracterización) hechas y unidas a main. H-003 (dependencias) en revisión en la rama `feat/h-003-dependencias`. Siguiente: dividir H-008 (Supabase) con `story-slicer`; antes conviene H-018 (pruebas de `api/`).
 
 Nota sobre las puertas: G2, G4 (pruebas dinámicas en staging) y G6 suponen desplegar. Como el despliegue será único y al final, quedan pendientes hasta entonces; mientras tanto se usan equivalentes locales (`npm run build` + `npm run preview`, y `vercel dev` para `/api`).
 
