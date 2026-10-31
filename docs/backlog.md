@@ -5,9 +5,9 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 
 | ID | Historia | Prioridad | Tamaño | Estado | Depende de |
 | --- | --- | --- | --- | --- | --- |
-| H-001 | Agregar lint (ESLint) y script `npm run lint` | Alta | S | en revisión | — |
-| H-002 | Tests de caracterización de flujos críticos | Alta | M | en revisión | — |
-| H-003 | Actualizar dependencias con vulnerabilidades (`vite`, `postcss`, `source-map-js`) | Alta | S | en revisión | H-002 |
+| H-001 | Agregar lint (ESLint) y script `npm run lint` | Alta | S | hecha | — |
+| H-002 | Tests de caracterización de flujos críticos | Alta | M | hecha | — |
+| H-003 | Actualizar dependencias con vulnerabilidades (`vite`, `postcss`, `source-map-js`) | Alta | S | hecha | H-002 |
 | H-004 | Cabeceras CSP y HSTS en `vercel.json` | Media | S | pendiente | — |
 | H-005 | Límite de tasa y validación extra en `api/*` | Media | M | pendiente | — |
 | H-006 | Reemplazar el "Modo Master" (PIN fijo y `?agency=true`) por control real | Media | S | bloqueada (necesita auth, H-008) | H-008 |
@@ -17,11 +17,11 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-010 | Extraer textos de interfaz a archivos de traducción (es-419 e inglés) | Media | M+ (dividir) | pendiente | — |
 | H-011 | Paquete de mercado Chile (UF, comunas, RUT, ley de datos) | Media | M | pendiente | H-010 |
 | H-012 | Consentimiento y finalidad de datos en formularios (Ley 21.719) | Alta | M | pendiente | H-008 |
-| H-014 | Decidir qué hacer con la sección de Instagram (sin uso en el sitio): activarla o archivarla; si se activa, corregir los hooks de `InstagramPostModal` | Baja | S | pendiente | — |
+| H-014 | Archivar la sección de Instagram (decisión 2026-10-31: no va en primera instancia): mover a `_archivo/` con `LEEME.md` tras revisar qué código la referencia | Baja | S | pendiente | — |
 | H-015 | Reducir la deuda de lint suprimida (45 variables sin usar, 10 hooks, 13 `any`) y vaciar `eslint-suppressions.json` | Media | M | pendiente | H-002 |
 | H-016 | Ids únicos para leads y propiedades (hoy `Date.now()` puede repetirse en el mismo milisegundo y un cambio afecta a ambos) | Media | S | pendiente | H-002 |
 | H-017 | Corregir el motor local del chat: la intención de crédito atrapa mensajes con "propiedades" (contienen "pie") y la búsqueda combina comuna, tipo y operación con "o" | Media | S | pendiente | H-002 |
-| H-018 | Pruebas de `api/chat.ts` y `api/lead-webhook.ts` como parte de la suite (hoy solo se verificaron con scripts temporales que no se guardaron) | Alta | S | pendiente | H-002 |
+| H-018 | Pruebas de `api/chat.ts` y `api/lead-webhook.ts` como parte de la suite (hoy solo se verificaron con scripts temporales que no se guardaron) | Alta | S | en revisión | H-002 |
 | H-019 | Medir cobertura de pruebas (paquete adicional) y fijar un umbral mínimo en el CI | Media | S | pendiente | H-002 |
 | H-020 | Pruebas de pantallas del CRM (Kanban, filtros, ficha del lead, notas, exportación CSV) con Testing Library | Media | M | pendiente | H-002; hacerla antes de rediseñar el CRM |
 | H-021 | Pruebas de pantallas de catálogo y captación (filtros, formulario de propiedades, chat, valorizador de 4 pasos, agenda) y del cálculo del dividendo hipotecario | Media | M | pendiente | H-002 |
@@ -81,3 +81,6 @@ H-025 a H-035 salen de la decisión del 2026-10-30 de incluir el sitio con plant
 `npm audit` (2026-10-30): 3 hallazgos, 2 altos (vite, source-map-js) y 1 moderado (postcss). Afectan al servidor de desarrollo y al compilador, no al sitio compilado. Actualizar tras H-002 y comprobar `build` y las pruebas.
 
 **Resultado (2026-10-30):** `npm audit fix` sin `--force`; solo cambió `package-lock.json`: vite 6.4.3 → 6.4.5, postcss-selector-parser → 6.1.5 y source-map-js → 1.2.2 (todos cambios de parche). `npm audit`: 0 vulnerabilidades. Verificado: lint (0 errores), `tsc`, 40 pruebas, `build`, `npm ci --dry-run` y comprobación manual del sitio y de las 5 pestañas del panel en local. El bundle compilado no cambió de tamaño (420,75 kB). El CI ahora **falla** ante vulnerabilidades altas (antes era informativo).
+
+## H-018 Pruebas de `api/`
+**Resultado (2026-10-31):** 22 pruebas nuevas en `tests/api/` (14 de `chat`, 8 de `lead-webhook`), con `fetch` y variables de entorno simuladas; suite total: 62 pruebas. Viven en `tests/` y no junto al archivo porque Vercel convierte en función todo archivo dentro de `api/`. `vite.config.ts` ahora también ejecuta `tests/**/*.test.ts`. Verificado: tests, lint (0 errores), `tsc` y `build`. No se encontraron comportamientos incorrectos.

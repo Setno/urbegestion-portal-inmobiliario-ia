@@ -2,7 +2,7 @@
 
 - Modo: adoptado
 - Fase actual: A6 Adopción (documentos listos; faltan tests de caracterización y CI real)
-- Última actualización: 2026-10-30
+- Última actualización: 2026-10-31
 
 ## Puertas
 
@@ -21,7 +21,7 @@
 - Paso 1 (commit 3344273): panel por pestañas, capa de datos y estructura por módulos.
 
 ## Siguiente paso
-H-001 (lint) y H-002 (tests de caracterización) hechas y unidas a main. H-003 (dependencias) en revisión en la rama `feat/h-003-dependencias`. Siguiente (orden propuesto): H-018 (pruebas de `api/`), H-005 (límite de tasa), decidir H-014 (Instagram), dividir H-008 (Supabase) con `story-slicer` y después las historias del sitio con plantillas (H-025 a H-035).
+H-001 a H-003 hechas y unidas a main; el Blueprint ya está versionado. H-018 (pruebas de `api/`, 62 pruebas en total) lista en la rama `feat/h-018-pruebas-api`, pendiente de visto bueno para commit. Siguiente (orden propuesto): H-005 (límite de tasa), H-014 (archivar Instagram, decidido: no va en primera instancia), dividir H-008 (Supabase) con `story-slicer` y después las historias del sitio con plantillas (H-025 a H-035).
 
 Nota sobre las puertas: G2, G4 (pruebas dinámicas en staging) y G6 suponen desplegar. Como el despliegue será único y al final, quedan pendientes hasta entonces; mientras tanto se usan equivalentes locales (`npm run build` + `npm run preview`, y `vercel dev` para `/api`).
 
