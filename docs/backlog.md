@@ -1,6 +1,6 @@
 # Backlog
 
-Estados: pendiente · en curso · en revisión · hecha · bloqueada
+Estados: pendiente · en curso · en revisión · hecha · bloqueada · estacionada
 Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y BLUEPRINT.
 
 | ID | Historia | Prioridad | Tamaño | Estado | Depende de |
@@ -8,10 +8,6 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-001 | Agregar lint (ESLint) y script `npm run lint` | Alta | S | hecha | — |
 | H-002 | Tests de caracterización de flujos críticos | Alta | M | hecha | — |
 | H-003 | Actualizar dependencias con vulnerabilidades (`vite`, `postcss`, `source-map-js`) | Alta | S | hecha | H-002 |
-| H-004 | Cabeceras CSP y HSTS en `vercel.json` | Media | S | pendiente | — |
-| H-005 | Límite de tasa y validación extra en `api/*` | Media | M | pendiente | — |
-| H-006 | Reemplazar el "Modo Master" (PIN fijo y `?agency=true`) por control real | Media | S | bloqueada (necesita auth, H-008) | H-008 |
-| H-007 | Mover el token de Instagram al servidor | Media | S | pendiente | — |
 | H-008 | Proyecto Supabase + esquema Core (tenants, usuarios, roles, RLS) y login real | Alta | M+ (dividir) | pendiente | decisión ADR-004 |
 | H-009 | Leads y CRM en Supabase con evento `lead.created` entre Captación y CRM | Alta | M+ (dividir) | pendiente | H-008 |
 | H-010 | Extraer textos de interfaz a archivos de traducción (es-419 e inglés) | Media | M+ (dividir) | pendiente | — |
@@ -19,15 +15,12 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-012 | Consentimiento y finalidad de datos en formularios (Ley 21.719) | Alta | M | pendiente | H-008 |
 | H-014 | Archivar la sección de Instagram (decisión 2026-10-31: no va en primera instancia): mover a `_archivo/` con `LEEME.md` tras revisar qué código la referencia | Baja | S | pendiente | — |
 | H-015 | Reducir la deuda de lint suprimida (45 variables sin usar, 10 hooks, 13 `any`) y vaciar `eslint-suppressions.json` | Media | M | pendiente | H-002 |
-| H-016 | Ids únicos para leads y propiedades (hoy `Date.now()` puede repetirse en el mismo milisegundo y un cambio afecta a ambos) | Media | S | pendiente | H-002 |
-| H-017 | Corregir el motor local del chat: la intención de crédito atrapa mensajes con "propiedades" (contienen "pie") y la búsqueda combina comuna, tipo y operación con "o" | Media | S | pendiente | H-002 |
+| H-016 | Ids únicos para leads y propiedades (hoy `Date.now()` puede repetirse en el mismo milisegundo y un cambio afecta a ambos) | Media | S | en revisión | H-002 |
+| H-017 | Corregir el motor local del chat: la intención de crédito atrapaba mensajes con "propiedades" (contienen "pie") y la búsqueda combinaba comuna, tipo y operación con "o". Decisión 2026-10-31: el chat no evalúa crédito (lo hace el banco) y el simulador de dividendo queda apagado | Media | S | en revisión | H-002 |
 | H-018 | Pruebas de `api/chat.ts` y `api/lead-webhook.ts` como parte de la suite (hoy solo se verificaron con scripts temporales que no se guardaron) | Alta | S | en revisión | H-002 |
-| H-019 | Medir cobertura de pruebas (paquete adicional) y fijar un umbral mínimo en el CI | Media | S | pendiente | H-002 |
 | H-020 | Pruebas de pantallas del CRM (Kanban, filtros, ficha del lead, notas, exportación CSV) con Testing Library | Media | M | pendiente | H-002; hacerla antes de rediseñar el CRM |
-| H-021 | Pruebas de pantallas de catálogo y captación (filtros, formulario de propiedades, chat, valorizador de 4 pasos, agenda) y del cálculo del dividendo hipotecario | Media | M | pendiente | H-002 |
+| H-021 | Pruebas de pantallas de catálogo y captación (filtros, formulario de propiedades, chat, valorizador de 4 pasos, agenda) (el simulador de dividendo queda apagado, ver H-017) | Media | M | pendiente | H-002 |
 | H-022 | Pruebas de la tienda de marca y de la pestaña de Identidad y Marca | Baja | S | pendiente | H-002 |
-| H-023 | Prueba E2E con Playwright del flujo de negocio: un visitante deja sus datos y el lead aparece en el CRM | Media | M | pendiente | H-008 (con datos reales) |
-| H-024 | Línea base de accesibilidad (axe) y rendimiento (Lighthouse) del sitio y la consola | Media | S | pendiente | — |
 | H-025 | Exportación completa de los datos de una corredora (propiedades, contactos, notas) en CSV/JSON | Media | M | pendiente | H-008 |
 | H-026 | Pasar el repositorio a monorepo: `apps/consola` (React + Vite) y `apps/sitio` (Next.js) con paquetes compartidos | Alta | M+ (dividir) | pendiente | ADR-006 |
 | H-027 | Modelo de plantilla: datos del sitio en la base de datos y separación entre contenido y diseño | Alta | M+ (dividir) | pendiente | H-008, H-026 |
@@ -40,6 +33,20 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-034 | Widget embebible y API pública para el plan Solo herramientas | Media | M+ (dividir) | pendiente | H-008, H-033 |
 | H-035 | Editor de estructura del sitio (mover, agregar y quitar secciones) | Baja | M+ | fuera del MVP | H-032 |
 | H-013 | Despliegue final: reactivar despliegues en `vercel.json`, cargar variables y smoke test | Alta | S | bloqueada hasta nuevo aviso | todas las fases |
+
+## Estacionadas: seguridad y comprobaciones (revisar antes del despliegue)
+
+Decisión del 2026-10-31: mientras no haya despliegue, el trabajo se centra en que cada funcionalidad funcione. Lo de seguridad y las comprobaciones de funcionamiento amplias se estaciona aquí y se revisa **completo antes de H-013** (despliegue final). Ninguna depende de otra historia de funcionalidad, salvo H-006 (necesita el login de H-008).
+
+| ID | Historia | Prioridad | Tamaño | Estado | Depende de |
+| --- | --- | --- | --- | --- | --- |
+| H-004 | Cabeceras CSP y HSTS en `vercel.json` | Media | S | estacionada | — |
+| H-005 | Límite de tasa y validación extra en `api/*` | Media | M | estacionada | — |
+| H-006 | Reemplazar el "Modo Master" (PIN fijo y `?agency=true`) por control real | Media | S | estacionada (necesita auth, H-008) | H-008 |
+| H-007 | Mover el token de Instagram al servidor (solo si Instagram se reactiva; hoy se archiva con H-014) | Media | S | estacionada | — |
+| H-019 | Medir cobertura de pruebas (paquete adicional) y fijar un umbral mínimo en el CI | Media | S | estacionada | H-002 |
+| H-023 | Prueba E2E con Playwright del flujo de negocio: un visitante deja sus datos y el lead aparece en el CRM | Media | M | estacionada | H-008 (con datos reales) |
+| H-024 | Línea base de accesibilidad (axe) y rendimiento (Lighthouse) del sitio y la consola | Media | S | estacionada | — |
 
 Las historias marcadas "dividir" se cortan con `metodo-apps:story-slicer` antes de empezar.
 
@@ -84,3 +91,6 @@ H-025 a H-035 salen de la decisión del 2026-10-30 de incluir el sitio con plant
 
 ## H-018 Pruebas de `api/`
 **Resultado (2026-10-31):** 22 pruebas nuevas en `tests/api/` (14 de `chat`, 8 de `lead-webhook`), con `fetch` y variables de entorno simuladas; suite total: 62 pruebas. Viven en `tests/` y no junto al archivo porque Vercel convierte en función todo archivo dentro de `api/`. `vite.config.ts` ahora también ejecuta `tests/**/*.test.ts`. Verificado: tests, lint (0 errores), `tsc` y `build`. No se encontraron comportamientos incorrectos.
+
+## H-016 y H-017 Ids únicos y motor local del chat
+**Resultado (2026-10-31):** *H-016:* nuevo `src/core/utils/newId.ts` (`prefijo-fecha-aleatorio`); lo usan `useLeadStore` y `usePropertyStore`. Dos registros creados en el mismo milisegundo ya tienen ids distintos y cambiar uno no afecta al otro. *H-017:* la búsqueda del chat local exige que se cumpla todo lo que el usuario menciona (comuna, tipo y operación) y corrige el error de precedencia que traía todas las ventas con la palabra "venta"; "parcela/agrícola/campo" pasan a ser palabras de tipo y no de comuna. El chat ya no calcula crédito: ante dividendo, crédito, hipotecario, banco o pie, explica que lo evalúa el banco y ofrece contacto (`provide_contact`); se quitó el chip "Simular dividendo" y la mención al dividendo en las recomendaciones. La calculadora de la ficha de propiedad quedó detrás de `agencyConfig.features.mortgageSimulator` (apagado). El campo `mortgageStatus` del lead no se tocó. Pruebas: 69 (antes 62); los tres casos `BUG CONOCIDO` se convirtieron en pruebas del comportamiento correcto. Verificado: tests, lint (0 errores), `tsc`, `build` y chat y ficha revisados en el navegador.

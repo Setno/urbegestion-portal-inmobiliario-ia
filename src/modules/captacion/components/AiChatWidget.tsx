@@ -97,7 +97,6 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
     "Casas en Lo Barnechea",
     "Deptos en Vitacura",
     "Parcelas en Melipilla",
-    "Simular dividendo",
     "Vender mi propiedad",
     "Agendar visita"
   ];

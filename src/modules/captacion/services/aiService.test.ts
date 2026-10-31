@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { processAiChatMessage } from './aiService';
 import { initialProperties } from '../../catalogo/data/initialProperties';
+import { agencyConfig } from '../../../core/config/agencyConfig';
 
 // Pruebas de caracterización del motor local del asistente: fijan el comportamiento ACTUAL.
 // Los casos marcados "BUG CONOCIDO" documentan comportamientos incorrectos que existen hoy.
@@ -37,9 +38,19 @@ describe('processAiChatMessage (motor local)', () => {
     expect(r.actionRequired).toBe('provide_contact');
   });
 
-  it('responde con el valor de la UF cuando preguntan por el dividendo', async () => {
-    const r = await preguntar('Cuánto sería el dividendo');
-    expect(r.text).toContain('UF referencial');
+  it('si preguntan por crédito o dividendo, explica que lo evalúa el banco y ofrece contacto, sin calcular nada', async () => {
+    for (const texto of ['Cuánto sería el dividendo', 'Tienen crédito hipotecario?', 'Con qué banco trabajan', 'Qué pie necesito']) {
+      const r = await preguntar(texto);
+      expect(r.text).toContain('banco');
+      expect(r.text).not.toContain('UF referencial');
+      expect(r.text).not.toContain('simulador');
+      expect(r.actionRequired).toBe('provide_contact');
+    }
+  });
+
+  it('no confunde palabras que solo contienen "uf" o "pie" con una consulta de crédito', async () => {
+    const r = await preguntar('Busco una pieza grande en Vitacura');
+    expect(r.text).not.toContain('banco');
   });
 
   it('recomienda casas y la de Lo Barnechea cuando preguntan por "casas en Lo Barnechea"', async () => {
@@ -48,10 +59,39 @@ describe('processAiChatMessage (motor local)', () => {
     expect(r.suggestedProperties).toContain('prop-02');
   });
 
-  it('BUG CONOCIDO: "casas en Lo Barnechea" también recomienda casas de otras comunas (la búsqueda usa "o")', async () => {
+  it('"casas en Lo Barnechea" recomienda solo casas de esa comuna', async () => {
     const r = await preguntar('Casas en Lo Barnechea');
-    // prop-07 es una casa en Chicureo / Colina: coincide por tipo aunque no por comuna
-    expect(r.suggestedProperties).toContain('prop-07');
+    expect(r.suggestedProperties).toEqual(['prop-02']);
+  });
+
+  it('combina comuna y operación: "arriendo en Las Condes" no trae ventas ni otras comunas', async () => {
+    const r = await preguntar('Arriendo en Las Condes');
+    const ids = r.suggestedProperties ?? [];
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) {
+      const p = initialProperties.find((x) => x.id === id)!;
+      expect(p.operation).toBe('arriendo');
+      expect(p.commune).toContain('Las Condes');
+    }
+  });
+
+  it('"venta" no trae propiedades en arriendo', async () => {
+    const r = await preguntar('Quiero algo en venta');
+    const ids = r.suggestedProperties ?? [];
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) {
+      expect(initialProperties.find((x) => x.id === id)!.operation).toBe('venta');
+    }
+  });
+
+  it('"parcelas en Melipilla" recomienda solo la parcela de Melipilla', async () => {
+    const r = await preguntar('Parcelas en Melipilla');
+    expect(r.suggestedProperties).toEqual(['prop-04']);
+  });
+
+  it('el texto de las recomendaciones ya no ofrece calcular el dividendo', async () => {
+    const r = await preguntar('Casas en Lo Barnechea');
+    expect(r.text).not.toContain('dividendo');
   });
 
   it('recomienda como máximo 3 propiedades', async () => {
@@ -59,11 +99,10 @@ describe('processAiChatMessage (motor local)', () => {
     expect(r.suggestedProperties?.length).toBeLessThanOrEqual(3);
   });
 
-  it('BUG CONOCIDO: cualquier mensaje con la palabra "propiedades" cae en la respuesta hipotecaria', async () => {
-    // "propiedades" contiene "pie" y la intención de crédito se evalúa antes que la búsqueda
+  it('"Qué propiedades tienen en Vitacura" busca en el catálogo (la palabra "propiedades" ya no activa el crédito)', async () => {
     const r = await preguntar('Qué propiedades tienen en Vitacura');
-    expect(r.text).toContain('UF referencial');
-    expect(r.suggestedProperties).toBeUndefined();
+    expect(r.actionRequired).toBe('view_properties');
+    expect(r.suggestedProperties).toEqual(['prop-01']);
   });
 
   it('da una respuesta consultiva por defecto cuando no entiende', async () => {
@@ -76,5 +115,9 @@ describe('processAiChatMessage (motor local)', () => {
     const largo = 'agendar ' + 'x'.repeat(600);
     const r = await preguntar(largo);
     expect(r.actionRequired).toBe('select_date');
+  });
+
+  it('el simulador de dividendo está apagado por defecto en la configuración de la corredora', () => {
+    expect(agencyConfig.features.mortgageSimulator).toBe(false);
   });
 });

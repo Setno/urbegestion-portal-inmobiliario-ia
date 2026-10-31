@@ -28,6 +28,10 @@ export interface RealEstateBrandConfig {
     defaultDownPaymentPct: number;
     defaultYears: number;
   };
+  features: {
+    // Simulador de dividendo hipotecario en la ficha de la propiedad. Apagado: el crédito lo evalúa el banco.
+    mortgageSimulator: boolean;
+  };
   aiAgent: {
     botName: string;
     welcomeMessage: string;
@@ -69,6 +73,9 @@ export const agencyConfig: RealEstateBrandConfig = {
     defaultMortgageRate: 4.85,
     defaultDownPaymentPct: 20,
     defaultYears: 25,
+  },
+  features: {
+    mortgageSimulator: false,
   },
   aiAgent: {
     botName: "UrbeBot Concierge",

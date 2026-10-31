@@ -113,6 +113,8 @@ async function callLlmApi(
 /**
  * Local Context-Aware Real Estate Engine
  */
+const sinTildes = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
 function processLocalRuleEngine(
   userText: string,
   properties: Property[]
@@ -149,50 +151,66 @@ function processLocalRuleEngine(
     };
   }
 
-  // 3. Detección de intención: Crédito hipotecario / Dividendo / UF
-  if (
-    query.includes('dividendo') || 
-    query.includes('credito') || 
-    query.includes('hipotecario') || 
-    query.includes('banco') ||
-    query.includes('uf') ||
-    query.includes('pie')
-  ) {
-    const ufVal = agencyConfig.market.ufValueClp.toLocaleString('es-CL');
+  // 3. Consulta de financiamiento: no se evalúa crédito aquí (lo hace el banco); se deriva al contacto
+  if (/\b(dividendo|credito|hipotecari[oa]s?|banco|bancos|pie)\b/.test(sinTildes(query))) {
     return {
-      text: `Actualmente el valor de la UF referencial es de $${ufVal} CLP. En nuestro simulador hipotecario integrado (ubicado en la ficha de cada propiedad) puedes calcular el dividendo mensual exacto según el plazo (15, 20 o 25 años) y el porcentaje de pie (desde 10% a 30%).\n\n¿Deseas que te recomendemos propiedades dentro de un valor de cuota específico?`,
+      text: `El financiamiento y la evaluación del crédito los realiza tu banco, así que no podemos simularlo por aquí. Lo que sí hacemos es mostrarte la propiedad, coordinar una visita y acompañarte en el proceso.
+
+Déjanos tus datos y ${agencyConfig.brokerName} te contactará para ayudarte.`,
+      actionRequired: 'provide_contact',
     };
   }
 
-  // 4. Búsqueda por comuna o tipo de propiedad
-  const matchedProps = properties.filter((p) => {
-    const matchesCommune = query.includes(p.commune.toLowerCase()) || 
-      (p.commune.toLowerCase().includes('melipilla') && (query.includes('melipilla') || query.includes('agricola') || query.includes('campo') || query.includes('parcela'))) ||
-      (p.commune.toLowerCase().includes('las condes') && (query.includes('las condes') || query.includes('golf') || query.includes('manquehue'))) ||
-      (p.commune.toLowerCase().includes('vitacura') && query.includes('vitacura')) ||
-      (p.commune.toLowerCase().includes('barnechea') && (query.includes('barnechea') || query.includes('dehesa') || query.includes('trapenses'))) ||
-      (p.commune.toLowerCase().includes('pirque') && (query.includes('pirque') || query.includes('paine'))) ||
-      (p.commune.toLowerCase().includes('providencia') && query.includes('providencia')) ||
-      (p.commune.toLowerCase().includes('chicureo') && (query.includes('chicureo') || query.includes('colina') || query.includes('chamisero')));
+  // 4. Búsqueda por comuna, tipo y operación: lo que el usuario menciona debe cumplirse (no basta una coincidencia)
+  const communeAliases: Record<string, string[]> = {
+    melipilla: ['melipilla'],
+    'las condes': ['las condes', 'golf', 'manquehue'],
+    vitacura: ['vitacura'],
+    barnechea: ['barnechea', 'dehesa', 'trapenses'],
+    pirque: ['pirque', 'paine'],
+    providencia: ['providencia'],
+    chicureo: ['chicureo', 'colina', 'chamisero'],
+  };
+  const communeMatches = (p: Property) => {
+    const commune = p.commune.toLowerCase();
+    return (
+      query.includes(commune) ||
+      Object.entries(communeAliases).some(
+        ([key, words]) => commune.includes(key) && words.some((w) => query.includes(w))
+      )
+    );
+  };
+  const typeWords: Record<string, string[]> = {
+    casa: ['casa'],
+    departamento: ['depto', 'departamento'],
+    parcela_agricola: ['parcela', 'agricola', 'campo'],
+    oficina_comercial: ['oficina'],
+  };
+  const mentionedTypes = Object.entries(typeWords)
+    .filter(([, words]) => words.some((w) => query.includes(w)))
+    .map(([type]) => type);
+  const mentionedOperations = [
+    query.includes('arriendo') ? 'arriendo' : null,
+    query.includes('venta') || query.includes('comprar') ? 'venta' : null,
+  ].filter(Boolean);
+  const mentionsCommune = properties.some(communeMatches);
 
-    const matchesType = (query.includes('casa') && p.propertyType === 'casa') ||
-      (query.includes('depto') && p.propertyType === 'departamento') ||
-      (query.includes('departamento') && p.propertyType === 'departamento') ||
-      (query.includes('parcela') && p.propertyType === 'parcela_agricola') ||
-      (query.includes('oficina') && p.propertyType === 'oficina_comercial');
-
-    const matchesOperation = (query.includes('arriendo') && p.operation === 'arriendo') ||
-      (query.includes('venta') || query.includes('comprar') && p.operation === 'venta');
-
-    return matchesCommune || matchesType || matchesOperation;
-  });
+  const matchedProps =
+    mentionsCommune || mentionedTypes.length > 0 || mentionedOperations.length > 0
+      ? properties.filter(
+          (p) =>
+            (!mentionsCommune || communeMatches(p)) &&
+            (mentionedTypes.length === 0 || mentionedTypes.includes(p.propertyType)) &&
+            (mentionedOperations.length === 0 || mentionedOperations.includes(p.operation))
+        )
+      : [];
 
   if (matchedProps.length > 0) {
     const topMatches = matchedProps.slice(0, 3);
     const names = topMatches.map(p => `• **${p.title}** (${p.commune}) - ${p.priceUf.toLocaleString('es-CL')} UF`).join('\n');
     
     return {
-      text: `He encontrado opciones destacadas en nuestro inventario que coinciden con lo que buscas:\n\n${names}\n\nPuedes hacer clic sobre cualquiera de ellas para ver la ficha técnica completa, fotos en alta resolución o calcular el dividendo. ¿Te gustaría coordinar una visita a alguna de ellas?`,
+      text: `He encontrado opciones destacadas en nuestro inventario que coinciden con lo que buscas:\n\n${names}\n\nPuedes hacer clic sobre cualquiera de ellas para ver la ficha técnica completa, fotos en alta resolución. ¿Te gustaría coordinar una visita a alguna de ellas?`,
       suggestedProperties: topMatches.map(p => p.id),
       actionRequired: 'view_properties',
     };

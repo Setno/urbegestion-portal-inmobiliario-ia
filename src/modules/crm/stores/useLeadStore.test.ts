@@ -93,13 +93,16 @@ describe('useLeadStore', () => {
     }
   });
 
-  it('BUG CONOCIDO: dos leads creados en el mismo milisegundo reciben el mismo id (el id usa Date.now())', () => {
+  it('dos leads creados en el mismo milisegundo reciben ids distintos y cambiar uno no afecta al otro', () => {
     vi.useFakeTimers();
     try {
       vi.setSystemTime(new Date('2026-10-30T10:00:00.000Z'));
       const a = useLeadStore.getState().addLead({ ...nuevoLead(), fullName: 'A' });
       const b = useLeadStore.getState().addLead({ ...nuevoLead(), fullName: 'B' });
-      expect(a).toBe(b);
+      expect(a).not.toBe(b);
+      useLeadStore.getState().updateLeadStatus(a, 'cerrado');
+      const leads = useLeadStore.getState().leads;
+      expect(leads.find((l) => l.id === b)?.status).toBe('nuevo');
     } finally {
       vi.useRealTimers();
     }

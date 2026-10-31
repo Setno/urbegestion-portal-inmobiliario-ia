@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { usePropertyStore } from './usePropertyStore';
 import { initialProperties } from '../data/initialProperties';
 import type { Property } from '../types/property';
@@ -54,5 +54,18 @@ describe('usePropertyStore', () => {
     expect(usePropertyStore.getState().formatPrice(1000).display).toContain('UF');
     usePropertyStore.setState({ currency: 'CLP' });
     expect(usePropertyStore.getState().formatPrice(1000).display).toContain('CLP');
+  });
+
+  it('dos propiedades creadas en el mismo milisegundo reciben ids distintos', () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-10-30T10:00:00.000Z'));
+      usePropertyStore.getState().addProperty(nueva('A'));
+      usePropertyStore.getState().addProperty(nueva('B'));
+      const [b, a] = usePropertyStore.getState().properties;
+      expect(a.id).not.toBe(b.id);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

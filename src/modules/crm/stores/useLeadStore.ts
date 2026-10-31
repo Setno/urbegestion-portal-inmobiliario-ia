@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Lead, LeadStatus } from '../types/lead';
 import { webhookService } from '../../captacion/services/webhookService';
 import { createLocalStore } from '../../../core/storage/localStore';
+import { newId } from '../../../core/utils/newId';
 
 interface LeadStore {
   leads: Lead[];
@@ -100,10 +101,10 @@ export const useLeadStore = create<LeadStore>((set) => {
     selectedLead: null,
 
     addLead: (leadData) => {
-      const newId = `lead-${Date.now()}`;
+      const leadId = newId('lead');
       const newLead: Lead = {
         ...leadData,
-        id: newId,
+        id: leadId,
         createdAt: new Date().toISOString().split('T')[0],
       };
 
@@ -118,7 +119,7 @@ export const useLeadStore = create<LeadStore>((set) => {
         console.warn('Auto GHL webhook dispatch note:', err);
       });
 
-      return newId;
+      return leadId;
     },
 
     updateLeadStatus: (id, status) => {

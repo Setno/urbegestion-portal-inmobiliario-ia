@@ -3,6 +3,7 @@ import { Property, PropertyFilterState } from '../types/property';
 import { initialProperties } from '../data/initialProperties';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { createLocalStore } from '../../../core/storage/localStore';
+import { newId } from '../../../core/utils/newId';
 
 interface PropertyStore {
   properties: Property[];
@@ -70,7 +71,7 @@ export const usePropertyStore = create<PropertyStore>((set, get) => {
     addProperty: (propertyData) => {
       const newProp: Property = {
         ...propertyData,
-        id: `prop-${Date.now()}`,
+        id: newId('prop'),
         createdAt: new Date().toISOString().split('T')[0],
       };
       set((state) => {

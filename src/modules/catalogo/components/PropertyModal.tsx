@@ -341,7 +341,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
             )}
 
             {/* SIMULADOR DE CRÉDITO HIPOTECARIO (VENTA) */}
-            {property.operation === 'venta' && (
+            {agencyConfig.features.mortgageSimulator && property.operation === 'venta' && (
               <div className="bg-slate-50 border border-slate-200 p-5 sm:p-6 rounded-2xl space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
