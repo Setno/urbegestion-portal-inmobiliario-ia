@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   LayoutDashboard,
@@ -10,6 +10,7 @@ import {
   Palette
 } from 'lucide-react';
 import { useLeadStore } from '../../modules/crm/stores/useLeadStore';
+import { getLeadRepository } from '../../modules/crm/services/leadRepository';
 import { usePropertyStore } from '../../modules/catalogo/stores/usePropertyStore';
 import { agencyConfig } from '../config/agencyConfig';
 import { LeadsTab } from '../../modules/crm/components/LeadsTab';
@@ -33,6 +34,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const { properties } = usePropertyStore();
   const { status, email, membership, signOut } = useAuthStore();
 
+  // Con sesión y corredora, los leads se leen de la base (privados: sin sesión no se piden)
+  useEffect(() => {
+    if (status === 'con_sesion') void useLeadStore.getState().load();
+  }, [status]);
+
   const [requestedTab, setRequestedTab] = useState<AdminTab>('crm');
   const role = membership?.role ?? null;
   // Un rol sin permiso para la pestaña pedida vuelve a una pestaña permitida.
@@ -43,6 +49,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   const handleSignOut = async () => {
     await signOut();
+    // Con Supabase los leads son privados: no deben quedar en memoria al cerrar sesión
+    if (getLeadRepository().mode === 'remote') useLeadStore.setState({ leads: [] });
     setRequestedTab('crm');
     onClose();
   };

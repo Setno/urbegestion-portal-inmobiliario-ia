@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { Lead, LeadStatus } from '../types/lead';
 import { webhookService } from '../../captacion/services/webhookService';
 import { createLocalStore } from '../../../core/storage/localStore';
-import { newId } from '../../../core/utils/newId';
+import { getLeadRepository } from '../services/leadRepository';
 
 interface LeadStore {
   leads: Lead[];
@@ -14,6 +14,8 @@ interface LeadStore {
   addNoteToLead: (id: string, note: string) => void;
   setSelectedLead: (lead: Lead | null) => void;
   deleteLead: (id: string) => void;
+  // Trae los leads de la base (solo con Supabase; con almacenamiento local no hace nada).
+  load: () => Promise<void>;
 }
 
 const initialLeads: Lead[] = [
@@ -91,28 +93,31 @@ const initialLeads: Lead[] = [
 
 const leadsStorage = createLocalStore<Lead[]>('urbe_leads');
 
-export const useLeadStore = create<LeadStore>((set) => {
-  const initialData: Lead[] = leadsStorage.load() ?? initialLeads;
+// Un fallo al guardar no rompe la pantalla: el dato queda en memoria y se avisa por consola.
+const warnOnFail = (promise: Promise<void>, action: string) => {
+  promise.catch((err) => console.warn(`[useLeadStore] No se pudo ${action}:`, err));
+};
 
-  const saveToStorage = (leads: Lead[]) => leadsStorage.save(leads);
+export const useLeadStore = create<LeadStore>((set, get) => {
+  // Con Supabase la lista parte vacía y se llena con load(); sin Supabase parte de lo guardado en el navegador.
+  const initialData: Lead[] = getLeadRepository().mode === 'remote' ? [] : leadsStorage.load() ?? initialLeads;
 
   return {
     leads: initialData,
     selectedLead: null,
 
     addLead: (leadData) => {
-      const leadId = newId('lead');
+      const repo = getLeadRepository();
+      const leadId = repo.newId();
       const newLead: Lead = {
         ...leadData,
         id: leadId,
         createdAt: new Date().toISOString().split('T')[0],
       };
 
-      set((state) => {
-        const updated = [newLead, ...state.leads];
-        saveToStorage(updated);
-        return { leads: updated };
-      });
+      const updated = [newLead, ...get().leads];
+      set({ leads: updated });
+      warnOnFail(repo.create(newLead, updated), 'guardar el lead');
 
       // Dispatch automatically to GoHighLevel / Webhook asynchronously
       webhookService.dispatchLeadToGHL(newLead).catch((err) => {
@@ -123,23 +128,18 @@ export const useLeadStore = create<LeadStore>((set) => {
     },
 
     updateLeadStatus: (id, status) => {
-      set((state) => {
-        const updated = state.leads.map((l) =>
-          l.id === id ? { ...l, status } : l
-        );
-        saveToStorage(updated);
-        return { leads: updated };
-      });
+      const updated = get().leads.map((l) => (l.id === id ? { ...l, status } : l));
+      set({ leads: updated });
+      warnOnFail(getLeadRepository().update(id, { status }, updated), 'cambiar el estado del lead');
     },
 
     addNoteToLead: (id, note) => {
-      set((state) => {
-        const updated = state.leads.map((l) =>
-          l.id === id ? { ...l, notes: [...l.notes, note] } : l
-        );
-        saveToStorage(updated);
-        return { leads: updated };
-      });
+      const lead = get().leads.find((l) => l.id === id);
+      if (!lead) return;
+      const notes = [...lead.notes, note];
+      const updated = get().leads.map((l) => (l.id === id ? { ...l, notes } : l));
+      set({ leads: updated });
+      warnOnFail(getLeadRepository().update(id, { notes }, updated), 'guardar la nota del lead');
     },
 
     setSelectedLead: (lead) => {
@@ -147,11 +147,20 @@ export const useLeadStore = create<LeadStore>((set) => {
     },
 
     deleteLead: (id) => {
-      set((state) => {
-        const updated = state.leads.filter((l) => l.id !== id);
-        saveToStorage(updated);
-        return { leads: updated };
-      });
+      const updated = get().leads.filter((l) => l.id !== id);
+      set({ leads: updated });
+      warnOnFail(getLeadRepository().remove(id, updated), 'borrar el lead');
+    },
+
+    load: async () => {
+      const repo = getLeadRepository();
+      if (repo.mode !== 'remote') return;
+      try {
+        const leads = await repo.list();
+        if (leads) set({ leads });
+      } catch (err) {
+        console.warn('[useLeadStore] No se pudieron cargar los leads:', err);
+      }
     },
   };
 });

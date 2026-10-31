@@ -6,7 +6,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 
 ## Stack
 - Lenguaje / framework: TypeScript, React 18, Vite 6, Tailwind 3, Zustand, Recharts, Framer Motion.
-- Base de datos: ninguna todavía (datos en `localStorage` mediante `src/core/storage/localStore.ts`). Destino decidido: Supabase (PostgreSQL), ver docs/adr/004.
+- Base de datos: Supabase (PostgreSQL) para usuarios, corredoras, propiedades y leads cuando hay `VITE_TENANT_ID`; sin él, los datos siguen en `localStorage` (`src/core/storage/localStore.ts`). Acceso a datos vía repositorios (`src/core/data/`). Ver docs/adr/004 y 007.
 - Sitio público por corredora (decidido, sin implementar): Next.js, ver docs/adr/006; la consola y el widget siguen en React + Vite.
 - Hosting: Vercel (SPA + funciones en `api/`). **No hay despliegue hasta nuevo aviso**; solo habrá uno final.
 
@@ -14,9 +14,9 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 | Acción | Comando |
 | --- | --- |
 | Instalar | `npm ci` (validado con `--dry-run`) |
-| Correr en local | `npm run dev` → http://localhost:3000 (el panel admin pide iniciar sesión con Supabase; necesita `.env.local` con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`; sin ellas el panel no aparece) |
+| Correr en local | `npm run dev` → http://localhost:3000 (el panel admin pide iniciar sesión con Supabase; necesita `.env.local` con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`; sin ellas el panel no aparece; con `VITE_TENANT_ID` (id de la corredora) leads y propiedades van a Supabase, sin él quedan en el navegador) |
 | Tests rápidos | `npm test` (Vitest + jsdom, ~3 s); `npm run test:watch` para desarrollo |
-| Suite completa | `npm test` (40 pruebas de caracterización; sin cobertura medida aún) |
+| Suite completa | `npm test` (127 pruebas; sin cobertura medida aún) |
 | Lint | `npm run lint` (0 errores; la deuda previa está suprimida en `eslint-suppressions.json`, ver H-015) |
 | Tipos | `npx tsc --noEmit` |
 | Build | `npm run build` (ejecuta `tsc && vite build`) |

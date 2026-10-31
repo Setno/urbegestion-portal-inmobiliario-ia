@@ -13,7 +13,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
   onOpenDetails, 
   onOpenBooking 
 }) => {
-  const { properties, filters, resetFilters } = usePropertyStore();
+  const { properties, filters, resetFilters, loading } = usePropertyStore();
   const [sortBy, setSortBy] = useState<'featured' | 'priceAsc' | 'priceDesc' | 'areaDesc'>('featured');
 
   // Filter properties based on store state
@@ -96,6 +96,10 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
               onOpenBooking={onOpenBooking}
             />
           ))}
+        </div>
+      ) : loading ? (
+        <div role="status" className="text-center py-16 text-sm text-slate-500">
+          Cargando propiedades…
         </div>
       ) : (
         /* Empty State */

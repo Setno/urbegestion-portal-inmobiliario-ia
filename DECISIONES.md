@@ -37,3 +37,10 @@ Ver docs/adr/005 y docs/adr/006. Propuesta de cambios al Blueprint en docs/propu
 | Control de datos por la corredora | Tres niveles: estándar (nuestra plataforma), base dedicada (nuestra cuenta) y en su infraestructura; los dos últimos solo bajo demanda y con tarifa mayor | Cada instalación dedicada multiplica la operación |
 
 Abierto: costos de Vercel por dominios y tráfico; precios de cada plan tras los pilotos; tratamiento legal (responsable/encargado) según el nivel de control de datos.
+
+## 2026-10-31 · Datos en Supabase mediante repositorios (H-009)
+- Leads y propiedades pasan por un repositorio (navegador o Supabase) elegido por `VITE_TENANT_ID`; las tiendas no cambian de contrato y sin Supabase todo funciona como antes. En pruebas siempre se usa el navegador, para no tocar nunca la base real.
+- El sitio atiende a una corredora fija (`VITE_TENANT_ID`); el mapeo dominio → corredora llega con las plantillas de sitio.
+- Catálogo de lectura pública; leads privados por corredora; el visitante sin sesión solo puede crear leads con estado `nuevo`; borrar es solo del admin. Aislamiento verificado con `supabase/tests/rls_catalogo_crm.sql` y con llamadas reales como visitante.
+- Pendiente (estacionado, H-013): límite de envíos del formulario público contra spam. Pendiente (H-009.5): las imágenes subidas se guardan como texto base64 en la fila.
+

@@ -3,13 +3,14 @@ import { Property, PropertyFilterState } from '../types/property';
 import { initialProperties } from '../data/initialProperties';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { createLocalStore } from '../../../core/storage/localStore';
-import { newId } from '../../../core/utils/newId';
+import { getPropertyRepository } from '../services/propertyRepository';
 
 interface PropertyStore {
   properties: Property[];
   filters: PropertyFilterState;
   currency: 'UF' | 'CLP';
   selectedProperty: Property | null;
+  loading: boolean;
   
   // Actions
   setFilters: (filters: Partial<PropertyFilterState>) => void;
@@ -21,6 +22,8 @@ interface PropertyStore {
   addProperty: (property: Omit<Property, 'id' | 'createdAt'>) => void;
   updateProperty: (id: string, updates: Partial<Property>) => void;
   deleteProperty: (id: string) => void;
+  // Trae las propiedades de la base (solo con Supabase; con almacenamiento local no hace nada).
+  load: () => Promise<void>;
   
   // Helper
   formatPrice: (priceUf: number) => { display: string; full: string };
@@ -39,13 +42,19 @@ const defaultFilters: PropertyFilterState = {
 
 const propertiesStorage = createLocalStore<Property[]>('urbe_properties');
 
-export const usePropertyStore = create<PropertyStore>((set, get) => {
-  const initialData: Property[] = propertiesStorage.load() ?? initialProperties;
+// Un fallo al guardar no rompe la pantalla: el dato queda en memoria y se avisa por consola.
+const warnOnFail = (promise: Promise<void>, action: string) => {
+  promise.catch((err) => console.warn(`[usePropertyStore] No se pudo ${action}:`, err));
+};
 
-  const saveToStorage = (props: Property[]) => propertiesStorage.save(props);
+export const usePropertyStore = create<PropertyStore>((set, get) => {
+  // Con Supabase la lista parte vacía y se llena con load(); sin Supabase parte de lo guardado en el navegador.
+  const remote = getPropertyRepository().mode === 'remote';
+  const initialData: Property[] = remote ? [] : propertiesStorage.load() ?? initialProperties;
 
   return {
     properties: initialData,
+    loading: remote,
     filters: defaultFilters,
     currency: agencyConfig.market.defaultCurrency,
     selectedProperty: null,
@@ -69,34 +78,41 @@ export const usePropertyStore = create<PropertyStore>((set, get) => {
     },
 
     addProperty: (propertyData) => {
+      const repo = getPropertyRepository();
       const newProp: Property = {
         ...propertyData,
-        id: newId('prop'),
+        id: repo.newId(),
         createdAt: new Date().toISOString().split('T')[0],
       };
-      set((state) => {
-        const updated = [newProp, ...state.properties];
-        saveToStorage(updated);
-        return { properties: updated };
-      });
+      const updated = [newProp, ...get().properties];
+      set({ properties: updated });
+      warnOnFail(repo.create(newProp, updated), 'guardar la propiedad');
     },
 
     updateProperty: (id, updates) => {
-      set((state) => {
-        const updated = state.properties.map((p) =>
-          p.id === id ? { ...p, ...updates } : p
-        );
-        saveToStorage(updated);
-        return { properties: updated };
-      });
+      const updated = get().properties.map((p) => (p.id === id ? { ...p, ...updates } : p));
+      set({ properties: updated });
+      warnOnFail(getPropertyRepository().update(id, updates, updated), 'actualizar la propiedad');
     },
 
     deleteProperty: (id) => {
-      set((state) => {
-        const updated = state.properties.filter((p) => p.id !== id);
-        saveToStorage(updated);
-        return { properties: updated };
-      });
+      const updated = get().properties.filter((p) => p.id !== id);
+      set({ properties: updated });
+      warnOnFail(getPropertyRepository().remove(id, updated), 'borrar la propiedad');
+    },
+
+    load: async () => {
+      const repo = getPropertyRepository();
+      if (repo.mode !== 'remote') return;
+      set({ loading: true });
+      try {
+        const properties = await repo.list();
+        if (properties) set({ properties });
+      } catch (err) {
+        console.warn('[usePropertyStore] No se pudieron cargar las propiedades:', err);
+      } finally {
+        set({ loading: false });
+      }
     },
 
     formatPrice: (priceUf: number) => {

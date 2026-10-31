@@ -16,7 +16,11 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-008.5 | El administrador invita a un agente por correo a su corredora | Media (Should) | M | pendiente | H-008.3 |
 | H-008.6 | Recuperar contraseña por correo | Baja (Should) | S | hecha | H-008.2 |
 | H-008.7 | Alta de una corredora nueva con su primer administrador (onboarding de tenant) | Baja (Could) | M | pendiente | H-008.3 |
-| H-009 | Leads y CRM en Supabase con evento `lead.created` entre Captación y CRM | Alta | M+ (dividir) | pendiente | H-008 |
+| H-009.1 | Capa de datos con repositorios: las tiendas de leads y propiedades pasan por un repositorio (local o Supabase); sin Supabase configurado todo sigue como hoy | Alta (Must) | S | en revisión | H-008 |
+| H-009.2 | Propiedades en Supabase: catálogo público leído de la base, panel de propiedades guarda por corredora | Alta (Must) | M | en revisión | H-009.1 |
+| H-009.3 | Leads en Supabase: el sitio crea leads en la corredora, el panel los ve y gestiona solo si es de esa corredora | Alta (Must) | M | en revisión | H-009.1 |
+| H-009.4 | Evento `lead.created` entre Captación y CRM (Captación deja de importar el almacén de CRM) | Media (Should) | S | pendiente | H-009.3 |
+| H-009.5 | Imágenes de propiedades en Supabase Storage (hoy se guardan como texto base64) | Media (Should) | M | pendiente | H-009.2 |
 | H-010 | Extraer textos de interfaz a archivos de traducción (es-419 e inglés) | Media | M+ (dividir) | pendiente | — |
 | H-011 | Paquete de mercado Chile (UF, comunas, RUT, ley de datos) | Media | M | pendiente | H-010 |
 | H-012 | Consentimiento y finalidad de datos en formularios (Ley 21.719) | Alta | M | pendiente | H-008 |
@@ -195,3 +199,33 @@ Hoy los datos viven en el navegador y el panel solo se protege con `import.meta.
 **Resultado H-008.1 (2026-10-31):** ADR-007 (`docs/adr/007-entorno-supabase-desarrollo-y-produccion.md`): dos proyectos separados (`urbegestion-dev` en plan gratuito, región São Paulo, y `urbegestion-prod` en plan de pago al desplegar), claves publicables en `.env.local` y secretas solo en servidor, migraciones como SQL versionado y aprobado. Proyecto de desarrollo creado y verificado con `npm run verificar:supabase` (conexión correcta, registro público desactivado, confirmación de correo exigida). `@supabase/supabase-js` se instala en H-008.2.
 
 **Resultado H-008.2, H-008.3, H-008.4, H-008.6 y H-006 (2026-10-31):** nuevo `src/core/auth/` (cliente de Supabase, `authService`, `useAuthStore`, `permissions`, pantallas de ingreso, recuperación y clave nueva). `@supabase/supabase-js` 2.118.0 instalado con versión exacta. El panel (`AdminDashboard`) muestra solo el ingreso si no hay sesión, y con sesión muestra corredora, rol y correo; las pestañas dependen del rol (administrador: todas; agente: Leads, Propiedades y Métricas). `ADMIN_ENABLED` ahora significa "Supabase configurado"; se retiró `VITE_ENABLE_ADMIN`. Se eliminó el Modo Master (PIN fijo, `?agency=true`, triple clic); Identidad y Marca es solo del administrador. El enlace de recuperación abre el sitio y muestra el formulario de clave nueva. Migración `supabase/migrations/20261031120000_core_tenants_memberships.sql` (tenants y memberships con RLS), `supabase/seed-dev.sql` y `supabase/tests/rls_tenants.sql`: **escritos pero aún no aplicados**; requieren aprobación y ejecución manual en el SQL Editor del proyecto de desarrollo. Pruebas: 103 (antes 69), lint (0 errores), `tsc` y `build` en verde. Pendiente de comprobar a mano con la base real: ingreso con el usuario de prueba, rol y pestañas, y recuperación por correo (requiere agregar `http://localhost:3000` en *Authentication > URL Configuration > Redirect URLs*). `npm audit` marca 1 hallazgo moderado nuevo en `minimatch` (herramienta de ESLint, solo desarrollo; no viene de Supabase).
+
+## H-009 dividida: leads, CRM y propiedades en Supabase
+Hoy los datos viven en el navegador de cada visitante (`localStorage`): lo que el panel ve no es lo que el sitio guardó. Con Supabase el sitio público y el panel comparten una sola base, separada por corredora (`tenant_id` + RLS). Decisiones: (1) el sitio atiende a una corredora fija indicada por `VITE_TENANT_ID` (el mapeo dominio → corredora llega con las plantillas de sitio); (2) catálogo de lectura pública, leads privados, y las visitas sin sesión solo pueden crear leads nuevos; (3) con Supabase no configurado, el sitio sigue funcionando con los datos locales de siempre. La migración de H-009.2 y H-009.3 es una sola (`20261031130000_catalogo_crm_properties_leads.sql`) y requiere aprobación antes de aplicarse.
+
+### H-009.1 Capa de datos con repositorios
+**Criterios de aceptación**
+1. Dado Supabase no configurado, cuando se usa el sitio y el panel, entonces leads y propiedades se guardan en el navegador como hoy (las 103 pruebas actuales siguen pasando).
+2. Dado un repositorio simulado, cuando se crea, cambia o borra un lead o una propiedad, entonces la tienda llama al repositorio y refleja el resultado.
+3. Dado un fallo del repositorio, cuando se guarda, entonces la tienda conserva el dato en memoria y avisa con `console.warn` sin romper la pantalla.
+**Tamaño:** S
+
+### H-009.2 Propiedades en Supabase
+**Criterios de aceptación**
+1. Dado el sitio abierto sin sesión, cuando carga el catálogo, entonces ve las propiedades de la corredora guardadas en la base.
+2. Dado un admin o agente con sesión, cuando crea o edita una propiedad, entonces queda en la base y otra persona de la misma corredora la ve.
+3. Dado un agente, cuando intenta borrar una propiedad, entonces la base lo rechaza; el admin sí puede.
+4. Dado un usuario de la corredora B, cuando intenta crear o editar propiedades de la A, entonces la base lo rechaza (prueba RLS contra la base real).
+**Tamaño:** M
+
+### H-009.3 Leads en Supabase
+**Criterios de aceptación**
+1. Dado un visitante sin sesión, cuando deja sus datos en el chat o en una ficha, entonces el lead queda en la corredora del sitio con estado `nuevo`.
+2. Dado un visitante sin sesión, cuando intenta leer o modificar leads, entonces la base no le devuelve nada.
+3. Dado un usuario de la corredora A, cuando abre el panel, entonces ve solo los leads de A; puede cambiar estado y agregar notas.
+4. Dado un agente, cuando intenta borrar un lead, entonces la base lo rechaza; el admin sí puede.
+5. Dado un usuario de B, cuando intenta leer o editar un lead de A, entonces no lo ve ni lo cambia (prueba RLS).
+**Tamaño:** M
+
+**Resultado H-009.1 a .3 (2026-10-31):** repositorios local y Supabase para propiedades y leads (`src/core/data/`, `.../services/`), tiendas conectadas, `load()` al abrir el sitio (catálogo) y al iniciar sesión (leads), leads borrados de memoria al cerrar sesión. Migración `20261031130000_catalogo_crm_properties_leads.sql` aplicada en el Supabase de desarrollo y 8 propiedades y 4 leads de ejemplo cargados (`supabase/seed-dev-catalogo.sql`). 28 pruebas nuevas (131 en total), `tsc`, lint (0 errores) y build en verde. Verificado contra la base real: la prueba RLS `supabase/tests/rls_catalogo_crm.sql` termina en "RLS OK"; un visitante sin sesión lee las 8 propiedades, crea un lead (201), no lee ningún lead y no borra nada; en el navegador, con sesión de administrador, el panel muestra los 4 leads desde la base. Falta que el responsable pruebe a mano (crear un lead desde el chat, cambiar su estado en el panel, editar una propiedad). H-009.4 y H-009.5 siguen pendientes. **Revisión independiente:** encontró que un visitante que agenda una visita crea el lead con estado `visita_agendada` y la política solo aceptaba `nuevo` (el lead se perdería). Se escribió la migración correctiva `20261031140000_leads_insert_endurecer.sql` (acepta `visita_agendada`, exige propiedad de la misma corredora y máximo 20 notas, impide cambiar `tenant_id`, `updated_at` en la base): **pendiente de aprobación y de aplicar** en Supabase. También se corrigió en el código que editar o borrar sin permiso diera "éxito" con 0 filas y que un campo opcional borrado reapareciera. Pendiente anotado: notas simultáneas de dos agentes se pisan (H-009.4) y aviso visible cuando falla el guardado.
+
