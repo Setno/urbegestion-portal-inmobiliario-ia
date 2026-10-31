@@ -9,7 +9,7 @@ Todo el código vive en `src/`. Cada carpeta corresponde a una pieza del Bluepri
 | `src/modules/crm/` | Pestaña de Leads (Kanban y tabla), tienda y tipos de leads | Módulo 2 – CRM |
 | `src/modules/catalogo/` | Propiedades: fichas, grilla, filtros, calculadora hipotecaria, pestaña de Propiedades, tienda, tipos y datos de ejemplo | Catálogo de propiedades (Core) |
 | `src/markets/cl/` | Datos específicos de Chile (comunas) | Paquete de mercado Chile |
-| `src/site/` | Landing de la corredora: portada, menú, secciones, Instagram. Será la semilla de la plantilla 1 del sitio con plantillas (ADR-005); el sitio público pasará a Next.js (ADR-006) | Sitio propio con plantillas (producto base) |
+| `src/site/` | Landing de la corredora: portada, menú, secciones (la sección de Instagram está archivada, H-014). Será la semilla de la plantilla 1 del sitio con plantillas (ADR-005); el sitio público pasará a Next.js (ADR-006) | Sitio propio con plantillas (producto base) |
 | `src/App.tsx`, `src/main.tsx` | Arranque de la aplicación | — |
 
 Dentro de cada módulo: `components/`, `stores/`, `types/`, `services/`, `data/`.
@@ -28,4 +28,3 @@ Se separan al implementar el evento `lead.created` y la API por módulo.
 
 ## Pendientes de seguridad heredados
 - El "Modo Master / Agencia" del panel (PIN fijo en el código y parámetro `?agency=true`) es solo para demos; se reemplaza por roles reales.
-- El token de Instagram se guarda en el navegador (`src/site/services/instagramService.ts`); debe pasar al servidor.

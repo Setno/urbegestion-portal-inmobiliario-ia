@@ -21,7 +21,7 @@
 - Paso 1 (commit 3344273): panel por pestañas, capa de datos y estructura por módulos.
 
 ## Siguiente paso
-H-001 a H-003 y H-018 hechas y unidas a main; el Blueprint ya está versionado. Decisión del 2026-10-31: el foco es la funcionalidad. Seguridad y comprobaciones amplias (H-004, H-005, H-006, H-007, H-019, H-023, H-024) quedaron **estacionadas** en el backlog y se revisan completas antes del despliegue final (H-013). Orden propuesto: H-016 y H-017 (hechas en la rama `feat/h-016-h-017-ids-y-chat`, pendientes de visto bueno), H-014 (archivar Instagram, no va en primera instancia), dividir H-008 (Supabase) con `story-slicer` y después las historias del sitio con plantillas (H-025 a H-035).
+Hechas y unidas a main: H-001, H-002, H-003, H-016, H-017 y H-018; el Blueprint está versionado. H-014 (archivar Instagram) lista en la rama `chore/h-014-archivar-instagram`, pendiente de visto bueno. Decisión del 2026-10-31: el foco es la funcionalidad; seguridad y comprobaciones amplias (H-004, H-005, H-006, H-007, H-019, H-023, H-024) están **estacionadas** y se revisan antes del despliegue final (H-013). Siguiente: dividir H-008 (Supabase) con `story-slicer` y después las historias del sitio con plantillas (H-025 a H-035).
 
 Nota sobre las puertas: G2, G4 (pruebas dinámicas en staging) y G6 suponen desplegar. Como el despliegue será único y al final, quedan pendientes hasta entonces; mientras tanto se usan equivalentes locales (`npm run build` + `npm run preview`, y `vercel dev` para `/api`).
 

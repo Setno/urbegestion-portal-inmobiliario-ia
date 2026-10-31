@@ -13,11 +13,11 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-010 | Extraer textos de interfaz a archivos de traducción (es-419 e inglés) | Media | M+ (dividir) | pendiente | — |
 | H-011 | Paquete de mercado Chile (UF, comunas, RUT, ley de datos) | Media | M | pendiente | H-010 |
 | H-012 | Consentimiento y finalidad de datos en formularios (Ley 21.719) | Alta | M | pendiente | H-008 |
-| H-014 | Archivar la sección de Instagram (decisión 2026-10-31: no va en primera instancia): mover a `_archivo/` con `LEEME.md` tras revisar qué código la referencia | Baja | S | pendiente | — |
-| H-015 | Reducir la deuda de lint suprimida (45 variables sin usar, 10 hooks, 13 `any`) y vaciar `eslint-suppressions.json` | Media | M | pendiente | H-002 |
-| H-016 | Ids únicos para leads y propiedades (hoy `Date.now()` puede repetirse en el mismo milisegundo y un cambio afecta a ambos) | Media | S | en revisión | H-002 |
-| H-017 | Corregir el motor local del chat: la intención de crédito atrapaba mensajes con "propiedades" (contienen "pie") y la búsqueda combinaba comuna, tipo y operación con "o". Decisión 2026-10-31: el chat no evalúa crédito (lo hace el banco) y el simulador de dividendo queda apagado | Media | S | en revisión | H-002 |
-| H-018 | Pruebas de `api/chat.ts` y `api/lead-webhook.ts` como parte de la suite (hoy solo se verificaron con scripts temporales que no se guardaron) | Alta | S | en revisión | H-002 |
+| H-014 | Archivar la sección de Instagram (decisión 2026-10-31: no va en primera instancia): mover a `_archivo/` con `LEEME.md` tras revisar qué código la referencia | Baja | S | en revisión | — |
+| H-015 | Reducir la deuda de lint suprimida (los 10 errores de hooks desaparecieron al archivar Instagram en H-014; el resto está en `eslint-suppressions.json`) y vaciar `eslint-suppressions.json` | Media | M | pendiente | H-002 |
+| H-016 | Ids únicos para leads y propiedades (hoy `Date.now()` puede repetirse en el mismo milisegundo y un cambio afecta a ambos) | Media | S | hecha | H-002 |
+| H-017 | Corregir el motor local del chat: la intención de crédito atrapaba mensajes con "propiedades" (contienen "pie") y la búsqueda combinaba comuna, tipo y operación con "o". Decisión 2026-10-31: el chat no evalúa crédito (lo hace el banco) y el simulador de dividendo queda apagado | Media | S | hecha | H-002 |
+| H-018 | Pruebas de `api/chat.ts` y `api/lead-webhook.ts` como parte de la suite (hoy solo se verificaron con scripts temporales que no se guardaron) | Alta | S | hecha | H-002 |
 | H-020 | Pruebas de pantallas del CRM (Kanban, filtros, ficha del lead, notas, exportación CSV) con Testing Library | Media | M | pendiente | H-002; hacerla antes de rediseñar el CRM |
 | H-021 | Pruebas de pantallas de catálogo y captación (filtros, formulario de propiedades, chat, valorizador de 4 pasos, agenda) (el simulador de dividendo queda apagado, ver H-017) | Media | M | pendiente | H-002 |
 | H-022 | Pruebas de la tienda de marca y de la pestaña de Identidad y Marca | Baja | S | pendiente | H-002 |
@@ -43,7 +43,7 @@ Decisión del 2026-10-31: mientras no haya despliegue, el trabajo se centra en q
 | H-004 | Cabeceras CSP y HSTS en `vercel.json` | Media | S | estacionada | — |
 | H-005 | Límite de tasa y validación extra en `api/*` | Media | M | estacionada | — |
 | H-006 | Reemplazar el "Modo Master" (PIN fijo y `?agency=true`) por control real | Media | S | estacionada (necesita auth, H-008) | H-008 |
-| H-007 | Mover el token de Instagram al servidor (solo si Instagram se reactiva; hoy se archiva con H-014) | Media | S | estacionada | — |
+| H-007 | Mover el token de Instagram al servidor (solo si Instagram se reactiva; la sección ya está archivada, H-014) | Media | S | estacionada | — |
 | H-019 | Medir cobertura de pruebas (paquete adicional) y fijar un umbral mínimo en el CI | Media | S | estacionada | H-002 |
 | H-023 | Prueba E2E con Playwright del flujo de negocio: un visitante deja sus datos y el lead aparece en el CRM | Media | M | estacionada | H-008 (con datos reales) |
 | H-024 | Línea base de accesibilidad (axe) y rendimiento (Lighthouse) del sitio y la consola | Media | S | estacionada | — |
@@ -94,3 +94,6 @@ H-025 a H-035 salen de la decisión del 2026-10-30 de incluir el sitio con plant
 
 ## H-016 y H-017 Ids únicos y motor local del chat
 **Resultado (2026-10-31):** *H-016:* nuevo `src/core/utils/newId.ts` (`prefijo-fecha-aleatorio`); lo usan `useLeadStore` y `usePropertyStore`. Dos registros creados en el mismo milisegundo ya tienen ids distintos y cambiar uno no afecta al otro. *H-017:* la búsqueda del chat local exige que se cumpla todo lo que el usuario menciona (comuna, tipo y operación) y corrige el error de precedencia que traía todas las ventas con la palabra "venta"; "parcela/agrícola/campo" pasan a ser palabras de tipo y no de comuna. El chat ya no calcula crédito: ante dividendo, crédito, hipotecario, banco o pie, explica que lo evalúa el banco y ofrece contacto (`provide_contact`); se quitó el chip "Simular dividendo" y la mención al dividendo en las recomendaciones. La calculadora de la ficha de propiedad quedó detrás de `agencyConfig.features.mortgageSimulator` (apagado). El campo `mortgageStatus` del lead no se tocó. Pruebas: 69 (antes 62); los tres casos `BUG CONOCIDO` se convirtieron en pruebas del comportamiento correcto. Verificado: tests, lint (0 errores), `tsc`, `build` y chat y ficha revisados en el navegador.
+
+## H-014 Archivar la sección de Instagram
+**Resultado (2026-10-31):** `InstagramSection`, `InstagramPostModal`, `instagramService` y los tipos de Instagram se movieron a `_archivo/instagram/` (con entrada en `_archivo/LEEME.md`) y se quitaron del repositorio; seguían en el historial de git. Ninguno estaba importado desde el sitio (era código sin uso). Se quitaron también las variables `VITE_INSTAGRAM_*` de `src/vite-env.d.ts` y las supresiones de lint asociadas (los 10 errores de hooks del modal desaparecen con él). Se mantiene el botón de enlace al perfil en el menú (`agencyConfig.contact.instagram`). Verificado: 69 pruebas, lint (0 errores), `tsc`, `build` (CSS del bundle baja de 62 a 52 kB) y el sitio carga en local con las 8 propiedades.
