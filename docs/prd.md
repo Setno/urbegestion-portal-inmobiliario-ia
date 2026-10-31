@@ -14,8 +14,8 @@ Versión: 0.1 · Reconstruido desde el código el 2026-10-30 · Visión objetivo
 | --- | --- | --- |
 | Visitante (comprador/arrendatario) | Ver catálogo y fichas, filtrar, simular dividendo, chatear con el asistente, dejar datos y agendar visita | Ver el panel interno |
 | Propietario (visitante) | Pedir una tasación y dejar datos de su propiedad (captación de oferta) | — |
-| Corredora / administrador | Gestionar leads, propiedades, UF, integraciones y marca desde el panel | Hoy **no hay autenticación**: el panel solo está disponible en desarrollo o con `VITE_ENABLE_ADMIN=true` |
-| Agencia (modo demo) | Ver la pestaña de Identidad y Marca (`?agency=true`) | Es un acceso de demostración, no un rol real |
+| Corredora / administrador | Gestionar leads, propiedades, UF, integraciones y marca desde el panel | Inicia sesión con correo y clave (Supabase Auth); ve todas las pestañas del panel |
+| Agente | Leads, Propiedades y Métricas de su corredora | No ve Integraciones ni Identidad y Marca (solo el administrador) |
 
 ## Flujos principales
 1. **Explorar catálogo:** filtros por operación, comuna, tipo, precio y dormitorios; ficha con mapa; alternancia UF/CLP.

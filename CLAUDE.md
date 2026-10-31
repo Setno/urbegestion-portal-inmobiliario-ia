@@ -14,14 +14,15 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 | Acción | Comando |
 | --- | --- |
 | Instalar | `npm ci` (validado con `--dry-run`) |
-| Correr en local | `npm run dev` → http://localhost:3000 (panel admin habilitado solo en dev) |
+| Correr en local | `npm run dev` → http://localhost:3000 (el panel admin pide iniciar sesión con Supabase; necesita `.env.local` con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`; sin ellas el panel no aparece) |
 | Tests rápidos | `npm test` (Vitest + jsdom, ~3 s); `npm run test:watch` para desarrollo |
 | Suite completa | `npm test` (40 pruebas de caracterización; sin cobertura medida aún) |
 | Lint | `npm run lint` (0 errores; la deuda previa está suprimida en `eslint-suppressions.json`, ver H-015) |
 | Tipos | `npx tsc --noEmit` |
 | Build | `npm run build` (ejecuta `tsc && vite build`) |
-| Probar producción local | `npm run preview` → http://localhost:4173 (el panel admin no debe aparecer) |
+| Probar producción local | `npm run preview` → http://localhost:4173 (el panel admin aparece solo si hay claves de Supabase y siempre pide login) |
 | E2E | no existen |
+| Verificar Supabase | `npm run verificar:supabase` (imprime solo estados, nunca claves) |
 
 Las rutas `api/*` no existen bajo `npm run dev`; requieren `vercel dev` o un despliegue (el chat cae al motor local y el webhook responde "sin conexión").
 

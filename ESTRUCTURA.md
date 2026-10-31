@@ -27,4 +27,4 @@ Hoy los módulos se importan entre sí por simplicidad del prototipo, contra la 
 Se separan al implementar el evento `lead.created` y la API por módulo.
 
 ## Pendientes de seguridad heredados
-- El "Modo Master / Agencia" del panel (PIN fijo en el código y parámetro `?agency=true`) es solo para demos; se reemplaza por roles reales.
+- El "Modo Master / Agencia" (PIN fijo y `?agency=true`) se retiró (H-006): el acceso al panel es por login de Supabase con roles `admin` y `agente` (`src/core/auth/`). La pestaña de Identidad y Marca es solo del administrador.

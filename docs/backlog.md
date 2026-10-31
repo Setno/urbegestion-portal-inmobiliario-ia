@@ -9,18 +9,18 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-002 | Tests de caracterización de flujos críticos | Alta | M | hecha | — |
 | H-003 | Actualizar dependencias con vulnerabilidades (`vite`, `postcss`, `source-map-js`) | Alta | S | hecha | H-002 |
 | H-008 | Proyecto Supabase + esquema Core (tenants, usuarios, roles, RLS) y login real | Alta | M+ | dividida en H-008.1 a H-008.7 | decisión ADR-004 |
-| H-008.1 | Spike: dónde corre Supabase en desarrollo (nube gratuita o local con Docker), cómo se guardan las claves y cómo se manejan las migraciones; resultado: ADR-007 | Alta (Must) | S | en revisión | ADR-004 |
-| H-008.2 | Login real del panel: ingresar con correo y clave, cerrar sesión, y panel visible solo con sesión | Alta (Must) | M | pendiente | H-008.1 |
-| H-008.3 | Corredora (tenant) y rol: cada usuario pertenece a una corredora con un rol y el panel lo muestra; aislamiento entre corredoras con RLS | Alta (Must) | M | pendiente | H-008.2 |
-| H-008.4 | Permisos por rol en el panel: administrador ve todo; agente no ve Integraciones ni Identidad y Marca | Media (Should) | S | pendiente | H-008.3 |
+| H-008.1 | Spike: dónde corre Supabase en desarrollo (nube gratuita o local con Docker), cómo se guardan las claves y cómo se manejan las migraciones; resultado: ADR-007 | Alta (Must) | S | hecha | ADR-004 |
+| H-008.2 | Login real del panel: ingresar con correo y clave, cerrar sesión, y panel visible solo con sesión | Alta (Must) | M | hecha | H-008.1 |
+| H-008.3 | Corredora (tenant) y rol: cada usuario pertenece a una corredora con un rol y el panel lo muestra; aislamiento entre corredoras con RLS | Alta (Must) | M | hecha | H-008.2 |
+| H-008.4 | Permisos por rol en el panel: administrador ve todo; agente no ve Integraciones ni Identidad y Marca | Media (Should) | S | hecha | H-008.3 |
 | H-008.5 | El administrador invita a un agente por correo a su corredora | Media (Should) | M | pendiente | H-008.3 |
-| H-008.6 | Recuperar contraseña por correo | Baja (Should) | S | pendiente | H-008.2 |
+| H-008.6 | Recuperar contraseña por correo | Baja (Should) | S | hecha | H-008.2 |
 | H-008.7 | Alta de una corredora nueva con su primer administrador (onboarding de tenant) | Baja (Could) | M | pendiente | H-008.3 |
 | H-009 | Leads y CRM en Supabase con evento `lead.created` entre Captación y CRM | Alta | M+ (dividir) | pendiente | H-008 |
 | H-010 | Extraer textos de interfaz a archivos de traducción (es-419 e inglés) | Media | M+ (dividir) | pendiente | — |
 | H-011 | Paquete de mercado Chile (UF, comunas, RUT, ley de datos) | Media | M | pendiente | H-010 |
 | H-012 | Consentimiento y finalidad de datos en formularios (Ley 21.719) | Alta | M | pendiente | H-008 |
-| H-014 | Archivar la sección de Instagram (decisión 2026-10-31: no va en primera instancia): mover a `_archivo/` con `LEEME.md` tras revisar qué código la referencia | Baja | S | en revisión | — |
+| H-014 | Archivar la sección de Instagram (decisión 2026-10-31: no va en primera instancia): mover a `_archivo/` con `LEEME.md` tras revisar qué código la referencia | Baja | S | hecha | — |
 | H-015 | Reducir la deuda de lint suprimida (los 10 errores de hooks desaparecieron al archivar Instagram en H-014; el resto está en `eslint-suppressions.json`) y vaciar `eslint-suppressions.json` | Media | M | pendiente | H-002 |
 | H-016 | Ids únicos para leads y propiedades (hoy `Date.now()` puede repetirse en el mismo milisegundo y un cambio afecta a ambos) | Media | S | hecha | H-002 |
 | H-017 | Corregir el motor local del chat: la intención de crédito atrapaba mensajes con "propiedades" (contienen "pie") y la búsqueda combinaba comuna, tipo y operación con "o". Decisión 2026-10-31: el chat no evalúa crédito (lo hace el banco) y el simulador de dividendo queda apagado | Media | S | hecha | H-002 |
@@ -49,7 +49,7 @@ Decisión del 2026-10-31: mientras no haya despliegue, el trabajo se centra en q
 | --- | --- | --- | --- | --- | --- |
 | H-004 | Cabeceras CSP y HSTS en `vercel.json` | Media | S | estacionada | — |
 | H-005 | Límite de tasa y validación extra en `api/*` | Media | M | estacionada | — |
-| H-006 | Reemplazar el "Modo Master" (PIN fijo y `?agency=true`) por control real | Media | S | estacionada (necesita auth, H-008) | H-008 |
+| H-006 | Reemplazar el "Modo Master" (PIN fijo y `?agency=true`) por control real (retirado; el acceso es por login y rol) | Media | S | hecha | H-008 |
 | H-007 | Mover el token de Instagram al servidor (solo si Instagram se reactiva; la sección ya está archivada, H-014) | Media | S | estacionada | — |
 | H-019 | Medir cobertura de pruebas (paquete adicional) y fijar un umbral mínimo en el CI | Media | S | estacionada | H-002 |
 | H-023 | Prueba E2E con Playwright del flujo de negocio: un visitante deja sus datos y el lead aparece en el CRM | Media | M | estacionada | H-008 (con datos reales) |
@@ -193,3 +193,5 @@ Hoy los datos viven en el navegador y el panel solo se protege con `import.meta.
 **Tamaño:** M
 
 **Resultado H-008.1 (2026-10-31):** ADR-007 (`docs/adr/007-entorno-supabase-desarrollo-y-produccion.md`): dos proyectos separados (`urbegestion-dev` en plan gratuito, región São Paulo, y `urbegestion-prod` en plan de pago al desplegar), claves publicables en `.env.local` y secretas solo en servidor, migraciones como SQL versionado y aprobado. Proyecto de desarrollo creado y verificado con `npm run verificar:supabase` (conexión correcta, registro público desactivado, confirmación de correo exigida). `@supabase/supabase-js` se instala en H-008.2.
+
+**Resultado H-008.2, H-008.3, H-008.4, H-008.6 y H-006 (2026-10-31):** nuevo `src/core/auth/` (cliente de Supabase, `authService`, `useAuthStore`, `permissions`, pantallas de ingreso, recuperación y clave nueva). `@supabase/supabase-js` 2.118.0 instalado con versión exacta. El panel (`AdminDashboard`) muestra solo el ingreso si no hay sesión, y con sesión muestra corredora, rol y correo; las pestañas dependen del rol (administrador: todas; agente: Leads, Propiedades y Métricas). `ADMIN_ENABLED` ahora significa "Supabase configurado"; se retiró `VITE_ENABLE_ADMIN`. Se eliminó el Modo Master (PIN fijo, `?agency=true`, triple clic); Identidad y Marca es solo del administrador. El enlace de recuperación abre el sitio y muestra el formulario de clave nueva. Migración `supabase/migrations/20261031120000_core_tenants_memberships.sql` (tenants y memberships con RLS), `supabase/seed-dev.sql` y `supabase/tests/rls_tenants.sql`: **escritos pero aún no aplicados**; requieren aprobación y ejecución manual en el SQL Editor del proyecto de desarrollo. Pruebas: 103 (antes 69), lint (0 errores), `tsc` y `build` en verde. Pendiente de comprobar a mano con la base real: ingreso con el usuario de prueba, rol y pestañas, y recuperación por correo (requiere agregar `http://localhost:3000` en *Authentication > URL Configuration > Redirect URLs*). `npm audit` marca 1 hallazgo moderado nuevo en `minimatch` (herramienta de ESLint, solo desarrollo; no viene de Supabase).

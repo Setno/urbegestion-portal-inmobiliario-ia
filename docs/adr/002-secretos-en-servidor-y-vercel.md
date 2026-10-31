@@ -14,7 +14,7 @@ La versión inicial guardaba la clave del LLM y la URL del webhook en el navegad
 | Backend propio | Control total | Operación pesada para el equipo | Alto |
 
 ## Decisión
-`api/chat.ts` (LLM) y `api/lead-webhook.ts` (webhook) leen `LLM_API_KEY`, `AI_PROVIDER`, `AI_MODEL` y `GHL_WEBHOOK_URL` del entorno. El cliente solo llama a esos endpoints. El panel admin se habilita únicamente en desarrollo o con `VITE_ENABLE_ADMIN=true`. `vercel.json` desactiva los despliegues automáticos desde Git hasta el despliegue final.
+`api/chat.ts` (LLM) y `api/lead-webhook.ts` (webhook) leen `LLM_API_KEY`, `AI_PROVIDER`, `AI_MODEL` y `GHL_WEBHOOK_URL` del entorno. El cliente solo llama a esos endpoints. El panel admin exige iniciar sesión con Supabase Auth (antes se habilitaba solo en desarrollo o con `VITE_ENABLE_ADMIN=true`). `vercel.json` desactiva los despliegues automáticos desde Git hasta el despliegue final.
 
 ## Consecuencias
 Sin claves en el navegador. Pendientes: límite de tasa en `/api/*` (H-005) y cabeceras CSP/HSTS (H-004). En el despliegue final hay que reactivar los despliegues y cargar las variables (H-013). Esta decisión se absorbe parcialmente cuando exista Supabase (funciones en el servidor de Supabase).

@@ -14,6 +14,7 @@ import { AiChatWidget } from './modules/captacion/components/AiChatWidget';
 import { AdminDashboard } from './core/admin/AdminDashboard';
 import { ADMIN_ENABLED } from './core/config/adminAccess';
 import { useBrandStore } from './core/brand/useBrandStore';
+import { useAuthStore } from './core/auth/useAuthStore';
 import { Property } from './modules/catalogo/types/property';
 
 export const App: React.FC = () => {
@@ -21,6 +22,7 @@ export const App: React.FC = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isValuationOpen, setIsValuationOpen] = useState(false);
+  const authStatus = useAuthStore((s) => s.status);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--color-urbe-primary', themeColors.primary);
@@ -28,6 +30,16 @@ export const App: React.FC = () => {
     document.documentElement.style.setProperty('--color-urbe-accent', themeColors.accent);
     document.documentElement.style.setProperty('--color-urbe-accent-hover', themeColors.accentHover);
   }, [themeColors]);
+
+  // Restaura la sesión al cargar y escucha cambios (ingreso, salida, enlace de recuperación de clave)
+  useEffect(() => {
+    if (ADMIN_ENABLED) void useAuthStore.getState().init();
+  }, []);
+
+  // El enlace del correo de recuperación abre el sitio: se muestra de inmediato el formulario de clave nueva
+  useEffect(() => {
+    if (authStatus === 'recuperando') setIsAdminOpen(true);
+  }, [authStatus]);
 
   const handleOpenBooking = (property: Property) => {
     setSelectedProperty(property);
@@ -92,7 +104,7 @@ export const App: React.FC = () => {
         onClose={() => setIsValuationOpen(false)} 
       />
 
-      {/* Admin Dashboard & CRM Kanban (solo si ADMIN_ENABLED; sin autenticación real hasta tener backend) */}
+      {/* Admin Dashboard & CRM Kanban (solo si Supabase está configurado; exige iniciar sesión) */}
       {ADMIN_ENABLED && (
         <AdminDashboard
           isOpen={isAdminOpen}

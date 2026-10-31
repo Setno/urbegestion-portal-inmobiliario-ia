@@ -17,7 +17,7 @@ Cierran los puntos abiertos del Blueprint §16 que condicionan el arranque.
 - Revisión externa de seguridad y aislamiento entre corredoras antes de producción con clientes reales.
 
 ## Paso 0 aplicado (higiene de seguridad)
-- Eliminado el login falso y el atajo secreto. El panel admin solo se habilita en desarrollo o con `VITE_ENABLE_ADMIN=true` (demo); no hay autenticación real hasta tener Supabase.
+- Eliminado el login falso y el atajo secreto. El panel admin se habilitaba solo en desarrollo o con `VITE_ENABLE_ADMIN=true`; desde 2026-10-31 exige iniciar sesión con Supabase Auth (H-008.2) y tiene roles (H-008.3 y H-008.4).
 - La clave del LLM y la URL del webhook salieron del navegador: viven en variables de entorno del servidor y se usan vía `api/chat.ts` y `api/lead-webhook.ts`.
 - Archivados `Zenith*`, `main-02`, `index-02.html` y `maestro.md` en `_archivo/` (fuera de git).
 - Pendiente: límite de tasa (rate limiting) en `/api/*`, CSP y HSTS en `vercel.json`.

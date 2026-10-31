@@ -1,4 +1,5 @@
-// Sin backend no existe autenticación real: el panel admin solo se habilita
-// en desarrollo o si se activa explícitamente (demo) con VITE_ENABLE_ADMIN=true.
-export const ADMIN_ENABLED: boolean =
-  import.meta.env.DEV || import.meta.env.VITE_ENABLE_ADMIN === 'true';
+import { isSupabaseConfigured } from '../auth/supabaseClient';
+
+// El acceso al panel exige iniciar sesión (Supabase Auth). Los botones de acceso solo
+// aparecen si Supabase está configurado en este entorno (VITE_SUPABASE_URL y clave publicable).
+export const ADMIN_ENABLED: boolean = isSupabaseConfigured;
