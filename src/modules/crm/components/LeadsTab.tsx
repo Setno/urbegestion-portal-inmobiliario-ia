@@ -20,10 +20,11 @@ import { useLeadStore } from '../stores/useLeadStore';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
 import { Lead, LeadStatus } from '../types/lead';
 import { Property } from '../../catalogo/types/property';
+import { buildPropertyFromLead } from '../services/leadToProperty';
 
 export const LeadsTab: React.FC = () => {
-  const { leads, updateLeadStatus, addNoteToLead, deleteLead } = useLeadStore();
-  const { properties } = usePropertyStore();
+  const { leads, updateLeadStatus, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
+  const { properties, addProperty } = usePropertyStore();
 
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [newNote, setNewNote] = useState('');
@@ -520,6 +521,31 @@ export const LeadsTab: React.FC = () => {
                       {selectedLead.propertySpecs.areaM2} m² • {selectedLead.propertySpecs.bedrooms} Dorms
                     </span>
                   </div>
+                  {selectedLead.operationInterest === 'venta_propietario' && (
+                    <div className="pt-1.5 text-xs">
+                      {selectedLead.convertedPropertyId ? (
+                        <span className="font-semibold text-emerald-700">
+                          ✓ Ya hay una propiedad en borrador creada desde este contacto (revísala en Propiedades).
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const propertyId = addProperty(buildPropertyFromLead(selectedLead));
+                            linkProperty(selectedLead.id, propertyId);
+                            setSelectedLead({ ...selectedLead, convertedPropertyId: propertyId });
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-cyan-700 text-white font-bold hover:bg-cyan-800"
+                        >
+                          Crear propiedad en borrador
+                        </button>
+                      )}
+                      <p className="mt-1 text-[10px] text-cyan-800">
+                        Lo que envió el propietario es una primera impresión. La propiedad nace como borrador y se completa
+                        con tus datos y tus fotos antes de publicarla.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -9,6 +9,9 @@ export type PropertyType =
 
 export type PropertyStatus = 'disponible' | 'reservada' | 'vendida' | 'arrendada';
 
+// Estado de la publicación: solo las "publicada" se ven en el sitio. El agente propone y el administrador aprueba.
+export type PublicationStatus = 'borrador' | 'en_revision' | 'publicada' | 'rechazada';
+
 export interface Property {
   id: string;
   title: string;
@@ -34,6 +37,9 @@ export interface Property {
   expensesMonthlyClp?: number;
   mapQuery?: string; // Query de ubicación para Google Maps embed
   coordinates?: { lat: number; lng: number };
+  publicationStatus?: PublicationStatus; // sin valor = publicada (datos antiguos y modo local)
+  approvedAt?: string;
+  rejectionReason?: string;
   createdAt: string;
 }
 

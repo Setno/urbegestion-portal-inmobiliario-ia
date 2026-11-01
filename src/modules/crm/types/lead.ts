@@ -53,6 +53,7 @@ export interface Lead {
     bedrooms?: string;
   };
   privacyNotice?: LeadPrivacyNotice;
+  convertedPropertyId?: string; // propiedad en borrador creada a partir de este lead de propietario
   createdAt: string;
 }
 

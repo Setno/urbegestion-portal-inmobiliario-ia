@@ -14,6 +14,8 @@ interface LeadStore {
   addNoteToLead: (id: string, note: string) => void;
   setSelectedLead: (lead: Lead | null) => void;
   deleteLead: (id: string) => void;
+  // Deja el vínculo entre un lead de propietario y la propiedad en borrador creada a partir de él.
+  linkProperty: (id: string, propertyId: string) => void;
   // Trae los leads de la base (solo con Supabase; con almacenamiento local no hace nada).
   load: () => Promise<void>;
 }
@@ -154,6 +156,12 @@ export const useLeadStore = create<LeadStore>((set, get) => {
       const updated = get().leads.filter((l) => l.id !== id);
       set({ leads: updated });
       warnOnFail(getLeadRepository().remove(id, updated), 'borrar el lead');
+    },
+
+    linkProperty: (id, propertyId) => {
+      const updated = get().leads.map((l) => (l.id === id ? { ...l, convertedPropertyId: propertyId } : l));
+      set({ leads: updated });
+      warnOnFail(getLeadRepository().update(id, { convertedPropertyId: propertyId }, updated), 'vincular la propiedad al lead');
     },
 
     load: async () => {

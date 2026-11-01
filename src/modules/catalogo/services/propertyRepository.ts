@@ -85,6 +85,12 @@ function fromRow(r: Row): Property {
   if (tour !== undefined) property.virtualTourUrl = tour;
   const expenses = opt<number>(r.expenses_monthly_clp);
   if (expenses !== undefined) property.expensesMonthlyClp = Number(expenses);
+  const publication = opt<Property['publicationStatus']>(r.publication_status);
+  if (publication !== undefined) property.publicationStatus = publication;
+  const approvedAt = opt<string>(r.approved_at);
+  if (approvedAt !== undefined) property.approvedAt = approvedAt;
+  const rejection = opt<string>(r.rejection_reason);
+  if (rejection !== undefined) property.rejectionReason = rejection;
   const mapQuery = opt<string>(r.map_query);
   if (mapQuery !== undefined) property.mapQuery = mapQuery;
   if (typeof r.lat === 'number' && typeof r.lng === 'number') property.coordinates = { lat: r.lat, lng: r.lng };

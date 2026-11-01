@@ -19,9 +19,13 @@ interface PropertyStore {
   setSelectedProperty: (property: Property | null) => void;
   
   // CRUD Actions
-  addProperty: (property: Omit<Property, 'id' | 'createdAt'>) => void;
+  addProperty: (property: Omit<Property, 'id' | 'createdAt'>) => string;
   updateProperty: (id: string, updates: Partial<Property>) => void;
   deleteProperty: (id: string) => void;
+  // Flujo de aprobación: el agente envía a revisión; el administrador aprueba o rechaza (con motivo).
+  submitForReview: (id: string) => void;
+  approveProperty: (id: string) => void;
+  rejectProperty: (id: string, reason: string) => void;
   // Trae las propiedades de la base (solo con Supabase; con almacenamiento local no hace nada).
   load: () => Promise<void>;
   
@@ -87,6 +91,7 @@ export const usePropertyStore = create<PropertyStore>((set, get) => {
       const updated = [newProp, ...get().properties];
       set({ properties: updated });
       warnOnFail(repo.create(newProp, updated), 'guardar la propiedad');
+      return newProp.id;
     },
 
     updateProperty: (id, updates) => {
@@ -99,6 +104,25 @@ export const usePropertyStore = create<PropertyStore>((set, get) => {
       const updated = get().properties.filter((p) => p.id !== id);
       set({ properties: updated });
       warnOnFail(getPropertyRepository().remove(id, updated), 'borrar la propiedad');
+    },
+
+    submitForReview: (id) => {
+      get().updateProperty(id, { publicationStatus: 'en_revision', rejectionReason: undefined });
+    },
+
+    approveProperty: (id) => {
+      // La base fija quién aprobó y cuándo; aquí solo se refleja en pantalla.
+      get().updateProperty(id, {
+        publicationStatus: 'publicada',
+        rejectionReason: undefined,
+        approvedAt: new Date().toISOString(),
+      });
+    },
+
+    rejectProperty: (id, reason) => {
+      const motivo = reason.trim();
+      if (!motivo) return;
+      get().updateProperty(id, { publicationStatus: 'rechazada', rejectionReason: motivo });
     },
 
     load: async () => {

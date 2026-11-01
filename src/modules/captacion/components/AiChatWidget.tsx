@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useChatStore } from '../stores/useChatStore';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
+import { isPublished } from '../../catalogo/services/publicationWorkflow';
 import { processAiChatMessage, registerLeadFromChat } from '../services/aiService';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
@@ -27,7 +28,8 @@ interface AiChatWidgetProps {
 
 export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal }) => {
   const { isOpen, setIsOpen, messages, addMessage, isTyping, setIsTyping } = useChatStore();
-  const { properties, formatPrice } = usePropertyStore();
+  const { properties: allProperties, formatPrice } = usePropertyStore();
+  const properties = allProperties.filter(isPublished);
 
   const [inputVal, setInputVal] = useState('');
   const [leadName, setLeadName] = useState('');

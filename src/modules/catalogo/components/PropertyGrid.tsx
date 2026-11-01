@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PropertyCard } from './PropertyCard';
 import { usePropertyStore } from '../stores/usePropertyStore';
+import { isPublished } from '../services/publicationWorkflow';
 import { Property } from '../types/property';
 import { ArrowUpDown, Sparkles, Building, RotateCcw } from 'lucide-react';
 
@@ -13,7 +14,9 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
   onOpenDetails, 
   onOpenBooking 
 }) => {
-  const { properties, filters, resetFilters, loading } = usePropertyStore();
+  const { properties: allProperties, filters, resetFilters, loading } = usePropertyStore();
+  // El sitio solo muestra lo publicado (el borrador y lo que espera aprobación quedan en el panel)
+  const properties = allProperties.filter(isPublished);
   const [sortBy, setSortBy] = useState<'featured' | 'priceAsc' | 'priceDesc' | 'areaDesc'>('featured');
 
   // Filter properties based on store state

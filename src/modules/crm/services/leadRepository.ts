@@ -38,6 +38,7 @@ function toRow(l: Partial<Lead>, clear = false): Row {
   put('attachments', 'attachments', l.attachments);
   put('property_specs', 'propertySpecs', l.propertySpecs);
   put('privacy_notice', 'privacyNotice', l.privacyNotice);
+  if ('convertedPropertyId' in l) row.converted_property_id = isUuid(l.convertedPropertyId) ? l.convertedPropertyId : null;
   return row;
 }
 
@@ -71,6 +72,7 @@ function fromRow(r: Row): Lead {
   set('attachments', attachments && attachments.length > 0 ? attachments : undefined);
   set('propertySpecs', opt(r.property_specs));
   set('privacyNotice', opt(r.privacy_notice));
+  set('convertedPropertyId', opt<string>(r.converted_property_id));
   return lead;
 }
 

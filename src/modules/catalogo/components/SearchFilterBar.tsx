@@ -8,11 +8,13 @@ import {
   ChevronDown 
 } from 'lucide-react';
 import { usePropertyStore } from '../stores/usePropertyStore';
+import { isPublished } from '../services/publicationWorkflow';
 import { REGION_METROPOLITANA_ZONES } from '../../../markets/cl/chileanLocations';
 import { PropertyType } from '../types/property';
 
 export const SearchFilterBar: React.FC = () => {
-  const { filters, setFilters, resetFilters, currency, properties } = usePropertyStore();
+  const { filters, setFilters, resetFilters, currency, properties: allProperties } = usePropertyStore();
+  const properties = allProperties.filter(isPublished);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const count = properties.filter((p) => {
