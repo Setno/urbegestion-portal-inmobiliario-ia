@@ -144,6 +144,27 @@ describe('leadRepository remoto', () => {
   });
 });
 
+describe('leadRepository remoto: aviso de privacidad', () => {
+  const privacyNotice = { shownAt: '2026-11-01T15:00:00.000Z', version: '2026-11-01', purpose: 'contacto_por_consulta' };
+
+  it('guarda el aviso de privacidad del lead en la columna privacy_notice', async () => {
+    const fake = createFakeSupabase();
+    const repo = createRemoteLeadRepository(fake.client, 'tenant-1');
+    await repo.create({ ...lead, privacyNotice }, []);
+    const fila = (fake.argsOf(0, 'insert') as Array<Record<string, unknown>>)[0];
+    expect(fila.privacy_notice).toEqual(privacyNotice);
+  });
+
+  it('devuelve el aviso de privacidad al leer los leads', async () => {
+    const fake = createFakeSupabase({
+      data: [{ id: 'l1', full_name: 'Ana', email: '', phone: '', operation_interest: 'compra', status: 'nuevo', notes: [], source: 'asistente_ia', created_at: '2026-11-01T10:00:00Z', privacy_notice: privacyNotice }],
+      error: null,
+    });
+    const leads = await createRemoteLeadRepository(fake.client, 'tenant-1').list();
+    expect(leads![0].privacyNotice).toEqual(privacyNotice);
+  });
+});
+
 describe('leadRepository remoto: appendNote', () => {
   it('agrega la nota con la función append_lead_note de la base', async () => {
     const rpc = vi.fn().mockResolvedValue({ error: null });

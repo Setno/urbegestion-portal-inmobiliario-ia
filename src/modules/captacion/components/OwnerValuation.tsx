@@ -16,6 +16,8 @@ import {
   Camera
 } from 'lucide-react';
 import { emitLeadCreated } from '../../../core/events/appEvents';
+import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
+import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 import { REGION_METROPOLITANA_ZONES } from '../../../markets/cl/chileanLocations';
 
 interface OwnerValuationProps {
@@ -134,6 +136,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
     const attachmentUrls = uploadedFiles.map((f) => f.url);
 
     emitLeadCreated({
+      privacyNotice: buildPrivacyNotice(),
       fullName: name,
       email: email || 'propietario@sin-email.cl',
       phone: phone,
@@ -590,6 +593,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                       <ArrowLeft className="w-3.5 h-3.5" />
                       <span>Atrás</span>
                     </button>
+<PrivacyNotice />
                     <button
                       type="submit"
                       className="px-6 py-2.5 rounded-xl bg-urbe-accent hover:bg-urbe-accentHover text-slate-950 text-xs font-bold flex items-center gap-2 shadow-lg transition-colors"

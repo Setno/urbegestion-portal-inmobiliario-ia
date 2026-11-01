@@ -20,6 +20,13 @@ export interface LeadAttachment {
   size?: string;
 }
 
+// Permiso que dio la persona al dejar sus datos (Ley 21.719): cuándo, qué versión del texto y para qué.
+export interface LeadPrivacyNotice {
+  shownAt: string;
+  version: string;
+  purpose: string;
+}
+
 export interface Lead {
   id: string;
   fullName: string;
@@ -45,6 +52,7 @@ export interface Lead {
     areaM2?: string;
     bedrooms?: string;
   };
+  privacyNotice?: LeadPrivacyNotice;
   createdAt: string;
 }
 

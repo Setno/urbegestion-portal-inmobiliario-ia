@@ -67,4 +67,30 @@ describe('evento lead.created', () => {
       expect(texto, ruta).not.toMatch(/crm\/stores\/useLeadStore/);
     }
   });
+
+  it('el chat pasa el aviso de privacidad al lead guardado', () => {
+    const cancelar = registerLeadEvents();
+    const privacyNotice = { shownAt: '2026-11-01T15:00:00.000Z', version: 'v-test', purpose: 'contacto_por_consulta' };
+    registerLeadFromChat('Rosa', '+56 9 7777 8888', '', { privacyNotice });
+    expect(useLeadStore.getState().leads[0].privacyNotice).toEqual(privacyNotice);
+    cancelar();
+  });
+
+  it('los cuatro formularios que capturan datos muestran el aviso de privacidad y registran qué aviso se mostró', () => {
+    const formularios = import.meta.glob(
+      [
+        '../../captacion/components/AiChatWidget.tsx',
+        '../../captacion/components/OwnerValuation.tsx',
+        '../../captacion/components/CalBookingModal.tsx',
+        '../../catalogo/components/PropertyModal.tsx',
+      ],
+      { query: '?raw', import: 'default', eager: true },
+    ) as Record<string, string>;
+    expect(Object.keys(formularios)).toHaveLength(4);
+    for (const [ruta, texto] of Object.entries(formularios)) {
+      expect(texto, ruta).toMatch(/<PrivacyNotice \/>/);
+      expect(texto, ruta).toMatch(/privacyNotice: buildPrivacyNotice\(\)/);
+    }
+  });
 });
+

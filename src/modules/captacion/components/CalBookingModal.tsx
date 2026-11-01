@@ -14,6 +14,8 @@ import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { webhookService } from '../services/webhookService';
 import { emitLeadCreated } from '../../../core/events/appEvents';
+import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
+import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 
 interface CalBookingModalProps {
   isOpen: boolean;
@@ -44,6 +46,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
     if (!name || !phone) return;
 
     emitLeadCreated({
+      privacyNotice: buildPrivacyNotice(),
       fullName: name,
       email: email || 'visita@cal.cl',
       phone: phone,
@@ -254,6 +257,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
                 >
                   Cancelar
                 </button>
+<PrivacyNotice />
                 <button
                   type="submit"
                   className="px-6 py-2.5 bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold rounded-xl shadow transition-all"

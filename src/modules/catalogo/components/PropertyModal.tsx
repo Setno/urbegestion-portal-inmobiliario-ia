@@ -23,6 +23,8 @@ import {
 import { Property } from '../types/property';
 import { usePropertyStore } from '../stores/usePropertyStore';
 import { emitLeadCreated } from '../../../core/events/appEvents';
+import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
+import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { CalBookingModal } from '../../captacion/components/CalBookingModal';
 
@@ -89,6 +91,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
     if (!name || !phone) return;
 
     emitLeadCreated({
+      privacyNotice: buildPrivacyNotice(),
       fullName: name,
       email: email || 'sin-correo@visita.cl',
       phone: phone,
@@ -560,6 +563,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                         </div>
                       </div>
 
+<PrivacyNotice />
                       <button
                         type="submit"
                         className="w-full py-3 rounded-xl bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold shadow transition-colors"

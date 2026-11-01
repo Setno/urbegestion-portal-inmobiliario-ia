@@ -17,6 +17,8 @@ import { useChatStore } from '../stores/useChatStore';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
 import { processAiChatMessage, registerLeadFromChat } from '../services/aiService';
 import { agencyConfig } from '../../../core/config/agencyConfig';
+import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
+import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 import { Property } from '../../catalogo/types/property';
 
 interface AiChatWidgetProps {
@@ -81,6 +83,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
     if (!leadName || !leadPhone) return;
 
     registerLeadFromChat(leadName, leadPhone, '', {
+      privacyNotice: buildPrivacyNotice(),
       appointmentDate: selectedDate,
       appointmentTime: selectedTime,
       notes: `Lead registrado desde el asistente IA. Fecha solicitada: ${selectedDate || 'Por coordinar'} a las ${selectedTime}`,
@@ -266,6 +269,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
                       <option value="17:00">17:00 hrs</option>
                     </select>
                   </div>
+<PrivacyNotice />
                   <button
                     type="submit"
                     className="w-full py-2.5 rounded-xl bg-urbe-accent hover:bg-urbe-accentHover text-slate-950 font-bold shadow transition-colors"

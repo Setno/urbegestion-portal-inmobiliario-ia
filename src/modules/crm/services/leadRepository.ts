@@ -37,6 +37,7 @@ function toRow(l: Partial<Lead>, clear = false): Row {
   put('source', 'source', l.source);
   put('attachments', 'attachments', l.attachments);
   put('property_specs', 'propertySpecs', l.propertySpecs);
+  put('privacy_notice', 'privacyNotice', l.privacyNotice);
   return row;
 }
 
@@ -69,6 +70,7 @@ function fromRow(r: Row): Lead {
   const attachments = opt<string[]>(r.attachments);
   set('attachments', attachments && attachments.length > 0 ? attachments : undefined);
   set('propertySpecs', opt(r.property_specs));
+  set('privacyNotice', opt(r.privacy_notice));
   return lead;
 }
 

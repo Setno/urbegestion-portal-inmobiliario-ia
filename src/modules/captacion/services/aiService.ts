@@ -1,6 +1,7 @@
 import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { emitLeadCreated } from '../../../core/events/appEvents';
+import type { LeadPrivacyNotice } from '../../crm/types/lead';
 
 export type AiProviderType = 'local_rules' | 'server';
 
@@ -245,6 +246,7 @@ export function registerLeadFromChat(
     appointmentDate?: string;
     appointmentTime?: string;
     notes?: string;
+    privacyNotice?: LeadPrivacyNotice;
   }
 ) {
   emitLeadCreated({
@@ -258,5 +260,6 @@ export function registerLeadFromChat(
     appointmentTime: details?.appointmentTime,
     notes: details?.notes ? [details.notes] : ['Lead generado a través del Asistente Virtual UrbeBot'],
     source: 'asistente_ia',
+    privacyNotice: details?.privacyNotice,
   });
 }
