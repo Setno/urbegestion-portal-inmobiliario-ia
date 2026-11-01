@@ -116,3 +116,6 @@ end $$;
 reset role;
 
 do $$ begin raise exception 'RLS OK: fotos y notas aisladas por corredora (este "error" deshace los datos de prueba a propósito)'; end $$;
+
+-- Nota (H-008.5): la prueba de que un agente no puede crear membresías (ni invitar a nadie) se ejecutó
+-- el 2026-11-01 contra el Supabase de desarrollo: insert en public.memberships como agente -> insufficient_privilege.

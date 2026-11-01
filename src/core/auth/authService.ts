@@ -10,6 +10,8 @@ export type AuthError = 'credenciales' | 'conexion' | 'no_configurado' | 'clave_
 export type SignInResult = { ok: true; email: string } | { ok: false; error: AuthError };
 export type SimpleResult = { ok: true } | { ok: false; error: AuthError };
 export type AuthEvent = 'SIGNED_IN' | 'SIGNED_OUT' | 'PASSWORD_RECOVERY';
+export type InviteError = 'correo_invalido' | 'ya_miembro' | 'otra_corredora' | 'sin_permiso' | 'no_configurado' | 'conexion';
+export type InviteResult = { ok: true; status: 'invitado' | 'agregado' } | { ok: false; error: InviteError };
 
 const MIN_PASSWORD_LENGTH = 8;
 const VALID_ROLES: Role[] = ['admin', 'agente'];
@@ -94,9 +96,54 @@ export async function updatePassword(newPassword: string): Promise<SimpleResult>
   }
 }
 
+// El enlace del correo de invitación llega con `type=invite` en la dirección; el invitado aún no tiene clave.
+export const isInviteHash = (hash: string): boolean => /(^|[#&])type=invite(&|$)/.test(hash);
+
+// Se lee al cargar el módulo, antes de que Supabase limpie la dirección. Vale solo un minuto: si el enlace
+// venció y no se abrió sesión, un inicio de sesión posterior con clave no debe tratarse como invitación.
+const INVITE_WINDOW_MS = 60_000;
+let inviteDeadline = typeof window !== 'undefined' && isInviteHash(window.location.hash) ? Date.now() + INVITE_WINDOW_MS : 0;
+
+const INVITE_ERRORS: Record<string, InviteError> = {
+  invalid_email: 'correo_invalido',
+  already_member: 'ya_miembro',
+  other_tenant: 'otra_corredora',
+  not_admin: 'sin_permiso',
+  unauthorized: 'sin_permiso',
+  invite_not_configured: 'no_configurado',
+};
+
+// Pide al servidor (api/invite) invitar a un agente a la corredora del administrador con sesión.
+export async function inviteAgent(email: string): Promise<InviteResult> {
+  if (!supabase) return { ok: false, error: 'no_configurado' };
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { ok: false, error: 'sin_permiso' };
+    const res = await fetch('/api/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email: email.trim() }),
+    });
+    const body = (await res.json().catch(() => ({}))) as { status?: 'invitado' | 'agregado'; error?: string };
+    if (res.ok && body.status) return { ok: true, status: body.status };
+    return { ok: false, error: INVITE_ERRORS[body.error ?? ''] ?? 'conexion' };
+  } catch (err) {
+    console.warn('[auth] No se pudo invitar al agente:', err);
+    return { ok: false, error: 'conexion' };
+  }
+}
+
 export function onAuthStateChange(callback: (event: AuthEvent, email: string | null) => void): () => void {
   if (!supabase) return () => {};
   const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    // Quien llega por una invitación debe fijar su clave: se trata como la pantalla de clave nueva.
+    // (Si Supabase abrió la sesión antes de suscribirnos, llega como INITIAL_SESSION.)
+    if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && Date.now() < inviteDeadline) {
+      inviteDeadline = 0;
+      callback('PASSWORD_RECOVERY', session.user?.email ?? null);
+      return;
+    }
     if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'PASSWORD_RECOVERY') {
       callback(event, session?.user?.email ?? null);
     }

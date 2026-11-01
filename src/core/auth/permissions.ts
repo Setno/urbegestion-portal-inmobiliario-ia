@@ -14,3 +14,6 @@ export const canOpenTab = (role: Role | null, tab: AdminTab): boolean => allowed
 // Si la pestaña pedida no está permitida para el rol, devuelve la primera permitida.
 export const safeTab = (role: Role | null, tab: AdminTab): AdminTab =>
   canOpenTab(role, tab) ? tab : (allowedTabs(role)[0] ?? 'crm');
+
+// Solo el administrador invita agentes a su corredora.
+export const canInviteAgents = (role: Role | null): boolean => role === 'admin';

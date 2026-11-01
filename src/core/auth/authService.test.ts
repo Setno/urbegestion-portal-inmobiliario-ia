@@ -26,6 +26,8 @@ import {
   requestPasswordReset,
   updatePassword,
   onAuthStateChange,
+  inviteAgent,
+  isInviteHash,
 } from './authService';
 
 describe('authService', () => {
@@ -154,5 +156,57 @@ describe('authService', () => {
     ]);
     baja();
     expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  describe('inviteAgent', () => {
+    const conSesion = () => auth.getSession.mockResolvedValue({ data: { session: { access_token: 'tok-1' } } });
+    const responde = (status: number, body: unknown) =>
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => body }));
+
+    it('llama a /api/invite con el token de sesión y devuelve el resultado', async () => {
+      conSesion();
+      responde(200, { ok: true, status: 'invitado' });
+      const r = await inviteAgent('ana@correo.cl');
+      expect(r).toEqual({ ok: true, status: 'invitado' });
+      const [url, init] = vi.mocked(fetch).mock.calls[0];
+      expect(url).toBe('/api/invite');
+      expect((init as RequestInit).headers).toMatchObject({ Authorization: 'Bearer tok-1' });
+      expect(JSON.parse((init as RequestInit).body as string)).toEqual({ email: 'ana@correo.cl' });
+    });
+
+    it.each([
+      [400, { error: 'invalid_email' }, 'correo_invalido'],
+      [409, { error: 'already_member' }, 'ya_miembro'],
+      [409, { error: 'other_tenant' }, 'otra_corredora'],
+      [403, { error: 'not_admin' }, 'sin_permiso'],
+      [503, { error: 'invite_not_configured' }, 'no_configurado'],
+      [502, { error: 'invite_failed' }, 'conexion'],
+    ])('traduce la respuesta %s %j a %s', async (status, body, esperado) => {
+      conSesion();
+      responde(status, body);
+      expect(await inviteAgent('ana@correo.cl')).toEqual({ ok: false, error: esperado });
+    });
+
+    it('sin sesión responde sin_permiso y no llama al servidor', async () => {
+      auth.getSession.mockResolvedValue({ data: { session: null } });
+      vi.stubGlobal('fetch', vi.fn());
+      expect(await inviteAgent('ana@correo.cl')).toEqual({ ok: false, error: 'sin_permiso' });
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('si la red falla responde conexion', async () => {
+      conSesion();
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('sin red')));
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      expect(await inviteAgent('ana@correo.cl')).toEqual({ ok: false, error: 'conexion' });
+    });
+  });
+
+  describe('isInviteHash', () => {
+    it('reconoce el enlace de invitación de Supabase', () => {
+      expect(isInviteHash('#access_token=abc&type=invite')).toBe(true);
+      expect(isInviteHash('#access_token=abc&type=recovery')).toBe(false);
+      expect(isInviteHash('')).toBe(false);
+    });
   });
 });
