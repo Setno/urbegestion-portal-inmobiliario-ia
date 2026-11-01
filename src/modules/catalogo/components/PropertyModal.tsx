@@ -27,7 +27,8 @@ import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
 import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { useMarket } from '../../../core/market/useMarketStore';
-import { convertMoney, currentRates } from '../../../core/money/money';
+import { useT } from '../../../core/i18n/i18n';
+import { convertMoney, currentRates, formatMoney } from '../../../core/money/money';
 import { priceOf } from '../services/propertyPrice';
 import { CalBookingModal } from '../../captacion/components/CalBookingModal';
 
@@ -39,6 +40,7 @@ interface PropertyModalProps {
 export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose }) => {
   const { formatPrice } = usePropertyStore();
   const { pack } = useMarket();
+  const { t } = useT();
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [showBookingForm, setShowBookingForm] = useState(false);
@@ -74,15 +76,26 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
   const monthlyDividendClp = Math.round(monthlyDividendUf * agencyConfig.market.ufValueClp);
 
   // Structured Commercial Sheet Text for WhatsApp Share
-  const commercialFichaText = `🏢 *FICHA INMOBILIARIA - URBEGESTIÓN*\n\n` +
-    `🏡 *${property.title}*\n` +
-    `📍 *Ubicación:* ${property.address}, ${property.commune}\n` +
-    `💰 *Valor:* *${priceInfo.display}* (${property.operation === 'venta' ? 'Venta' : 'Arriendo'})\n` +
-    `📐 *Superficie:* ${property.builtAreaM2 > 0 ? `${property.builtAreaM2} m² útiles` : ''} ${property.totalAreaM2 > 0 ? `/ ${property.totalAreaM2} m² totales` : ''}\n` +
-    `🛏️ *Dormitorios:* ${property.bedrooms} | 🚿 *Baños:* ${property.bathrooms}\n` +
-    `🚗 *Estacionamientos:* ${property.parkingSpots} | 📦 *Bodegas:* ${property.storageUnits || 1}\n\n` +
-    `✨ *Características destacadas:*\n${property.features.slice(0, 4).map(f => `• ${f}`).join('\n')}\n\n` +
-    `📲 *Asesoría y Visitas con Pilar Osorio:* https://wa.me/${agencyConfig.contact.whatsapp}?text=${encodeURIComponent(`Hola Pilar, me interesa coordinar visita para "${property.title}" (${property.commune}).`)}`;
+  const operationLabel = property.operation === 'venta' ? t('search.op.sale') : t('search.op.rent');
+  const commercialFichaText = t('modal.ficha.text', {
+    brand: agencyConfig.brandName.toUpperCase(),
+    title: property.title,
+    address: property.address,
+    commune: property.commune,
+    price: priceInfo.display,
+    operation: property.operation === 'venta' ? t('modal.ficha.sale') : t('modal.ficha.rent'),
+    built: property.builtAreaM2 > 0 ? t('modal.ficha.built', { n: property.builtAreaM2 }) : '',
+    total: property.totalAreaM2 > 0 ? t('modal.ficha.total', { n: property.totalAreaM2 }) : '',
+    bedrooms: property.bedrooms,
+    bathrooms: property.bathrooms,
+    parking: property.parkingSpots,
+    storage: property.storageUnits || 1,
+    features: property.features.slice(0, 4).map((f) => `• ${f}`).join('\n'),
+    broker: agencyConfig.brokerName,
+    url: `https://wa.me/${agencyConfig.contact.whatsapp}?text=${encodeURIComponent(
+      t('modal.ficha.contact', { broker: agencyConfig.brokerName, title: property.title, commune: property.commune }),
+    )}`,
+  });
 
   const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(commercialFichaText)}`;
 
@@ -142,7 +155,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider ${
                 property.operation === 'venta' ? 'bg-urbe-primary text-white' : 'bg-emerald-600 text-white'
               }`}>
-                {property.operation === 'venta' ? 'En Venta' : 'En Arriendo'}
+                {operationLabel}
               </span>
               <span className="text-xs font-bold text-slate-700 truncate max-w-[200px] sm:max-w-md">
                 {property.title}
@@ -155,16 +168,16 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                 target="_blank"
                 rel="noreferrer"
                 className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1.5 border border-emerald-200 transition-colors"
-                title="Compartir por WhatsApp"
+                title={t('modal.share.title')}
               >
                 <Share2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="hidden sm:inline">Compartir</span>
+                <span className="hidden sm:inline">{t('modal.share')}</span>
               </a>
 
               <button
                 onClick={onClose}
                 className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
-                aria-label="Cerrar modal"
+                aria-label={t('modal.close')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -187,7 +200,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                   <div className="absolute top-3 left-3">
                     <span className="px-3 py-1 rounded-full bg-urbe-accent text-slate-950 text-xs font-black shadow flex items-center gap-1">
                       <Sparkles className="w-3.5 h-3.5" />
-                      Propiedad Exclusiva
+                      {t('modal.exclusive')}
                     </span>
                   </div>
                 )}
@@ -232,7 +245,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                 </span>
                 {property.expensesMonthlyClp !== undefined && property.expensesMonthlyClp > 0 && (
                   <span className="text-[11px] text-slate-400 font-medium block mt-1">
-                    Gastos comunes: ${property.expensesMonthlyClp.toLocaleString('es-CL')} CLP
+                    {t('modal.expenses', { amount: formatMoney({ amount: property.expensesMonthlyClp, currency: 'CLP' }, pack) })}
                   </span>
                 )}
               </div>
@@ -246,10 +259,10 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-bold text-slate-900">
-                    Compartir Ficha Comercial con Prospectos
+                    {t('modal.shareBar.title')}
                   </h4>
                   <p className="text-[11px] text-slate-600">
-                    Envía el resumen estructurado con fotos, precio y specs listo para WhatsApp.
+                    {t('modal.shareBar.text')}
                   </p>
                 </div>
               </div>
@@ -260,7 +273,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                   className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold border border-slate-200 flex items-center justify-center gap-1.5 shadow-sm transition-all"
                 >
                   {copiedFicha ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedFicha ? 'Ficha Copiada' : 'Copiar Texto'}</span>
+                  <span>{copiedFicha ? t('modal.copied') : t('modal.copy')}</span>
                 </button>
 
                 <a
@@ -270,7 +283,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                   className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all"
                 >
                   <Share2 className="w-3.5 h-3.5" />
-                  <span>Enviar por WhatsApp</span>
+                  <span>{t('modal.sendWhatsapp')}</span>
                 </a>
               </div>
             </div>
@@ -280,43 +293,43 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
               {property.builtAreaM2 > 0 && (
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
                   <Maximize2 className="w-4 h-4 text-urbe-primary mx-auto mb-1" />
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">M² Const.</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-bold">{t('spec.built')}</span>
                   <span className="text-xs sm:text-sm font-bold text-slate-800">{property.builtAreaM2} m²</span>
                 </div>
               )}
               {property.totalAreaM2 > 0 && (
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
                   <Compass className="w-4 h-4 text-urbe-primary mx-auto mb-1" />
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">M² Totales</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-bold">{t('spec.total')}</span>
                   <span className="text-xs sm:text-sm font-bold text-slate-800">{property.totalAreaM2} m²</span>
                 </div>
               )}
               {property.bedrooms > 0 && (
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
                   <Bed className="w-4 h-4 text-urbe-primary mx-auto mb-1" />
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Dormitorios</span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-800">{property.bedrooms} Dorm.</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-bold">{t('spec.bedrooms')}</span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-800">{t('card.bedrooms', { count: property.bedrooms })}</span>
                 </div>
               )}
               {property.bathrooms > 0 && (
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
                   <Bath className="w-4 h-4 text-urbe-primary mx-auto mb-1" />
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Baños</span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-800">{property.bathrooms} Baños</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-bold">{t('spec.bathrooms')}</span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-800">{t('card.bathrooms', { count: property.bathrooms })}</span>
                 </div>
               )}
               {property.parkingSpots > 0 && (
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
                   <Car className="w-4 h-4 text-urbe-primary mx-auto mb-1" />
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Estacionam.</span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-800">{property.parkingSpots} Autos</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-bold">{t('spec.parking')}</span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-800">{t('spec.parking.value', { count: property.parkingSpots })}</span>
                 </div>
               )}
               {property.storageUnits > 0 && (
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
                   <Box className="w-4 h-4 text-urbe-primary mx-auto mb-1" />
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Bodega</span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-800">{property.storageUnits} Bodega</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-bold">{t('spec.storage')}</span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-800">{t('spec.storage.value', { count: property.storageUnits })}</span>
                 </div>
               )}
             </div>
@@ -324,7 +337,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
             {/* Description */}
             <div>
               <h3 className="text-sm font-bold text-slate-900 mb-1.5 uppercase tracking-wider">
-                Descripción de la Propiedad
+                {t('modal.description')}
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
                 {property.description}
@@ -335,7 +348,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
             {property.features.length > 0 && (
               <div>
                 <h3 className="text-sm font-bold text-slate-900 mb-2.5 uppercase tracking-wider">
-                  Equipamiento & Terminaciones
+                  {t('modal.features')}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {property.features.map((feat, i) => (
@@ -431,7 +444,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                 <div className="flex items-center gap-2">
                   <Map className="w-4 h-4 text-urbe-primary" />
                   <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                    Ubicación en el Mapa
+                    {t('modal.map.title')}
                   </h3>
                 </div>
 
@@ -441,7 +454,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                   rel="noreferrer"
                   className="text-xs font-bold text-urbe-primary hover:underline flex items-center gap-1"
                 >
-                  <span>Abrir en Google Maps</span>
+                  <span>{t('modal.map.open')}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -449,7 +462,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
               {/* Embedded Google Map Iframe */}
               <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100">
                 <iframe
-                  title={`Mapa de ${property.title}`}
+                  title={t('modal.map.iframe', { title: property.title })}
                   src={googleMapsEmbedUrl}
                   width="100%"
                   height="100%"
@@ -465,8 +478,8 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
               {!showBookingForm ? (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm">¿Deseas visitar esta propiedad?</h4>
-                    <p className="text-xs text-slate-500">Coordinamos visitas presenciales privadas con Pilar Osorio.</p>
+                    <h4 className="font-bold text-slate-900 text-sm">{t('modal.visit.title')}</h4>
+                    <p className="text-xs text-slate-500">{t('modal.visit.text', { broker: agencyConfig.brokerName })}</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
                     <button
@@ -474,7 +487,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                       className="w-full sm:w-auto px-5 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold flex items-center justify-center gap-2 shadow transition-colors"
                     >
                       <Clock className="w-4 h-4" />
-                      <span>Agendar con Cal.com</span>
+                      <span>{t('modal.visit.cal')}</span>
                     </button>
                     
                     <button
@@ -482,7 +495,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                       className="w-full sm:w-auto px-5 py-3 rounded-xl bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold flex items-center justify-center gap-2 shadow transition-colors"
                     >
                       <Calendar className="w-4 h-4 text-urbe-accent" />
-                      <span>Formulario Rápido</span>
+                      <span>{t('modal.visit.form')}</span>
                     </button>
                   </div>
                 </div>
@@ -491,38 +504,38 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                   <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                     <h4 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-urbe-primary" />
-                      Agendar Visita a "{property.title}"
+                      {t('modal.visit.formTitle', { title: property.title })}
                     </h4>
                     <button
                       type="button"
                       onClick={() => setShowBookingForm(false)}
                       className="text-xs text-slate-400 hover:text-slate-600"
                     >
-                      Cancelar
+                      {t('form.cancel')}
                     </button>
                   </div>
 
                   {bookingSuccess ? (
                     <div className="p-3.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-semibold flex items-center gap-2.5 border border-emerald-200">
                       <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                      <span>¡Visita agendada! Pilar Osorio te contactará al {phone} para confirmar los detalles.</span>
+                      <span>{t('modal.visit.success', { broker: agencyConfig.brokerName, phone })}</span>
                     </div>
                   ) : (
                     <>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Nombre Completo *</label>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('form.fullName')}</label>
                           <input
                             type="text"
                             required
-                            placeholder="Tu nombre y apellido"
+                            placeholder={t('form.fullName.placeholder')}
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-urbe-primary"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Teléfono / WhatsApp *</label>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('form.phone')}</label>
                           <input
                             type="tel"
                             required
@@ -536,17 +549,17 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Correo Electrónico</label>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('form.email')}</label>
                           <input
                             type="email"
-                            placeholder="ejemplo@correo.cl"
+                            placeholder={t('modal.visit.email.placeholder')}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-urbe-primary"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Fecha de Visita</label>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('modal.visit.date')}</label>
                           <input
                             type="date"
                             value={date}
@@ -555,16 +568,16 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Horario Preferido</label>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">{t('modal.visit.time')}</label>
                           <select
                             value={time}
                             onChange={(e) => setTime(e.target.value)}
                             className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-urbe-primary"
                           >
-                            <option value="09:30">Mañana (09:30 - 11:00)</option>
-                            <option value="11:30">Mediodía (11:30 - 13:00)</option>
-                            <option value="15:30">Tarde (15:30 - 17:00)</option>
-                            <option value="17:30">Tarde Final (17:30 - 19:00)</option>
+                            <option value="09:30">{t('modal.slot.morning')}</option>
+                            <option value="11:30">{t('modal.slot.noon')}</option>
+                            <option value="15:30">{t('modal.slot.afternoon')}</option>
+                            <option value="17:30">{t('modal.slot.late')}</option>
                           </select>
                         </div>
                       </div>
@@ -574,7 +587,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                         type="submit"
                         className="w-full py-3 rounded-xl bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold shadow transition-colors"
                       >
-                        Confirmar Reserva de Visita
+                        {t('modal.visit.confirm')}
                       </button>
                     </>
                   )}

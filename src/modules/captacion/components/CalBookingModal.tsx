@@ -14,6 +14,7 @@ import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { webhookService } from '../services/webhookService';
 import { useMarket } from '../../../core/market/useMarketStore';
+import { useT } from '../../../core/i18n/i18n';
 import { emitLeadCreated } from '../../../core/events/appEvents';
 import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
 import { buildPrivacyNotice } from '../../../core/privacy/privacy';
@@ -30,6 +31,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
   onClose,
 }) => {
   const { pack } = useMarket();
+  const { t } = useT();
   const calConfig = webhookService.getWebhookConfig();
   const calendarUrl = calConfig.calComUrl || agencyConfig.aiAgent.calendarUrl || 'https://cal.com';
 
@@ -87,14 +89,14 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base sm:text-lg font-bold text-white">
-                  Agendar Visita Inmobiliaria
+                  {t('cal.title')}
                 </h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   Cal.com Sync
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                {property ? `${property.title} (${property.commune})` : 'Atención directa con Pilar Osorio'}
+                {property ? `${property.title} (${property.commune})` : t('cal.direct', { broker: agencyConfig.brokerName })}
               </p>
             </div>
           </div>
@@ -116,7 +118,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
                 bookingMode === 'embed' ? 'bg-white text-urbe-primary shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              🗓️ Calendario Interactivo
+              {t('cal.mode.embed')}
             </button>
             <button
               onClick={() => setBookingMode('form')}
@@ -124,7 +126,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
                 bookingMode === 'form' ? 'bg-white text-urbe-primary shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              📝 Formulario Rápido
+              {t('cal.mode.form')}
             </button>
           </div>
 
@@ -134,7 +136,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
             rel="noreferrer"
             className="text-[11px] font-bold text-urbe-primary hover:underline flex items-center gap-1"
           >
-            <span>Abrir en Cal.com</span>
+            <span>{t('cal.open')}</span>
             <ExternalLink className="w-3 h-3" />
           </a>
         </div>
@@ -148,10 +150,10 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <h4 className="text-xl font-bold text-slate-900">
-                ¡Visita Agendada y Sincronizada!
+                {t('cal.success.title')}
               </h4>
               <p className="text-xs text-slate-600 max-w-md mx-auto">
-                Tu cita para el día <strong>{selectedDate || 'próximamente'}</strong> ha quedado registrada en nuestro CRM y calendario oficial.
+                {t('cal.success.before')} <strong>{selectedDate || t('cal.success.soon')}</strong> {t('cal.success.after')}
               </p>
             </div>
           ) : bookingMode === 'embed' ? (
@@ -159,17 +161,17 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
               <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-urbe-primary" />
-                  <span>Duración de la visita: <strong>45 minutos</strong></span>
+                  <span>{t('cal.duration')} <strong>{t('cal.duration.value')}</strong></span>
                 </div>
                 <span className="text-[11px] text-slate-500 font-medium">
-                  Confirmación automática por Google Calendar / WhatsApp
+                  {t('cal.confirmation')}
                 </span>
               </div>
 
               {/* Cal.com Embed Container */}
               <div className="w-full h-[480px] bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden relative">
                 <iframe
-                  src={`${calendarUrl}?embed=true&notes=${encodeURIComponent(property ? `Visita para ${property.title} (${property.commune})` : 'Consulta Inmobiliaria')}`}
+                  src={`${calendarUrl}?embed=true&notes=${encodeURIComponent(property ? t('cal.iframeNote', { title: property.title, commune: property.commune }) : t('cal.iframeNote.general'))}`}
                   className="w-full h-full border-0"
                   title="Cal.com Booking Scheduler"
                 />
@@ -180,7 +182,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Fecha deseada para la visita *
+                    {t('cal.date')}
                   </label>
                   <input
                     type="date"
@@ -192,31 +194,31 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Horario de preferencia
+                    {t('cal.time')}
                   </label>
                   <select
                     value={selectedTime}
                     onChange={(e) => setSelectedTime(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"
                   >
-                    <option value="09:30">09:30 hrs (Mañana)</option>
-                    <option value="11:00">11:00 hrs (Mañana)</option>
-                    <option value="12:30">12:30 hrs (Mediodía)</option>
-                    <option value="15:30">15:30 hrs (Tarde)</option>
-                    <option value="17:00">17:00 hrs (Tarde)</option>
-                    <option value="18:30">18:30 hrs (Tarde)</option>
+                    <option value="09:30">{t('cal.time.morning', { time: '09:30' })}</option>
+                    <option value="11:00">{t('cal.time.morning', { time: '11:00' })}</option>
+                    <option value="12:30">{t('cal.time.noon', { time: '12:30' })}</option>
+                    <option value="15:30">{t('cal.time.afternoon', { time: '15:30' })}</option>
+                    <option value="17:00">{t('cal.time.afternoon', { time: '17:00' })}</option>
+                    <option value="18:30">{t('cal.time.afternoon', { time: '18:30' })}</option>
                   </select>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Nombre Completo *
+                  {t('form.fullName')}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Tu nombre y apellido"
+                  placeholder={t('form.fullName.placeholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
@@ -226,7 +228,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Teléfono / WhatsApp *
+                    {t('form.phone')}
                   </label>
                   <input
                     type="tel"
@@ -239,11 +241,11 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Correo Electrónico
+                    {t('form.email')}
                   </label>
                   <input
                     type="email"
-                    placeholder="tu@email.cl"
+                    placeholder={t('form.email.placeholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
@@ -257,14 +259,14 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
                   onClick={onClose}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
                 >
-                  Cancelar
+                  {t('form.cancel')}
                 </button>
 <PrivacyNotice />
                 <button
                   type="submit"
                   className="px-6 py-2.5 bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold rounded-xl shadow transition-all"
                 >
-                  Confirmar Visita
+                  {t('cal.confirm')}
                 </button>
               </div>
             </form>

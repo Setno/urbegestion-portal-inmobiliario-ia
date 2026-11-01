@@ -4,6 +4,7 @@ import { CalBookingModal } from './CalBookingModal';
 import { useLeadStore } from '../../crm/stores/useLeadStore';
 import { registerLeadEvents } from '../../crm/services/leadEvents';
 import { initialProperties } from '../../catalogo/data/initialProperties';
+import { useLocaleStore } from '../../../core/i18n/i18n';
 
 const casa = initialProperties[1]; // venta
 
@@ -23,6 +24,7 @@ describe('CalBookingModal (agendar visita)', () => {
     localStorage.clear();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200 }));
     useLeadStore.setState({ leads: [] });
+    useLocaleStore.setState({ locale: 'es' });
     dejarDeEscuchar = registerLeadEvents();
   });
 
@@ -114,5 +116,22 @@ describe('CalBookingModal (agendar visita)', () => {
       vi.advanceTimersByTime(2800);
     });
     expect(cerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('en inglés el modal, el formulario y la confirmación se muestran en inglés', () => {
+    useLocaleStore.setState({ locale: 'en' });
+    render(<CalBookingModal isOpen property={casa} onClose={vi.fn()} />);
+    expect(screen.getByText('Schedule a Property Visit')).toBeTruthy();
+    expect(screen.getByText('Visit length:')).toBeTruthy();
+    expect(decodeURIComponent((screen.getByTitle('Cal.com Booking Scheduler') as HTMLIFrameElement).src)).toContain(`Visit for ${casa.title}`);
+    fireEvent.click(screen.getByRole('button', { name: /Quick Form/ }));
+    expect(screen.getByPlaceholderText('Your first and last name')).toBeTruthy();
+    expect(screen.getByDisplayValue('11:00 (Morning)')).toBeTruthy();
+    fireEvent.change(screen.getByPlaceholderText('Your first and last name'), { target: { value: 'Mary Visit' } });
+    fireEvent.change(screen.getByPlaceholderText('+56 9 1234 5678'), { target: { value: '+56 9 1212 3434' } });
+    fireEvent.change(document.querySelector('input[type="date"]') as HTMLInputElement, { target: { value: '2026-12-10' } });
+    fireEvent.submit(screen.getByPlaceholderText('Your first and last name').closest('form')!);
+    expect(screen.getByText('Visit Scheduled and Synced!')).toBeTruthy();
+    expect(screen.getByText(/has been recorded in our CRM/)).toBeTruthy();
   });
 });
