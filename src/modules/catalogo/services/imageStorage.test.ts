@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { uploadPropertyImage, uploadIfRemote } from './imageStorage';
+import { uploadPropertyImage, uploadIfRemote, fitWithin, resizeImage } from './imageStorage';
 
 function clienteConStorage(upload = vi.fn().mockResolvedValue({ error: null })) {
   const getPublicUrl = vi.fn((path: string) => ({ data: { publicUrl: `https://x.supabase.co/storage/v1/object/public/property-images/${path}` } }));
@@ -32,5 +32,23 @@ describe('uploadPropertyImage', () => {
 describe('uploadIfRemote', () => {
   it('sin Supabase configurado devuelve null para que se use la imagen local como hoy', async () => {
     expect(await uploadIfRemote(foto())).toBeNull();
+  });
+});
+
+describe('fitWithin', () => {
+  it('reduce una foto grande manteniendo la proporción', () => {
+    expect(fitWithin(4000, 3000, 1600)).toEqual({ width: 1600, height: 1200 });
+    expect(fitWithin(3000, 4000, 1600)).toEqual({ width: 1200, height: 1600 });
+  });
+
+  it('no agranda una foto que ya cabe', () => {
+    expect(fitWithin(800, 600, 1600)).toEqual({ width: 800, height: 600 });
+  });
+});
+
+describe('resizeImage', () => {
+  it('si el navegador no puede redimensionar, devuelve la foto original sin fallar', async () => {
+    const original = foto();
+    expect(await resizeImage(original)).toBe(original);
   });
 });
