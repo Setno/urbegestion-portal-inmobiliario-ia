@@ -63,7 +63,8 @@ export async function POST(request: Request): Promise<Response> {
   if (email.length > 254 || !EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400);
 
   // 3. Se intenta invitar primero: si el correo es nuevo, Supabase envía el correo con el enlace.
-  const redirectTo = process.env.SITE_URL || new URL(request.url).origin;
+  // Con barra final: Supabase solo respeta el destino si coincide exactamente con uno de la lista de Redirect URLs.
+  const redirectTo = `${(process.env.SITE_URL || new URL(request.url).origin).replace(/\/+$/, '')}/`;
   const { data: invited, error: inviteError } = await client.auth.admin.inviteUserByEmail(email, { redirectTo });
 
   if (!inviteError && invited?.user) {

@@ -135,8 +135,14 @@ describe('api/invite', () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, status: 'invitado' });
-    expect(fake.invite).toHaveBeenCalledWith('ana@correo.cl', { redirectTo: 'https://sitio.test' });
+    expect(fake.invite).toHaveBeenCalledWith('ana@correo.cl', { redirectTo: 'https://sitio.test/' });
     expect(fake.insert).toHaveBeenCalledWith({ tenant_id: 'tenant-1', user_id: 'u-nuevo', role: 'agente' });
+  });
+
+  it('usa SITE_URL como destino del enlace si está definida, siempre con una sola barra final', async () => {
+    vi.stubEnv('SITE_URL', 'https://portal.ejemplo.cl//');
+    await POST(pedido({ email: 'ana@correo.cl' }));
+    expect(fake.invite).toHaveBeenCalledWith('ana@correo.cl', { redirectTo: 'https://portal.ejemplo.cl/' });
   });
 
   it('ignora corredora y rol que vengan en el cuerpo: salen de la base', async () => {
