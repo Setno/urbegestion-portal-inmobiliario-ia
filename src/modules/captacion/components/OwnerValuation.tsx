@@ -20,6 +20,7 @@ import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
 import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 import { useMarket } from '../../../core/market/useMarketStore';
 import { useT, capitalize } from '../../../core/i18n/i18n';
+import { agencyConfig } from '../../../core/config/agencyConfig';
 
 interface OwnerValuationProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ interface UploadedFilePreview {
 export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { pack, zones } = useMarket();
+  const { pack, zones, scopeLabel } = useMarket();
   const { t } = useT();
   const [step, setStep] = useState(1);
   const [operation, setOperation] = useState<'venta' | 'arriendo'>('venta');
@@ -64,7 +65,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
     if (!files || files.length === 0) return;
 
     if (uploadedFiles.length >= MAX_TOTAL_FILES) {
-      alert(`Límite alcanzado: Máximo ${MAX_TOTAL_FILES} archivos por solicitud.`);
+      alert(t('val.alert.limit', { max: MAX_TOTAL_FILES }));
       return;
     }
 
@@ -74,7 +75,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
     filesToProcess.forEach((file) => {
       // Validate file size (Max 15 MB)
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert(`El archivo "${file.name}" supera el tamaño máximo permitido de 15 MB.`);
+        alert(t('val.alert.size', { name: file.name }));
         return;
       }
 
@@ -84,7 +85,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
       const isPdf = file.type === 'application/pdf';
 
       if (!isImage && !isVideo && !isPdf) {
-        alert(`El archivo "${file.name}" no tiene un formato válido (solo imágenes, videos o PDF).`);
+        alert(t('val.alert.format', { name: file.name }));
         return;
       }
 
@@ -185,13 +186,13 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
           <div>
             <span className="px-3 py-1 rounded-full bg-urbe-accent/20 text-urbe-accent text-[10px] sm:text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 mb-1.5">
               <Sparkles className="w-3 h-3" />
-              Tasación & Captación Profesional
+              {t('val.badge')}
             </span>
             <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-              {operation === 'arriendo' ? 'Pon en Arriendo tu Propiedad' : 'Vende con UrbeGestión'}
+              {operation === 'arriendo' ? t('val.title.rent') : t('val.title.sell', { brand: agencyConfig.brandName })}
             </h3>
             <p className="text-xs text-slate-300 mt-0.5">
-              Más de 25 años de experiencia en la Región Metropolitana con Pilar Osorio.
+              {t('val.subtitle', { scope: scopeLabel, broker: agencyConfig.brokerName })}
             </p>
           </div>
 
@@ -212,17 +213,17 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <h4 className="text-xl sm:text-2xl font-bold text-slate-900">
-                ¡Solicitud y Antecedentes Registrados con Éxito!
+                {t('val.success.title')}
               </h4>
               <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
-                Pilar Osorio revisará los datos y las <strong>{uploadedFiles.length} foto(s)/archivo(s)</strong> de tu propiedad en <strong>{commune}</strong> y te contactará al teléfono <strong>{phone}</strong> con la propuesta de gestión.
+                {t('val.success.review', { broker: agencyConfig.brokerName })} <strong>{t('val.files', { count: uploadedFiles.length })}</strong> {t('val.success.of')} <strong>{commune}</strong> {t('val.success.contact')} <strong>{phone}</strong> {t('val.success.proposal')}
               </p>
               <div className="pt-3">
                 <button
                   onClick={handleReset}
                   className="px-6 py-2.5 rounded-xl bg-urbe-primary text-white text-xs font-bold shadow hover:bg-urbe-primaryDark transition-colors"
                 >
-                  Volver al Portal
+                  {t('val.success.back')}
                 </button>
               </div>
             </div>
@@ -231,19 +232,19 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
               {/* Stepper indicator (4 steps) */}
               <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-100 text-[11px] sm:text-xs">
                 <div className={`font-bold ${step === 1 ? 'text-urbe-primary' : 'text-slate-400'}`}>
-                  1. Operación
+                  {t('val.step.1')}
                 </div>
                 <div className="h-0.5 w-6 sm:w-10 bg-slate-200" />
                 <div className={`font-bold ${step === 2 ? 'text-urbe-primary' : 'text-slate-400'}`}>
-                  2. Ubicación
+                  {t('val.step.2')}
                 </div>
                 <div className="h-0.5 w-6 sm:w-10 bg-slate-200" />
                 <div className={`font-bold ${step === 3 ? 'text-urbe-primary' : 'text-slate-400'}`}>
-                  3. Fotos & Docs
+                  {t('val.step.3')}
                 </div>
                 <div className="h-0.5 w-6 sm:w-10 bg-slate-200" />
                 <div className={`font-bold ${step === 4 ? 'text-urbe-primary' : 'text-slate-400'}`}>
-                  4. Contacto
+                  {t('val.step.4')}
                 </div>
               </div>
 
@@ -252,7 +253,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                 <div className="space-y-5">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                      ¿Qué deseas hacer con tu propiedad?
+                      {t('val.q.operation')}
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                       <button
@@ -265,7 +266,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                         }`}
                       >
                         <TrendingUp className="w-5 h-5 mx-auto mb-1 text-urbe-primary" />
-                        <span className="text-xs sm:text-sm font-bold">Vender</span>
+                        <span className="text-xs sm:text-sm font-bold">{t('val.op.sell')}</span>
                       </button>
                       <button
                         type="button"
@@ -277,33 +278,33 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                         }`}
                       >
                         <Building2 className="w-5 h-5 mx-auto mb-1 text-urbe-primary" />
-                        <span className="text-xs sm:text-sm font-bold">Poner en Arriendo</span>
+                        <span className="text-xs sm:text-sm font-bold">{t('val.op.rent')}</span>
                       </button>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                      Tipo de Inmueble
+                      {t('val.q.type')}
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
-                        { id: 'casa', label: 'Casa' },
-                        { id: 'departamento', label: 'Departamento' },
-                        { id: 'parcela_agricola', label: 'Parcela Agrícola' },
-                        { id: 'oficina_comercial', label: 'Oficina / Local' },
-                      ].map((t) => (
+                        { id: 'casa', label: t('type.house') },
+                        { id: 'departamento', label: t('type.apartment') },
+                        { id: 'parcela_agricola', label: t('type.farm') },
+                        { id: 'oficina_comercial', label: t('val.type.office') },
+                      ].map((opt) => (
                         <button
-                          key={t.id}
+                          key={opt.id}
                           type="button"
-                          onClick={() => setPropertyType(t.id)}
+                          onClick={() => setPropertyType(opt.id)}
                           className={`p-2.5 sm:p-3 rounded-xl border text-xs font-bold transition-all ${
-                            propertyType === t.id
+                            propertyType === opt.id
                               ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
                               : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                           }`}
                         >
-                          {t.label}
+                          {opt.label}
                         </button>
                       ))}
                     </div>
@@ -315,7 +316,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                       onClick={() => setStep(2)}
                       className="px-5 py-2.5 rounded-xl bg-urbe-primary text-white text-xs font-bold flex items-center gap-2 shadow hover:bg-urbe-primaryDark transition-colors"
                     >
-                      <span>Siguiente: Ubicación</span>
+                      <span>{t('val.next.location')}</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -350,11 +351,11 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Superficie Aprox (m²)
+                        {t('val.area')}
                       </label>
                       <input
                         type="number"
-                        placeholder="Ej: 140"
+                        placeholder={t('val.area.placeholder')}
                         value={areaM2}
                         onChange={(e) => setAreaM2(e.target.value)}
                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-urbe-primary"
@@ -362,18 +363,18 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Dormitorios
+                        {t('val.bedrooms')}
                       </label>
                       <select
                         value={bedrooms}
                         onChange={(e) => setBedrooms(e.target.value)}
                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-urbe-primary"
                       >
-                        <option value="1">1 Dormitorio</option>
-                        <option value="2">2 Dormitorios</option>
-                        <option value="3">3 Dormitorios</option>
-                        <option value="4">4 Dormitorios</option>
-                        <option value="5+">5 o más Dormitorios</option>
+                        <option value="1">{t('val.bed.single')}</option>
+                        <option value="2">{t('val.bed.n', { count: 2 })}</option>
+                        <option value="3">{t('val.bed.n', { count: 3 })}</option>
+                        <option value="4">{t('val.bed.n', { count: 4 })}</option>
+                        <option value="5+">{t('val.bed.5plus')}</option>
                       </select>
                     </div>
                   </div>
@@ -385,7 +386,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                       className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-50"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Atrás</span>
+                      <span>{t('val.back')}</span>
                     </button>
                     <button
                       type="button"
@@ -393,7 +394,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                       disabled={!commune}
                       className="px-5 py-2.5 rounded-xl bg-urbe-primary text-white text-xs font-bold flex items-center gap-2 shadow hover:bg-urbe-primaryDark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <span>Siguiente: Fotos & Antecedentes</span>
+                      <span>{t('val.next.photos')}</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -406,14 +407,14 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                        Cargar Fotos o Antecedentes de la Propiedad
+                        {t('val.photos.title')}
                       </label>
                       <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                        Opcional / Recomendado
+                        {t('val.photos.optional')}
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 mb-3">
-                      Arrastra o sube fotos desde tu computador o celular para que Pilar Osorio evalúe el estado del inmueble de inmediato.
+                      {t('val.photos.help', { broker: agencyConfig.brokerName })}
                     </p>
                   </div>
 
@@ -443,10 +444,10 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                     </div>
 
                     <p className="text-xs sm:text-sm font-bold text-slate-800">
-                      Haz clic para seleccionar fotos o arrástralas aquí
+                      {t('val.drop.title')}
                     </p>
                     <p className="text-[11px] text-slate-400 mt-1">
-                      Soporta imágenes (JPG, PNG, WEBP), videos o documentos PDF
+                      {t('val.drop.formats')}
                     </p>
                   </div>
 
@@ -454,13 +455,13 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                   {uploadedFiles.length > 0 && (
                     <div className="space-y-2 pt-2">
                       <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                        <span>Archivos adjuntados ({uploadedFiles.length})</span>
+                        <span>{t('val.attached', { count: uploadedFiles.length })}</span>
                         <button
                           type="button"
                           onClick={() => setUploadedFiles([])}
                           className="text-rose-600 hover:underline text-[11px]"
                         >
-                          Eliminar todos
+                          {t('val.removeAll')}
                         </button>
                       </div>
 
@@ -496,7 +497,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                                 handleRemoveFile(file.id);
                               }}
                               className="absolute top-1.5 right-1.5 p-1 rounded-full bg-slate-950/70 hover:bg-rose-600 text-white transition-colors"
-                              title="Eliminar foto"
+                              title={t('val.removeOne')}
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -517,14 +518,14 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                       className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-50"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Atrás</span>
+                      <span>{t('val.back')}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setStep(4)}
                       className="px-5 py-2.5 rounded-xl bg-urbe-primary text-white text-xs font-bold flex items-center gap-2 shadow hover:bg-urbe-primaryDark transition-colors"
                     >
-                      <span>Siguiente: Datos de Contacto</span>
+                      <span>{t('val.next.contact')}</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -536,12 +537,12 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                 <form onSubmit={handleSubmit} className="space-y-3.5">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Nombre Completo *
+                      {t('form.fullName')}
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Tu nombre y apellido"
+                      placeholder={t('form.fullName.placeholder')}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-urbe-primary"
@@ -551,7 +552,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Teléfono / WhatsApp *
+                        {t('form.phone')}
                       </label>
                       <input
                         type="tel"
@@ -564,11 +565,11 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Correo Electrónico
+                        {t('form.email')}
                       </label>
                       <input
                         type="email"
-                        placeholder="tu@email.cl"
+                        placeholder={t('form.email.placeholder')}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-urbe-primary"
@@ -581,14 +582,14 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                     <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
                       <Camera className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span className="font-medium">
-                        Se adjuntarán <strong>{uploadedFiles.length} foto(s)/archivo(s)</strong> para la evaluación de Pilar Osorio.
+                        {t('val.contact.willAttach')} <strong>{t('val.files', { count: uploadedFiles.length })}</strong> {t('val.contact.forReview', { broker: agencyConfig.brokerName })}
                       </span>
                     </div>
                   )}
 
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-                    <span>Tus datos y fotografías son 100% confidenciales. Asesoría directa con UrbeGestión sin compromisos.</span>
+                    <span>{t('val.contact.privacy', { brand: agencyConfig.brandName })}</span>
                   </div>
 
                   <div className="pt-3 flex justify-between">
@@ -598,14 +599,14 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                       className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-50"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Atrás</span>
+                      <span>{t('val.back')}</span>
                     </button>
 <PrivacyNotice />
                     <button
                       type="submit"
                       className="px-6 py-2.5 rounded-xl bg-urbe-accent hover:bg-urbe-accentHover text-slate-950 text-xs font-bold flex items-center gap-2 shadow-lg transition-colors"
                     >
-                      <span>Enviar Solicitud con Antecedentes</span>
+                      <span>{t('val.submit')}</span>
                       <Sparkles className="w-3.5 h-3.5" />
                     </button>
                   </div>

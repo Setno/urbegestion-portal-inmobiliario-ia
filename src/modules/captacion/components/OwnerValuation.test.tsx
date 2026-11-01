@@ -4,6 +4,7 @@ import { OwnerValuation } from './OwnerValuation';
 import { useLeadStore } from '../../crm/stores/useLeadStore';
 import { registerLeadEvents } from '../../crm/services/leadEvents';
 import { useMarketStore } from '../../../core/market/useMarketStore';
+import { useLocaleStore } from '../../../core/i18n/i18n';
 
 const siguiente = (texto: RegExp) => fireEvent.click(screen.getByRole('button', { name: texto }));
 const atras = () => fireEvent.click(screen.getByRole('button', { name: /Atrás/ }));
@@ -18,8 +19,9 @@ const subir = (...files: File[]) => {
   fireEvent.change(input, { target: { files } });
 };
 
+// La comuna es el primer selector del paso 2 (su texto cambia con el idioma)
 const elegirComuna = (comuna = 'Las Condes') =>
-  fireEvent.change(screen.getByDisplayValue('Selecciona la comuna'), { target: { value: comuna } });
+  fireEvent.change(document.querySelector('select') as HTMLSelectElement, { target: { value: comuna } });
 
 // Ubicación (con comuna elegida) y luego Fotos
 const irAFotos = () => {
@@ -33,12 +35,14 @@ const hastaContacto = () => {
   siguiente(/Siguiente: Datos de Contacto/);
 };
 
+// Los campos del paso de contacto se buscan por su tipo (sus textos cambian con el idioma)
+const campo = (tipo: string) => document.querySelector(`form input[type="${tipo}"]`) as HTMLInputElement;
 const llenarContacto = (nombre: string, telefono: string, correo = '') => {
-  fireEvent.change(screen.getByPlaceholderText('Tu nombre y apellido'), { target: { value: nombre } });
-  fireEvent.change(screen.getByPlaceholderText('+56 9 1234 5678'), { target: { value: telefono } });
-  if (correo) fireEvent.change(screen.getByPlaceholderText('tu@email.cl'), { target: { value: correo } });
+  fireEvent.change(campo('text'), { target: { value: nombre } });
+  fireEvent.change(campo('tel'), { target: { value: telefono } });
+  if (correo) fireEvent.change(campo('email'), { target: { value: correo } });
 };
-const enviar = () => fireEvent.submit(screen.getByPlaceholderText('Tu nombre y apellido').closest('form')!);
+const enviar = () => fireEvent.submit(document.querySelector('form')!);
 
 describe('OwnerValuation (valorizador para propietarios)', () => {
   let dejarDeEscuchar: () => void;
@@ -49,6 +53,7 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
     vi.spyOn(window, 'alert').mockImplementation(() => {});
     useLeadStore.setState({ leads: [] });
     useMarketStore.setState({ marketId: 'cl', serviceAreas: [] });
+    useLocaleStore.setState({ locale: 'es' });
     dejarDeEscuchar = registerLeadEvents();
   });
 
@@ -236,6 +241,72 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
       expect(screen.getByText('¡Solicitud y Antecedentes Registrados con Éxito!')).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Volver al Portal' }));
       expect(cerrar).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('subtítulo y zonas', () => {
+    it('el subtítulo nombra el alcance de la corredora (Chile o sus regiones), no una región fija', () => {
+      render(<OwnerValuation isOpen onClose={vi.fn()} />);
+      expect(screen.getByText(/Más de 25 años de experiencia en Chile con Pilar Osorio/)).toBeTruthy();
+      cleanup();
+      useMarketStore.setState({ serviceAreas: ['CL-BI'] });
+      render(<OwnerValuation isOpen onClose={vi.fn()} />);
+      expect(screen.getByText(/experiencia en Biobío con Pilar Osorio/)).toBeTruthy();
+    });
+  });
+
+  describe('en inglés', () => {
+    beforeEach(() => useLocaleStore.setState({ locale: 'en' }));
+
+    it('el encabezado, los pasos y las preguntas salen en inglés', () => {
+      render(<OwnerValuation isOpen onClose={vi.fn()} />);
+      expect(screen.getByText('Sell with UrbeGestión')).toBeTruthy();
+      expect(screen.getByText('1. Operation')).toBeTruthy();
+      expect(screen.getByText('What would you like to do with your property?')).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Office / Commercial' })).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: /List for Rent/ }));
+      expect(screen.getByText('List Your Property for Rent')).toBeTruthy();
+    });
+
+    it('recorre los pasos en inglés: ubicación obligatoria, fotos y contacto', () => {
+      render(<OwnerValuation isOpen onClose={vi.fn()} />);
+      siguiente(/Next: Location/);
+      expect(screen.getByDisplayValue('Select the commune')).toBeTruthy();
+      expect((screen.getByRole('button', { name: /Next: Photos & Documents/ }) as HTMLButtonElement).disabled).toBe(true);
+      elegirComuna('Viña del Mar');
+      expect(screen.getByRole('option', { name: '1 Bedroom' })).toBeTruthy();
+      expect(screen.getByRole('option', { name: '5 or more Bedrooms' })).toBeTruthy();
+      siguiente(/Next: Photos & Documents/);
+      expect(screen.getByText('Click to select photos or drag them here')).toBeTruthy();
+      siguiente(/Next: Contact Details/);
+      expect(screen.getByPlaceholderText('Your first and last name')).toBeTruthy();
+      expect(screen.getByText(/100% confidential/)).toBeTruthy();
+      expect(screen.getByRole('button', { name: /Send Request with Documents/ })).toBeTruthy();
+    });
+
+    it('los avisos de archivos no válidos salen en inglés', () => {
+      render(<OwnerValuation isOpen onClose={vi.fn()} />);
+      siguiente(/Next: Location/);
+      elegirComuna();
+      siguiente(/Next: Photos & Documents/);
+      subir(archivo('enorme.jpg', 'image/jpeg', 16 * 1024 * 1024));
+      subir(archivo('virus.exe', 'application/octet-stream'));
+      expect((window.alert as ReturnType<typeof vi.fn>).mock.calls[0][0]).toBe('The file "enorme.jpg" exceeds the maximum allowed size of 15 MB.');
+      expect((window.alert as ReturnType<typeof vi.fn>).mock.calls[1][0]).toBe('The file "virus.exe" is not a valid format (images, videos or PDF only).');
+    });
+
+    it('enviar crea el mismo lead y la confirmación sale en inglés', () => {
+      render(<OwnerValuation isOpen onClose={vi.fn()} />);
+      siguiente(/Next: Location/);
+      elegirComuna('Concepción');
+      siguiente(/Next: Photos & Documents/);
+      siguiente(/Next: Contact Details/);
+      llenarContacto('Peter Owner', '+56 9 4444 3333');
+      enviar();
+      expect(useLeadStore.getState().leads[0]).toMatchObject({ operationInterest: 'venta_propietario', fullName: 'Peter Owner' });
+      expect(screen.getByText('Request and Documents Registered Successfully!')).toBeTruthy();
+      expect(screen.getByText(/will review the details and the/)).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Back to the Portal' })).toBeTruthy();
     });
   });
 });

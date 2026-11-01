@@ -17,6 +17,7 @@ import { useChatStore } from '../stores/useChatStore';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
 import { useOfferedProperties } from '../../catalogo/hooks/useOfferedProperties';
 import { quickSearchChips } from '../../catalogo/services/propertySummary';
+import { useT } from '../../../core/i18n/i18n';
 import { priceOf } from '../../catalogo/services/propertyPrice';
 import { processAiChatMessage, registerLeadFromChat } from '../services/aiService';
 import { agencyConfig } from '../../../core/config/agencyConfig';
@@ -31,6 +32,7 @@ interface AiChatWidgetProps {
 export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal }) => {
   const { isOpen, setIsOpen, messages, addMessage, isTyping, setIsTyping } = useChatStore();
   const { formatPrice } = usePropertyStore();
+  const { t } = useT();
   const properties = useOfferedProperties();
 
   const [inputVal, setInputVal] = useState('');
@@ -75,7 +77,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
     } catch (err) {
       addMessage({
         sender: 'bot',
-        text: 'Disculpa, tuve un momento de congestión. Puedes contactar directamente a Pilar Osorio al +56 9 7909 4519.',
+        text: t('chat.error', { broker: agencyConfig.brokerName, phone: agencyConfig.contact.phoneDisplay }),
       });
     } finally {
       setIsTyping(false);
@@ -96,12 +98,12 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
     setLeadRegistered(true);
     addMessage({
       sender: 'bot',
-      text: `¡Perfecto, ${leadName}! He registrado tu solicitud con máxima prioridad en nuestro sistema. Pilar Osorio te escribirá directamente a tu WhatsApp (${leadPhone}) para confirmar los detalles de la visita o asesoría.`,
+      text: t('chat.confirm', { name: leadName, broker: agencyConfig.brokerName, phone: leadPhone }),
     });
   };
 
   // Las sugerencias salen de lo que la corredora tiene publicado, más las dos acciones fijas.
-  const quickChips = [...quickSearchChips(properties), 'Vender mi propiedad', 'Agendar visita'];
+  const quickChips = [...quickSearchChips(properties), t('chat.chip.sell'), t('chat.chip.book')];
 
   return (
     <>
@@ -111,15 +113,15 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
           <button
             onClick={() => setIsOpen(true)}
             className="relative group p-4 rounded-full bg-gradient-to-r from-urbe-primary to-slate-900 text-white shadow-2xl hover:scale-105 transition-all flex items-center gap-3 border-2 border-urbe-accent/50"
-            aria-label="Abrir Asistente IA"
+            aria-label={t('chat.open')}
           >
             <div className="relative">
               <Sparkles className="w-6 h-6 text-urbe-accent animate-pulse" />
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-900" />
             </div>
             <div className="hidden sm:block text-left pr-1">
-              <span className="text-xs font-black block tracking-tight">Asistente Inmobiliario IA</span>
-              <span className="text-[10px] text-slate-300 font-medium block">Respuesta 24/7 & Citas</span>
+              <span className="text-xs font-black block tracking-tight">{t('chat.launcher.title')}</span>
+              <span className="text-[10px] text-slate-300 font-medium block">{t('chat.launcher.subtitle')}</span>
             </div>
           </button>
         )}
@@ -139,10 +141,10 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
               <div>
                 <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
                   {agencyConfig.aiAgent.botName}
-                  <span className="text-[10px] bg-urbe-accent/30 text-urbe-accent font-black px-1.5 py-0.5 rounded">IA</span>
+                  <span className="text-[10px] bg-urbe-accent/30 text-urbe-accent font-black px-1.5 py-0.5 rounded">{t('chat.badge')}</span>
                 </h4>
                 <p className="text-[11px] text-slate-300 font-medium">
-                  {agencyConfig.brandName} • En línea ahora
+                  {t('chat.online', { brand: agencyConfig.brandName })}
                 </p>
               </div>
             </div>
@@ -172,7 +174,11 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
                         : 'bg-white text-slate-800 border border-slate-200/90 rounded-bl-none'
                     }`}
                   >
-                    <p className="whitespace-pre-line">{msg.text}</p>
+                    <p className="whitespace-pre-line">
+                      {msg.id === 'msg-welcome'
+                        ? t('chat.welcome', { bot: agencyConfig.aiAgent.botName, locality: t('market.locality') })
+                        : msg.text}
+                    </p>
 
                     {/* Render Recommended Properties Cards in Chat */}
                     {msg.suggestedProperties && msg.suggestedProperties.length > 0 && (
@@ -221,7 +227,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
                 <div className="w-2 h-2 rounded-full bg-urbe-accent animate-bounce" />
                 <div className="w-2 h-2 rounded-full bg-urbe-accent animate-bounce" style={{ animationDelay: '0.2s' }} />
                 <div className="w-2 h-2 rounded-full bg-urbe-accent animate-bounce" style={{ animationDelay: '0.4s' }} />
-                <span className="text-xs text-slate-400 font-medium ml-1">Escribiendo respuesta...</span>
+                <span className="text-xs text-slate-400 font-medium ml-1">{t('chat.typing')}</span>
               </div>
             )}
 
@@ -230,14 +236,14 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
               <div className="bg-white p-4 rounded-2xl border-2 border-urbe-accent/30 shadow-md space-y-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                   <Calendar className="w-4 h-4 text-urbe-primary" />
-                  <span>Confirmar Datos para Agendamiento</span>
+                  <span>{t('chat.form.title')}</span>
                 </div>
 
                 <form onSubmit={handleRegisterLead} className="space-y-2.5 text-xs">
                   <input
                     type="text"
                     required
-                    placeholder="Tu nombre completo *"
+                    placeholder={t('chat.form.name')}
                     value={leadName}
                     onChange={(e) => setLeadName(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-urbe-primary"
@@ -245,7 +251,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
                   <input
                     type="tel"
                     required
-                    placeholder="Teléfono / WhatsApp *"
+                    placeholder={t('form.phone')}
                     value={leadPhone}
                     onChange={(e) => setLeadPhone(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-urbe-primary"
@@ -262,10 +268,10 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
                       onChange={(e) => setSelectedTime(e.target.value)}
                       className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                     >
-                      <option value="10:00">10:00 hrs</option>
-                      <option value="11:30">11:30 hrs</option>
-                      <option value="15:30">15:30 hrs</option>
-                      <option value="17:00">17:00 hrs</option>
+                      <option value="10:00">{t('chat.time', { time: '10:00' })}</option>
+                      <option value="11:30">{t('chat.time', { time: '11:30' })}</option>
+                      <option value="15:30">{t('chat.time', { time: '15:30' })}</option>
+                      <option value="17:00">{t('chat.time', { time: '17:00' })}</option>
                     </select>
                   </div>
 <PrivacyNotice />
@@ -273,7 +279,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
                     type="submit"
                     className="w-full py-2.5 rounded-xl bg-urbe-accent hover:bg-urbe-accentHover text-slate-950 font-bold shadow transition-colors"
                   >
-                    Agendar Visita con Pilar Osorio
+                    {t('chat.form.submit', { broker: agencyConfig.brokerName })}
                   </button>
                 </form>
               </div>
@@ -299,7 +305,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
           <div className="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
             <input
               type="text"
-              placeholder="Pregúntale al Asistente IA sobre propiedades..."
+              placeholder={t('chat.input.placeholder')}
               value={inputVal}
               maxLength={500}
               onChange={(e) => setInputVal(e.target.value)}
@@ -310,7 +316,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
               onClick={() => handleSendMessage()}
               disabled={!inputVal.trim()}
               className="p-2.5 rounded-2xl bg-urbe-primary hover:bg-urbe-primaryDark disabled:opacity-40 text-white shadow transition-all"
-              aria-label="Enviar mensaje"
+              aria-label={t('chat.send')}
             >
               <Send className="w-4 h-4" />
             </button>

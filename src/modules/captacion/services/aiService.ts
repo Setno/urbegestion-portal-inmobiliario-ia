@@ -2,6 +2,7 @@ import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { emitLeadCreated } from '../../../core/events/appEvents';
 import { useMarketStore, marketView } from '../../../core/market/useMarketStore';
+import { t } from '../../../core/i18n/i18n';
 import { featuredLocalities } from '../../catalogo/services/propertySummary';
 import { priceOf } from '../../catalogo/services/propertyPrice';
 import { formatMoney } from '../../../core/money/money';
@@ -43,7 +44,7 @@ export async function processAiChatMessage(
 ): Promise<AiResponseResult> {
   const sanitizedText = userText.trim().slice(0, 500);
   if (!sanitizedText) {
-    return { text: 'Por favor escribe tu consulta sobre nuestras propiedades.' };
+    return { text: t('chat.reply.empty') };
   }
 
   const config = getAiConfig();
@@ -127,49 +128,34 @@ function processLocalRuleEngine(
 ): AiResponseResult {
   const query = userText.toLowerCase().trim();
 
+  // Las palabras clave se reconocen en español y en inglés, sea cual sea el idioma de la interfaz
+  // (una persona puede escribir en un idioma y leer en otro); la respuesta sale en el idioma activo.
+  const has = (...words: string[]) => words.some((w) => query.includes(w));
+  const brand = agencyConfig.brandName;
+  const broker = agencyConfig.brokerName;
+  const view = marketView(useMarketStore.getState().marketId, useMarketStore.getState().serviceAreas);
+
   // 1. Detección de intención: Agendar visita
-  if (
-    query.includes('agendar') || 
-    query.includes('visita') || 
-    query.includes('cita') || 
-    query.includes('reunión') ||
-    query.includes('ver la propiedad') ||
-    query.includes('coordinar')
-  ) {
-    return {
-      text: `¡Excelente iniciativa! En UrbeGestión coordinamos visitas guiadas y privadas. Para asegurar la disponibilidad de Pilar Osorio, ¿qué día y hora te acomoda mejor? También puedes ingresar tus datos a continuación para registrar la reserva en nuestra agenda.`,
-      actionRequired: 'select_date',
-    };
+  if (has('agendar', 'visita', 'cita', 'reunión', 'ver la propiedad', 'coordinar', 'schedule', 'book', 'appointment', 'visit', 'viewing', 'meeting')) {
+    return { text: t('chat.reply.schedule', { brand, broker }), actionRequired: 'select_date' };
   }
 
   // 2. Detección de intención: Vender / Tasar / Propietario
-  if (
-    query.includes('vender') || 
-    query.includes('tasar') || 
-    query.includes('tasacion') || 
-    query.includes('mi propiedad') || 
-    query.includes('comision') ||
-    query.includes('poner en arriendo')
-  ) {
+  if (has('vender', 'tasar', 'tasacion', 'mi propiedad', 'comision', 'poner en arriendo', 'sell', 'appraisal', 'valuation', 'my property', 'commission', 'rent out')) {
     return {
-      text: `En UrbeGestión contamos con más de 25 años de experiencia valorando y comercializando inmuebles urbanos y agrícolas en ${marketView(useMarketStore.getState().marketId, useMarketStore.getState().serviceAreas).scopeLabel} con un tiempo promedio de venta de 42 días.\n\nTe invitamos a utilizar nuestra sección "Vende con Nosotros" para subir fotos desde tu celular o ingresar tu teléfono para que Pilar Osorio te contacte con un estudio de mercado sin costo.`,
+      text: t('chat.reply.sell', { brand, broker, scope: view.scopeLabel, section: t('nav.sell') }),
       actionRequired: 'provide_contact',
     };
   }
 
   // 3. Consulta de financiamiento: no se evalúa crédito aquí (lo hace el banco); se deriva al contacto
-  if (/\b(dividendo|credito|hipotecari[oa]s?|banco|bancos|pie)\b/.test(sinTildes(query))) {
-    return {
-      text: `El financiamiento y la evaluación del crédito los realiza tu banco, así que no podemos simularlo por aquí. Lo que sí hacemos es mostrarte la propiedad, coordinar una visita y acompañarte en el proceso.
-
-Déjanos tus datos y ${agencyConfig.brokerName} te contactará para ayudarte.`,
-      actionRequired: 'provide_contact',
-    };
+  if (/\b(dividendo|credito|hipotecari[oa]s?|banco|bancos|pie|mortgage|loan|credit|bank|banks|down payment)\b/.test(sinTildes(query))) {
+    return { text: t('chat.reply.finance', { broker }), actionRequired: 'provide_contact' };
   }
 
   // 4. Búsqueda por comuna, tipo y operación: lo que el usuario menciona debe cumplirse (no basta una coincidencia)
   // Los alias de las comunas ("golf" para Las Condes) los define el paquete de mercado de la corredora.
-  const { pack, scopeLabel } = marketView(useMarketStore.getState().marketId, useMarketStore.getState().serviceAreas);
+  const { pack } = view;
   const communeAliases = pack.localityAliases;
   const communeMatches = (p: Property) => {
     const commune = p.commune.toLowerCase();
@@ -181,17 +167,17 @@ Déjanos tus datos y ${agencyConfig.brokerName} te contactará para ayudarte.`,
     );
   };
   const typeWords: Record<string, string[]> = {
-    casa: ['casa'],
-    departamento: ['depto', 'departamento'],
-    parcela_agricola: ['parcela', 'agricola', 'campo'],
-    oficina_comercial: ['oficina'],
+    casa: ['casa', 'house', 'home'],
+    departamento: ['depto', 'departamento', 'apartment', 'flat'],
+    parcela_agricola: ['parcela', 'agricola', 'campo', 'farm', 'plot'],
+    oficina_comercial: ['oficina', 'office'],
   };
   const mentionedTypes = Object.entries(typeWords)
     .filter(([, words]) => words.some((w) => query.includes(w)))
     .map(([type]) => type);
   const mentionedOperations = [
-    query.includes('arriendo') ? 'arriendo' : null,
-    query.includes('venta') || query.includes('comprar') ? 'venta' : null,
+    has('arriendo', 'rent') ? 'arriendo' : null,
+    has('venta', 'comprar', 'for sale', 'buy') ? 'venta' : null,
   ].filter(Boolean);
   const mentionsCommune = properties.some(communeMatches);
 
@@ -210,33 +196,30 @@ Déjanos tus datos y ${agencyConfig.brokerName} te contactará para ayudarte.`,
     const names = topMatches.map(p => `• **${p.title}** (${p.commune}) - ${formatMoney(priceOf(p), pack)}`).join('\n');
     
     return {
-      text: `He encontrado opciones destacadas en nuestro inventario que coinciden con lo que buscas:\n\n${names}\n\nPuedes hacer clic sobre cualquiera de ellas para ver la ficha técnica completa, fotos en alta resolución. ¿Te gustaría coordinar una visita a alguna de ellas?`,
+      text: t('chat.reply.matches', { names }),
       suggestedProperties: topMatches.map(p => p.id),
       actionRequired: 'view_properties',
     };
   }
 
   // 5. Consulta por contacto / teléfono / oficina
-  if (
-    query.includes('telefono') || 
-    query.includes('whatsapp') || 
-    query.includes('contacto') || 
-    query.includes('correo') ||
-    query.includes('donde estan')
-  ) {
+  if (has('telefono', 'whatsapp', 'contacto', 'correo', 'donde estan', 'phone', 'contact', 'email', 'where are you')) {
     return {
-      text: `Puedes comunicarte de manera directa con **Pilar Osorio** al teléfono o WhatsApp **${agencyConfig.contact.phoneDisplay}** o escribir a **${agencyConfig.contact.email}**.\n\nHorario de atención: ${agencyConfig.contact.schedule}.`,
+      text: t('chat.reply.contact', {
+        broker,
+        phone: agencyConfig.contact.phoneDisplay,
+        email: agencyConfig.contact.email,
+        schedule: agencyConfig.contact.schedule,
+      }),
       actionRequired: 'provide_contact',
     };
   }
 
   // 6. Respuesta por defecto consultiva y proactiva: nombra las comunas donde hay propiedades publicadas
-  const places = featuredLocalities(properties, 4);
-  const lugares = places.length > 1 ? `${places.slice(0, -1).join(', ')} y ${places[places.length - 1]}` : (places[0] ?? '');
+  const names = featuredLocalities(properties, 4);
+  const places = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${t('list.and')} ${names[names.length - 1]}` : (names[0] ?? '');
   return {
-    text: `Comprendo perfectamente. En UrbeGestión tenemos propiedades tanto en arriendo como en venta en ${lugares || scopeLabel}.
-
-¿Tienes alguna comuna o presupuesto aproximado en mente para mostrarte las mejores opciones?`,
+    text: t('chat.reply.default', { brand, places: places || view.scopeLabel, locality: t('market.locality') }),
   };
 }
 

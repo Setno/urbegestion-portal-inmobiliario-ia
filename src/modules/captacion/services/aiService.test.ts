@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { processAiChatMessage } from './aiService';
 import { initialProperties } from '../../catalogo/data/initialProperties';
 import { agencyConfig } from '../../../core/config/agencyConfig';
+import { useLocaleStore } from '../../../core/i18n/i18n';
 
 // Pruebas de caracterización del motor local del asistente: fijan el comportamiento ACTUAL.
 // Los casos marcados "BUG CONOCIDO" documentan comportamientos incorrectos que existen hoy.
@@ -137,5 +138,59 @@ describe('motor local: otras regiones de Chile', () => {
   it('encuentra propiedades por el nombre de su comuna aunque no esté en los alias de Santiago', async () => {
     const r = await processAiChatMessage('Busco algo en Viña del Mar', enValparaiso);
     expect(r.suggestedProperties).toEqual(['v1']);
+  });
+});
+
+describe('motor local: inglés', () => {
+  beforeEach(() => useLocaleStore.setState({ locale: 'en' }));
+  afterEach(() => useLocaleStore.setState({ locale: 'es' }));
+
+  it('responde en inglés cuando la interfaz está en inglés', async () => {
+    const r = await preguntar('I want to book a visit');
+    expect(r.actionRequired).toBe('select_date');
+    expect(r.text).toContain('Great idea!');
+  });
+
+  it('entiende que quiere vender y nombra la sección con el texto del idioma', async () => {
+    const r = await preguntar('I want to sell my property');
+    expect(r.actionRequired).toBe('provide_contact');
+    expect(r.text).toContain('our "Sell with Us" section');
+  });
+
+  it('deriva las consultas de crédito al contacto, sin simularlas', async () => {
+    const r = await preguntar('Can you give me a mortgage?');
+    expect(r.text).toContain('handled by your bank');
+    expect(r.actionRequired).toBe('provide_contact');
+  });
+
+  it('busca propiedades con palabras en inglés: tipo, operación y comuna', async () => {
+    const r = await preguntar('apartment for sale in Vitacura');
+    expect(r.suggestedProperties).toEqual([initialProperties[0].id]);
+    expect(r.text).toContain('I found some highlighted options');
+  });
+
+  it('da el teléfono y el correo de la corredora', async () => {
+    const r = await preguntar('what is your phone number?');
+    expect(r.text).toContain(agencyConfig.contact.phoneDisplay);
+    expect(r.text).toContain(agencyConfig.contact.email);
+  });
+
+  it('la respuesta por defecto nombra las comunas con "and" y usa el nombre del mercado', async () => {
+    const r = await preguntar('hello there');
+    expect(r.text).toContain('Vitacura, Lo Barnechea, Las Condes and Melipilla');
+    expect(r.text).toContain('Do you have a commune');
+  });
+
+  it('un mensaje vacío pide la consulta', async () => {
+    expect((await preguntar('   ')).text).toBe('Please type your question about our properties.');
+  });
+});
+
+describe('motor local: una persona escribe en un idioma y lee en otro', () => {
+  it('con la interfaz en español entiende una consulta en inglés y responde en español', async () => {
+    useLocaleStore.setState({ locale: 'es' });
+    const r = await preguntar('I want to book a visit');
+    expect(r.actionRequired).toBe('select_date');
+    expect(r.text).toContain('¡Excelente iniciativa!');
   });
 });

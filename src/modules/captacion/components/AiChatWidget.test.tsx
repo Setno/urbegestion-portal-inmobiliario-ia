@@ -6,6 +6,7 @@ import { useLeadStore } from '../../crm/stores/useLeadStore';
 import { registerLeadEvents } from '../../crm/services/leadEvents';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
 import { useMarketStore } from '../../../core/market/useMarketStore';
+import { useLocaleStore } from '../../../core/i18n/i18n';
 import { initialProperties } from '../../catalogo/data/initialProperties';
 
 const CAJA = 'Pregúntale al Asistente IA sobre propiedades...';
@@ -36,6 +37,7 @@ describe('AiChatWidget (asistente)', () => {
     useLeadStore.setState({ leads: [] });
     usePropertyStore.setState({ properties: [...initialProperties] });
     useMarketStore.setState({ marketId: 'cl', serviceAreas: [] });
+    useLocaleStore.setState({ locale: 'es' });
   });
 
   afterEach(() => {
@@ -163,6 +165,47 @@ describe('AiChatWidget (asistente)', () => {
       fireEvent.change(screen.getByPlaceholderText('Tu nombre completo *'), { target: { value: 'Solo nombre' } });
       fireEvent.submit(screen.getByPlaceholderText('Tu nombre completo *').closest('form')!);
       expect(useLeadStore.getState().leads).toHaveLength(0);
+    });
+  });
+
+  describe('en inglés', () => {
+    beforeEach(() => useLocaleStore.setState({ locale: 'en' }));
+
+    it('el botón, la bienvenida, el campo y las sugerencias salen en inglés', () => {
+      render(<AiChatWidget onOpenPropertyModal={vi.fn()} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Open AI Assistant' }));
+      expect(screen.getByText(/I am here to help you find the ideal property/)).toBeTruthy();
+      expect(screen.getByText(/in which commune would you like to live/)).toBeTruthy();
+      expect(screen.getByPlaceholderText('Ask the AI Assistant about properties...')).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Sell my property' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Book a visit' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Houses in Lo Barnechea' })).toBeTruthy();
+    });
+
+    it('una sugerencia en inglés encuentra la propiedad y la respuesta sale en inglés', async () => {
+      render(<AiChatWidget onOpenPropertyModal={vi.fn()} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Open AI Assistant' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Houses in Lo Barnechea' }));
+      await waitFor(() => expect(screen.getByText(initialProperties[1].title)).toBeTruthy());
+      expect(screen.getByText(/I found some highlighted options/)).toBeTruthy();
+    });
+
+    it('agendar una visita: formulario y confirmación en inglés', async () => {
+      render(<AiChatWidget onOpenPropertyModal={vi.fn()} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Open AI Assistant' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Book a visit' }));
+      await screen.findByText('Confirm Details to Schedule');
+      fireEvent.change(screen.getByPlaceholderText('Your full name *'), { target: { value: 'Mary Chat' } });
+      fireEvent.change(screen.getByPlaceholderText('Phone / WhatsApp *'), { target: { value: '+56 9 3333 2222' } });
+      fireEvent.submit(screen.getByPlaceholderText('Your full name *').closest('form')!);
+      expect(screen.getByText(/Perfect, Mary Chat! I have registered your request/)).toBeTruthy();
+    });
+
+    it('el mensaje de bienvenida cambia con el idioma sin perder la conversación', () => {
+      render(<AiChatWidget onOpenPropertyModal={vi.fn()} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Open AI Assistant' }));
+      expect(useChatStore.getState().messages[0].id).toBe('msg-welcome');
+      expect(screen.queryByText(/¡Hola! Soy/)).toBeNull();
     });
   });
 });
