@@ -18,6 +18,7 @@ import { Property } from '../types/property';
 import { usePropertyStore } from '../stores/usePropertyStore';
 import { priceOf } from '../services/propertyPrice';
 import { agencyConfig } from '../../../core/config/agencyConfig';
+import { useT } from '../../../core/i18n/i18n';
 
 interface PropertyCardProps {
   property: Property;
@@ -32,23 +33,34 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 }) => {
   const { formatPrice } = usePropertyStore();
   const priceInfo = formatPrice(priceOf(property));
+  const { t } = useT();
   const [copied, setCopied] = useState(false);
 
   const getPropertyTypeLabel = (type: string) => {
     switch (type) {
-      case 'departamento': return 'Departamento';
-      case 'casa': return 'Casa';
-      case 'parcela_agricola': return 'Parcela Agrícola';
-      case 'oficina_comercial': return 'Oficina';
-      default: return 'Inmueble';
+      case 'departamento': return t('type.apartment');
+      case 'casa': return t('type.house');
+      case 'parcela_agricola': return t('type.farm');
+      case 'oficina_comercial': return t('type.office');
+      default: return t('type.other');
     }
   };
 
-  const shareText = `🏡 *${property.title}* (${property.commune})\n` +
-    `💰 Valor: *${priceInfo.display}* (${property.operation === 'venta' ? 'En Venta' : 'En Arriendo'})\n` +
-    `📐 Superficie: ${property.builtAreaM2 || property.totalAreaM2} m² | 🛏️ ${property.bedrooms} Dorms | 🚿 ${property.bathrooms} Baños\n` +
-    `📍 Ubicación: ${property.address}, ${property.commune}\n\n` +
-    `📲 Para agendar una visita o consultar ficha completa con UrbeGestión: https://wa.me/${agencyConfig.contact.whatsapp}?text=${encodeURIComponent(`Hola Pilar, vi la propiedad "${property.title}" (${property.commune}) y quiero más información.`)}`;
+  const operationLabel = property.operation === 'venta' ? t('search.op.sale') : t('search.op.rent');
+  const shareText = t('card.shareText', {
+    title: property.title,
+    commune: property.commune,
+    price: priceInfo.display,
+    operation: operationLabel,
+    area: property.builtAreaM2 || property.totalAreaM2,
+    bedrooms: property.bedrooms,
+    bathrooms: property.bathrooms,
+    address: property.address,
+    brand: agencyConfig.brandName,
+    url: `https://wa.me/${agencyConfig.contact.whatsapp}?text=${encodeURIComponent(
+      t('card.shareContact', { broker: agencyConfig.brokerName, title: property.title, commune: property.commune }),
+    )}`,
+  });
 
   const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
 
@@ -85,13 +97,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 ? 'bg-urbe-primary text-white' 
                 : 'bg-emerald-600 text-white'
             }`}>
-              {property.operation === 'venta' ? 'En Venta' : 'En Arriendo'}
+              {operationLabel}
             </span>
 
             {property.featured && (
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-urbe-accent text-slate-950 flex items-center gap-1 shadow-md">
                 <Sparkles className="w-3 h-3" />
-                Exclusiva
+                {t('card.exclusive')}
               </span>
             )}
           </div>
@@ -100,7 +112,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <button
               onClick={handleShareWhatsApp}
               className="p-1.5 rounded-full bg-slate-900/70 hover:bg-emerald-600 text-white backdrop-blur-md transition-colors shadow"
-              title="Compartir Ficha por WhatsApp"
+              title={t('card.share')}
             >
               <Share2 className="w-3.5 h-3.5" />
             </button>
@@ -151,13 +163,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             {property.bedrooms > 0 && (
               <div className="flex flex-col items-center text-center p-1 rounded-lg bg-slate-50">
                 <Bed className="w-4 h-4 text-slate-400 mb-1" />
-                <span>{property.bedrooms} Dorm.</span>
+                <span>{t('card.bedrooms', { count: property.bedrooms })}</span>
               </div>
             )}
             {property.bathrooms > 0 && (
               <div className="flex flex-col items-center text-center p-1 rounded-lg bg-slate-50">
                 <Bath className="w-4 h-4 text-slate-400 mb-1" />
-                <span>{property.bathrooms} Baños</span>
+                <span>{t('card.bathrooms', { count: property.bathrooms })}</span>
               </div>
             )}
             <div className="flex flex-col items-center text-center p-1 rounded-lg bg-slate-50">
@@ -167,7 +179,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             {property.parkingSpots > 0 && (
               <div className="flex flex-col items-center text-center p-1 rounded-lg bg-slate-50">
                 <Car className="w-4 h-4 text-slate-400 mb-1" />
-                <span>{property.parkingSpots} Estac.</span>
+                <span>{t('card.parking', { count: property.parkingSpots })}</span>
               </div>
             )}
           </div>
@@ -182,7 +194,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
           >
             <Eye className="w-3.5 h-3.5 text-slate-600" />
-            <span>Ver Ficha</span>
+            <span>{t('card.view')}</span>
           </button>
 
           <button
@@ -190,7 +202,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             className="w-full py-2.5 px-3 rounded-xl bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm hover:shadow transition-colors"
           >
             <Calendar className="w-3.5 h-3.5 text-urbe-accent" />
-            <span>Agendar Cita</span>
+            <span>{t('card.book')}</span>
           </button>
         </div>
 
@@ -200,7 +212,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           className="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center justify-center gap-1.5 border border-emerald-200 transition-colors"
         >
           <Phone className="w-3 h-3 text-emerald-600" />
-          <span>Compartir Ficha por WhatsApp</span>
+          <span>{t('card.share')}</span>
         </button>
       </div>
 

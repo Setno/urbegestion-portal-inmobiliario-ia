@@ -50,6 +50,42 @@ export const es = {
   'grid.empty.reset': 'Restablecer todos los filtros',
   'grid.empty.none': 'Aún no hay propiedades publicadas en {scope}.',
 
+  // Barra de navegación y barra móvil
+  'nav.properties': 'Propiedades',
+  'nav.sell': 'Vende con Nosotros',
+  'nav.testimonials': 'Testimonios',
+  'nav.crm.title': 'Panel de Auto-Gestión y CRM',
+  'nav.crm.short': 'CRM',
+  'nav.assistant': 'Asistente IA',
+  'nav.menu.open': 'Abrir menú',
+  'nav.currency': 'Moneda del portal:',
+  'nav.menu.catalog': 'Catálogo de Propiedades',
+  'nav.menu.sell': 'Vende o Arrienda tu Inmueble',
+  'nav.menu.testimonials': 'Testimonios de Clientes',
+  'nav.menu.whatsapp': 'WhatsApp Directo ({phone})',
+  'nav.menu.admin': 'Panel de Administración y CRM ({count} Leads)',
+  'quickbar.search': 'Buscar',
+  'quickbar.whatsapp': 'WhatsApp',
+  'quickbar.call': 'Llamar',
+  'quickbar.chat': 'Chat IA',
+
+  // Tarjeta de propiedad
+  'type.apartment': 'Departamento',
+  'type.house': 'Casa',
+  'type.farm': 'Parcela Agrícola',
+  'type.office': 'Oficina',
+  'type.other': 'Inmueble',
+  'card.exclusive': 'Exclusiva',
+  'card.bedrooms': '{count} Dorm.',
+  'card.bathrooms': '{count} Baños',
+  'card.parking': '{count} Estac.',
+  'card.view': 'Ver Ficha',
+  'card.book': 'Agendar Cita',
+  'card.share': 'Compartir Ficha por WhatsApp',
+  'card.shareText':
+    '🏡 *{title}* ({commune})\n💰 Valor: *{price}* ({operation})\n📐 Superficie: {area} m² | 🛏️ {bedrooms} Dorms | 🚿 {bathrooms} Baños\n📍 Ubicación: {address}, {commune}\n\n📲 Para agendar una visita o consultar ficha completa con {brand}: {url}',
+  'card.shareContact': 'Hola {broker}, vi la propiedad "{title}" ({commune}) y quiero más información.',
+
   // Panel: lista de propiedades
   'properties.outsideAreas': 'Fuera de tus zonas',
 

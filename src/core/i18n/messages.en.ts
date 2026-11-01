@@ -50,6 +50,42 @@ export const en: Record<MessageKey, string> = {
   'grid.empty.reset': 'Reset all filters',
   'grid.empty.none': 'There are no published properties in {scope} yet.',
 
+  // Navigation bar and mobile bar
+  'nav.properties': 'Properties',
+  'nav.sell': 'Sell with Us',
+  'nav.testimonials': 'Testimonials',
+  'nav.crm.title': 'Self-service panel and CRM',
+  'nav.crm.short': 'CRM',
+  'nav.assistant': 'AI Assistant',
+  'nav.menu.open': 'Open menu',
+  'nav.currency': 'Portal currency:',
+  'nav.menu.catalog': 'Property Catalog',
+  'nav.menu.sell': 'Sell or Rent Your Property',
+  'nav.menu.testimonials': 'Client Testimonials',
+  'nav.menu.whatsapp': 'Direct WhatsApp ({phone})',
+  'nav.menu.admin': 'Admin Panel and CRM ({count} Leads)',
+  'quickbar.search': 'Search',
+  'quickbar.whatsapp': 'WhatsApp',
+  'quickbar.call': 'Call',
+  'quickbar.chat': 'AI Chat',
+
+  // Property card
+  'type.apartment': 'Apartment',
+  'type.house': 'House',
+  'type.farm': 'Farm plot',
+  'type.office': 'Office',
+  'type.other': 'Property',
+  'card.exclusive': 'Exclusive',
+  'card.bedrooms': '{count} Bed.',
+  'card.bathrooms': '{count} Bath',
+  'card.parking': '{count} Park.',
+  'card.view': 'View Details',
+  'card.book': 'Book a Visit',
+  'card.share': 'Share on WhatsApp',
+  'card.shareText':
+    '🏡 *{title}* ({commune})\n💰 Price: *{price}* ({operation})\n📐 Area: {area} m² | 🛏️ {bedrooms} Beds | 🚿 {bathrooms} Baths\n📍 Location: {address}, {commune}\n\n📲 To book a visit or get the full details with {brand}: {url}',
+  'card.shareContact': 'Hello {broker}, I saw the property "{title}" ({commune}) and would like more information.',
+
   // Panel: property list
   'properties.outsideAreas': 'Outside your areas',
 

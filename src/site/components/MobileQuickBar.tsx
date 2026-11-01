@@ -2,9 +2,11 @@ import React from 'react';
 import { Search, Phone, MessageCircle, Sparkles } from 'lucide-react';
 import { agencyConfig } from '../../core/config/agencyConfig';
 import { useChatStore } from '../../modules/captacion/stores/useChatStore';
+import { useT } from '../../core/i18n/i18n';
 
 export const MobileQuickBar: React.FC = () => {
   const { toggleChat } = useChatStore();
+  const { t } = useT();
 
   const whatsappUrl = `https://wa.me/${agencyConfig.contact.whatsapp}?text=${encodeURIComponent(
     agencyConfig.contact.whatsappMessage
@@ -20,7 +22,7 @@ export const MobileQuickBar: React.FC = () => {
           className="flex flex-col items-center justify-center py-1 text-slate-700 hover:text-urbe-primary active:scale-95 transition-all"
         >
           <Search className="w-4 h-4 text-urbe-accent mb-0.5" />
-          <span className="text-[10px] font-bold">Buscar</span>
+          <span className="text-[10px] font-bold">{t('quickbar.search')}</span>
         </a>
 
         {/* WhatsApp */}
@@ -33,7 +35,7 @@ export const MobileQuickBar: React.FC = () => {
           <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center mb-0.5">
             <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
           </div>
-          <span className="text-[10px] font-bold">WhatsApp</span>
+          <span className="text-[10px] font-bold">{t('quickbar.whatsapp')}</span>
         </a>
 
         {/* Call */}
@@ -42,7 +44,7 @@ export const MobileQuickBar: React.FC = () => {
           className="flex flex-col items-center justify-center py-1 text-slate-700 hover:text-urbe-primary active:scale-95 transition-all"
         >
           <Phone className="w-4 h-4 text-urbe-primary mb-0.5" />
-          <span className="text-[10px] font-bold">Llamar</span>
+          <span className="text-[10px] font-bold">{t('quickbar.call')}</span>
         </a>
 
         {/* AI Concierge */}
@@ -53,7 +55,7 @@ export const MobileQuickBar: React.FC = () => {
           <div className="w-5 h-5 rounded-full bg-urbe-primary/10 flex items-center justify-center mb-0.5">
             <Sparkles className="w-3.5 h-3.5 text-urbe-accent animate-pulse" />
           </div>
-          <span className="text-[10px] font-bold">Chat IA</span>
+          <span className="text-[10px] font-bold">{t('quickbar.chat')}</span>
         </button>
 
       </div>

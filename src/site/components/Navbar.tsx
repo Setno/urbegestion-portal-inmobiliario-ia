@@ -16,6 +16,7 @@ import { useLeadStore } from '../../modules/crm/stores/useLeadStore';
 import { useChatStore } from '../../modules/captacion/stores/useChatStore';
 import { useBrandStore } from '../../core/brand/useBrandStore';
 import { useMarket } from '../../core/market/useMarketStore';
+import { useT } from '../../core/i18n/i18n';
 
 interface NavbarProps {
   onOpenAdmin: () => void;
@@ -26,6 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { currency, setCurrency } = usePropertyStore();
   const { pack } = useMarket();
+  const { t } = useT();
   const { leads } = useLeadStore();
   const { toggleChat } = useChatStore();
   const { config: agencyConfig } = useBrandStore();
@@ -53,20 +55,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
           <nav className="hidden lg:flex items-center space-x-6 text-xs font-semibold">
             <a href="#propiedades" className="text-slate-700 hover:text-urbe-primary transition-colors flex items-center gap-1.5">
               <Search className="w-3.5 h-3.5 text-urbe-accent" />
-              Propiedades
+              {t('nav.properties')}
             </a>
             <button 
               onClick={onOpenValuation}
               className="text-slate-700 hover:text-urbe-primary transition-colors flex items-center gap-1.5"
             >
               <UserCheck className="w-3.5 h-3.5 text-urbe-accent" />
-              Vende con Nosotros
+              {t('nav.sell')}
             </button>
             <a href="#sobre-mi" className="text-slate-700 hover:text-urbe-primary transition-colors">
               Pilar Osorio
             </a>
             <a href="#testimonios" className="text-slate-700 hover:text-urbe-primary transition-colors">
-              Testimonios
+              {t('nav.testimonials')}
             </a>
           </nav>
 
@@ -107,10 +109,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
             <button
               onClick={onOpenAdmin}
               className="relative px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] sm:text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition-colors"
-              title="Panel de Auto-Gestión y CRM"
+              title={t('nav.crm.title')}
             >
               <LayoutDashboard className="w-3.5 h-3.5 text-urbe-primary" />
-              <span className="hidden sm:inline">CRM</span>
+              <span className="hidden sm:inline">{t('nav.crm.short')}</span>
               {newLeadsCount > 0 && (
                 <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-urbe-accent text-slate-950 text-[9px] sm:text-[10px] font-black flex items-center justify-center shadow">
                   {newLeadsCount}
@@ -135,14 +137,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg bg-urbe-primary hover:bg-urbe-primaryDark text-white text-[11px] sm:text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
             >
               <Sparkles className="w-3.5 h-3.5 text-urbe-accent" />
-              <span className="hidden sm:inline">Asistente IA</span>
+              <span className="hidden sm:inline">{t('nav.assistant')}</span>
             </button>
 
             {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 lg:hidden"
-              aria-label="Abrir menú"
+              aria-label={t('nav.menu.open')}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -157,7 +159,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
         <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-4 shadow-2xl animate-in slide-in-from-top-3 duration-200">
           
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs">
-            <span className="font-semibold text-slate-500">Moneda del portal:</span>
+            <span className="font-semibold text-slate-500">{t('nav.currency')}</span>
             <div className="flex items-center bg-slate-100 p-1 rounded-lg">
               {pack.currencies.map((c) => (
                 <button
@@ -178,14 +180,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               className="py-1.5 text-slate-800 hover:text-urbe-primary flex items-center gap-2"
             >
               <Search className="w-4 h-4 text-urbe-accent" />
-              Catálogo de Propiedades
+              {t('nav.menu.catalog')}
             </a>
             <button 
               onClick={() => { onOpenValuation(); setMobileMenuOpen(false); }}
               className="py-1.5 text-left text-slate-800 hover:text-urbe-primary flex items-center gap-2"
             >
               <UserCheck className="w-4 h-4 text-urbe-accent" />
-              Vende o Arrienda tu Inmueble
+              {t('nav.menu.sell')}
             </button>
             <a 
               href="#sobre-mi" 
@@ -199,7 +201,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               onClick={() => setMobileMenuOpen(false)}
               className="py-1.5 text-slate-800 hover:text-urbe-primary"
             >
-              Testimonios de Clientes
+              {t('nav.menu.testimonials')}
             </a>
             <a 
               href={agencyConfig.contact.instagram}
@@ -221,7 +223,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               className="w-full py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2 shadow"
             >
               <Phone className="w-4 h-4" />
-              WhatsApp Directo ({agencyConfig.contact.phoneDisplay})
+              {t('nav.menu.whatsapp', { phone: agencyConfig.contact.phoneDisplay })}
             </a>
             {ADMIN_ENABLED && (
             <button
@@ -229,7 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               className="w-full py-2.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 border border-slate-200"
             >
               <LayoutDashboard className="w-4 h-4 text-urbe-primary" />
-              Panel de Administración y CRM ({leads.length} Leads)
+              {t('nav.menu.admin', { count: leads.length })}
             </button>
             )}
           </div>
