@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   X,
-  Settings,
-  Calendar,
   CheckCircle2,
   Sparkles,
   ExternalLink,
@@ -225,7 +223,7 @@ export const IntegrationsTab: React.FC = () => {
               </label>
               <select
                 value={aiProvider}
-                onChange={(e) => setAiProvider(e.target.value as any)}
+                onChange={(e) => setAiProvider(e.target.value as AiProviderType)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
               >
                 <option value="local_rules">⚡ Motor Local Experto (Gratis, Ilimitado, Ultrarrápido - Ideal Demo)</option>

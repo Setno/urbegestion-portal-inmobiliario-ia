@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
 import { 
   Calculator, 
-  DollarSign, 
-  TrendingUp, 
-  Building, 
-  ShieldCheck, 
-  CheckCircle,
-  HelpCircle,
+  
+  
+  
+  
   Sparkles
 } from 'lucide-react';
 import { agencyConfig } from '../../../core/config/agencyConfig';
-import { usePropertyStore } from '../stores/usePropertyStore';
 import { useChatStore } from '../../captacion/stores/useChatStore';
 
 export const MortgageCalc: React.FC = () => {
-  const { currency } = usePropertyStore();
   const { toggleChat } = useChatStore();
 
   const [priceUf, setPriceUf] = useState(12000);
@@ -29,7 +25,6 @@ export const MortgageCalc: React.FC = () => {
   const downPaymentUf = (priceUf * downPaymentPct) / 100;
   const downPaymentClp = downPaymentUf * ufValueClp;
   const loanAmountUf = priceUf - downPaymentUf;
-  const loanAmountClp = loanAmountUf * ufValueClp;
 
   const monthlyRate = (interestRate / 100) / 12;
   const totalMonths = years * 12;

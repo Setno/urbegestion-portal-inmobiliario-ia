@@ -1,16 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  MessageSquare, 
+  
   X, 
   Send, 
   Sparkles, 
-  Building2, 
+  
   Calendar, 
-  Phone, 
-  User, 
-  CheckCircle2, 
+  
+  
+  
   ArrowRight,
-  ExternalLink,
   Bot
 } from 'lucide-react';
 import { useChatStore } from '../stores/useChatStore';
@@ -74,7 +73,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
         suggestedProperties: response.suggestedProperties,
         actionRequired: response.actionRequired,
       });
-    } catch (err) {
+    } catch {
       addMessage({
         sender: 'bot',
         text: t('chat.error', { broker: agencyConfig.brokerName, phone: agencyConfig.contact.phoneDisplay }),

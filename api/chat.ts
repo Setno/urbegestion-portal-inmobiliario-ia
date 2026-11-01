@@ -21,7 +21,7 @@ export async function POST(request: Request): Promise<Response> {
   const target = ENDPOINTS[provider];
   if (!apiKey || !target) return json({ error: 'llm_not_configured' }, 503);
 
-  let payload: any;
+  let payload: Record<string, unknown> | null;
   try {
     payload = await request.json();
   } catch {
@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!text) return json({ error: 'empty_text' }, 400);
 
   const catalog = (Array.isArray(payload?.catalog) ? payload.catalog.slice(0, 40) : [])
-    .map((p: any) => `- [ID: ${clean(p?.id, 40)}] ${clean(p?.title, 120)} (${clean(p?.propertyType, 40)} en ${clean(p?.commune, 60)}) - ${clean(p?.price, 40)}. ${clean(p?.specs, 80)}. Operación: ${clean(p?.operation, 20)}.`)
+    .map((p: Record<string, unknown> | null) => `- [ID: ${clean(p?.id, 40)}] ${clean(p?.title, 120)} (${clean(p?.propertyType, 40)} en ${clean(p?.commune, 60)}) - ${clean(p?.price, 40)}. ${clean(p?.specs, 80)}. Operación: ${clean(p?.operation, 20)}.`)
     .join('\n');
 
   const controller = new AbortController();

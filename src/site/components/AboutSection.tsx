@@ -8,7 +8,6 @@ import {
   Phone,
   Instagram,
   Mail,
-  MapPin
 } from 'lucide-react';
 import { useBrandStore } from '../../core/brand/useBrandStore';
 

@@ -23,7 +23,7 @@ export class WebhookService {
   }
 
   public getWebhookConfig(): WebhookConfig {
-    const env = (import.meta as any).env || {};
+    const env = import.meta.env;
     const localCal = localStorage.getItem('urbe_cal_url') || '';
     const isEnabled = localStorage.getItem('urbe_ghl_enabled') !== 'false';
 
@@ -31,7 +31,7 @@ export class WebhookService {
       calComUrl: localCal || env.VITE_CAL_COM_URL || agencyConfig.aiAgent.calendarUrl || 'https://cal.com/urbegestion/visita-propiedad',
       isEnabled,
       lastDispatchedAt: localStorage.getItem('urbe_ghl_last_dispatch') || undefined,
-      lastStatus: (localStorage.getItem('urbe_ghl_last_status') as any) || null
+      lastStatus: (localStorage.getItem('urbe_ghl_last_status') as WebhookConfig['lastStatus']) || null
     };
   }
 

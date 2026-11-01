@@ -5,10 +5,8 @@ import {
   Clock, 
   CheckCircle2, 
   ExternalLink, 
-  Sparkles, 
-  MapPin, 
-  Phone,
-  UserCheck
+  
+  
 } from 'lucide-react';
 import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';

@@ -10,7 +10,6 @@ import {
   Download,
   Paperclip,
   Search,
-  Filter,
   FileSpreadsheet,
   List,
   Flame,
@@ -19,7 +18,6 @@ import {
 import { useLeadStore } from '../stores/useLeadStore';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
 import { Lead, LeadStatus } from '../types/lead';
-import { Property } from '../../catalogo/types/property';
 import { buildPropertyFromLead } from '../services/leadToProperty';
 
 export const LeadsTab: React.FC = () => {
@@ -113,8 +111,6 @@ export const LeadsTab: React.FC = () => {
     const updated = useLeadStore.getState().leads.find(l => l.id === leadId);
     if (updated) setSelectedLead(updated);
   };
-
-  const mobileFilteredLeads = leads.filter(l => l.status === mobileActiveStage);
 
   return (
     <>

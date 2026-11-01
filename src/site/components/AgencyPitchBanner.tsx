@@ -1,6 +1,6 @@
 import { ADMIN_ENABLED } from '../../core/config/adminAccess';
 import React, { useState } from 'react';
-import { Sparkles, TrendingUp, ShieldAlert, CheckCircle2, ChevronRight, X } from 'lucide-react';
+import { Sparkles, TrendingUp, ShieldAlert, ChevronRight, X } from 'lucide-react';
 
 interface AgencyPitchBannerProps {
   onOpenAdmin: () => void;

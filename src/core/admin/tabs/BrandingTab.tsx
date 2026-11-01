@@ -9,11 +9,7 @@ import {
   Palette,
   RotateCcw,
   Camera,
-  Search
 } from 'lucide-react';
-import {
-  Bar
-} from 'recharts';
 import { useBrandStore, BRAND_COLOR_PRESETS } from '../../brand/useBrandStore';
 
 export const BrandingTab: React.FC = () => {

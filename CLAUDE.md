@@ -17,7 +17,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 | Correr en local | `npm run dev` → http://localhost:3000 (el panel admin pide iniciar sesión con Supabase; necesita `.env.local` con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`; sin ellas el panel no aparece; con `VITE_TENANT_ID` (id de la corredora) leads y propiedades van a Supabase, sin él quedan en el navegador) |
 | Tests rápidos | `npm test` (Vitest + jsdom, ~3 s); `npm run test:watch` para desarrollo |
 | Suite completa | `npm test` (516 pruebas, incluidas las de pantalla (CRM, catálogo y captación) con Testing Library; sin cobertura medida aún) |
-| Lint | `npm run lint` (0 errores; la deuda previa está suprimida en `eslint-suppressions.json`, ver H-015) |
+| Lint | `npm run lint` (0 errores y 0 avisos; sin deuda suprimida, H-015) |
 | Tipos | `npx tsc --noEmit` |
 | Build | `npm run build` (ejecuta `tsc && vite build`) |
 | Probar producción local | `npm run preview` → http://localhost:4173 (el panel admin aparece solo si hay claves de Supabase y siempre pide login) |

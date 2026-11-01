@@ -9,8 +9,6 @@ import {
   ShieldCheck, 
   TrendingUp,
   UploadCloud,
-  Image as ImageIcon,
-  Trash2,
   FileText,
   Video,
   Camera

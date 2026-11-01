@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   Bed, 
@@ -9,9 +9,7 @@ import {
   Sparkles, 
   Calendar, 
   Eye,
-  MessageCircle,
   Share2,
-  Check,
   Phone
 } from 'lucide-react';
 import { Property } from '../types/property';
@@ -34,7 +32,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const { formatPrice } = usePropertyStore();
   const priceInfo = formatPrice(priceOf(property));
   const { t } = useT();
-  const [copied, setCopied] = useState(false);
 
   const getPropertyTypeLabel = (type: string) => {
     switch (type) {

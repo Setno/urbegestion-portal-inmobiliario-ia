@@ -10,7 +10,6 @@ import {
   UserCheck,
   Instagram
 } from 'lucide-react';
-import { agencyConfig } from '../../core/config/agencyConfig';
 import { usePropertyStore } from '../../modules/catalogo/stores/usePropertyStore';
 import { useLeadStore } from '../../modules/crm/stores/useLeadStore';
 import { useChatStore } from '../../modules/captacion/stores/useChatStore';

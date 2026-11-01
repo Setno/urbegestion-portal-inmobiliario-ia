@@ -10,6 +10,8 @@ import { useMarket } from '../../../core/market/useMarketStore';
 import { useT } from '../../../core/i18n/i18n';
 import { ArrowUpDown, Sparkles, Building, RotateCcw } from 'lucide-react';
 
+type SortBy = 'featured' | 'priceAsc' | 'priceDesc' | 'areaDesc';
+
 interface PropertyGridProps {
   onOpenDetails: (property: Property) => void;
   onOpenBooking: (property: Property) => void;
@@ -26,7 +28,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
   const { pack, scopeLabel } = useMarket();
   const { t } = useT();
   const rates = currentRates();
-  const [sortBy, setSortBy] = useState<'featured' | 'priceAsc' | 'priceDesc' | 'areaDesc'>('featured');
+  const [sortBy, setSortBy] = useState<SortBy>('featured');
 
   // Filter properties based on store state
   const filtered = properties.filter((p) => matchesFilters(p, filters, pack, currency, rates));
@@ -68,7 +70,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
           <span className="text-xs font-semibold text-slate-600">{t('grid.sort.label')}</span>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as SortBy)}
             className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary cursor-pointer shadow-sm"
           >
             <option value="featured">{t('grid.sort.featured')}</option>

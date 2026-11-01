@@ -22,11 +22,8 @@ export interface AiResponseResult {
   leadCreated?: boolean;
 }
 
-const DEFAULT_SYSTEM_PROMPT = `Eres UrbeBot Concierge, el asistente inmobiliario de alta gama para la corredora de propiedades UrbeGestión (liderada por Pilar Osorio con más de 25 años de experiencia en Santiago de Chile y propiedades agrícolas). 
-Tu objetivo es asesorar con amabilidad y elegancia a compradores, arrendatarios y propietarios, responder dudas sobre precios en UF y financiamiento hipotecario, y calificar al prospecto para agendar una visita privada con Pilar Osorio.`;
-
 export function getAiConfig(): AiModelConfig {
-  const env = (import.meta as any).env || {};
+  const env = import.meta.env;
   const savedProvider = localStorage.getItem('urbe_ai_provider') as AiProviderType;
   return { provider: savedProvider || (env.VITE_AI_PROVIDER === 'server' ? 'server' : 'local_rules') };
 }
