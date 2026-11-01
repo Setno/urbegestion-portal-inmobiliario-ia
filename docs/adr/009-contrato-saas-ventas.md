@@ -1,6 +1,6 @@
 # ADR-009: El control comercial vive en el proyecto de ventas; el SaaS y ventas se hablan por un contrato de variables versionado y ampliable
 
-- Estado: propuesta (pendiente de aprobación del responsable; la migración de H-043 requiere su aprobación aparte)
+- Estado: aceptada (aprobada por el responsable el 2026-11-01; la migración y los endpoints de H-043.2 requieren su aprobación aparte)
 - Fecha: 2026-11-01
 
 ## Contexto
