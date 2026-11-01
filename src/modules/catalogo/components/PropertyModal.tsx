@@ -27,6 +27,8 @@ import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
 import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { useMarket } from '../../../core/market/useMarketStore';
+import { convertMoney, currentRates } from '../../../core/money/money';
+import { priceOf } from '../services/propertyPrice';
 import { CalBookingModal } from '../../captacion/components/CalBookingModal';
 
 interface PropertyModalProps {
@@ -58,10 +60,12 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
 
   if (!property) return null;
 
-  const priceInfo = formatPrice(property.priceUf);
+  const priceInfo = formatPrice(priceOf(property));
+  // El simulador de dividendo (apagado) trabaja en UF: se convierte el precio de la propiedad a UF.
+  const priceUf = convertMoney(priceOf(property), 'UF', pack, currentRates()).amount;
 
   // Mortgage Calculation Logic
-  const loanAmountUf = property.priceUf * (1 - downPaymentPct / 100);
+  const loanAmountUf = priceUf * (1 - downPaymentPct / 100);
   const monthlyRate = annualRate / 100 / 12;
   const totalMonths = mortgageYears * 12;
   const monthlyDividendUf = monthlyRate > 0 
@@ -100,8 +104,8 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
       propertyInterestId: property.id,
       propertyTitle: property.title,
       operationInterest: property.operation === 'venta' ? 'compra' : 'arriendo',
-      budgetAmount: property.priceUf,
-      budgetCurrency: 'UF',
+      budgetAmount: property.priceAmount,
+      budgetCurrency: property.priceCurrency,
       status: 'visita_agendada',
       appointmentDate: date || new Date().toISOString().split('T')[0],
       appointmentTime: time,
@@ -369,7 +373,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                       onChange={(e) => setDownPaymentPct(Number(e.target.value))}
                       className="w-full accent-urbe-primary"
                     />
-                    <span className="text-[11px] text-slate-500">Monto Pie: {(property.priceUf * downPaymentPct / 100).toFixed(0)} UF</span>
+                    <span className="text-[11px] text-slate-500">Monto Pie: {(priceUf * downPaymentPct / 100).toFixed(0)} UF</span>
                   </div>
 
                   <div>

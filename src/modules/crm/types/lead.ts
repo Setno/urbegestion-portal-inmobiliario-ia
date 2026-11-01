@@ -36,7 +36,7 @@ export interface Lead {
   propertyTitle?: string;
   operationInterest: 'compra' | 'arriendo' | 'venta_propietario' | 'otro';
   budgetAmount?: number;
-  budgetCurrency?: 'UF' | 'CLP';
+  budgetCurrency?: string; // 'UF', 'CLP', 'USD'…
   mortgageStatus?: 'al_contado' | 'pre_aprobado' | 'en_tramite' | 'sin_evaluar';
   targetMoveDate?: 'inmediato' | '1_a_3_meses' | 'mas_de_3_meses';
   status: LeadStatus;

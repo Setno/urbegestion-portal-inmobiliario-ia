@@ -11,8 +11,8 @@ const COLUMNS: Record<string, string> = {
   title: 'title',
   operation: 'operation',
   propertyType: 'property_type',
-  priceUf: 'price_uf',
-  priceClp: 'price_clp',
+  priceAmount: 'price_amount',
+  priceCurrency: 'price_currency',
   commune: 'commune',
   address: 'address',
   bedrooms: 'bedrooms',
@@ -61,7 +61,8 @@ function fromRow(r: Row): Property {
     title: String(r.title),
     operation: r.operation as Property['operation'],
     propertyType: r.property_type as Property['propertyType'],
-    priceUf: Number(r.price_uf),
+    priceAmount: Number(r.price_amount),
+    priceCurrency: String(r.price_currency ?? 'UF'),
     commune: String(r.commune),
     address: String(r.address ?? ''),
     bedrooms: Number(r.bedrooms ?? 0),
@@ -77,8 +78,6 @@ function fromRow(r: Row): Property {
     features: (r.features as string[]) ?? [],
     createdAt: String(r.created_at ?? '').slice(0, 10),
   };
-  const priceClp = opt<number>(r.price_clp);
-  if (priceClp !== undefined) property.priceClp = Number(priceClp);
   const videoUrl = opt<string>(r.video_url);
   if (videoUrl !== undefined) property.videoUrl = videoUrl;
   const tour = opt<string>(r.virtual_tour_url);

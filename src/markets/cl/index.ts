@@ -9,6 +9,12 @@ export const CHILE: MarketPack = {
   localityLabel: 'Comuna',
   phonePrefix: '+56',
   privacyLaw: 'Ley 21.719',
+  baseCurrency: 'CLP',
+  defaultCurrency: 'UF',
+  currencies: [
+    { code: 'UF', fractionDigits: 0 },
+    { code: 'CLP', symbol: '$', fractionDigits: 0 },
+  ],
   areas: CHILE_AREAS,
   localityAliases: {
     melipilla: ['melipilla'],

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Property } from '../types/property';
 import { usePropertyStore } from '../stores/usePropertyStore';
+import { priceOf } from '../services/propertyPrice';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 
 interface PropertyCardProps {
@@ -30,7 +31,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onOpenBooking 
 }) => {
   const { formatPrice } = usePropertyStore();
-  const priceInfo = formatPrice(property.priceUf);
+  const priceInfo = formatPrice(priceOf(property));
   const [copied, setCopied] = useState(false);
 
   const getPropertyTypeLabel = (type: string) => {

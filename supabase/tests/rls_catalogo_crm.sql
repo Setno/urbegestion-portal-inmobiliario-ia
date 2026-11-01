@@ -19,7 +19,7 @@ insert into public.memberships (tenant_id, user_id, role) values
   ('a1a1a1a1-0000-0000-0000-0000000000a1', 'cccccccc-0000-0000-0000-00000000000c', 'agente'),
   ('b2b2b2b2-0000-0000-0000-0000000000b2', 'bbbbbbbb-0000-0000-0000-00000000000b', 'agente');
 
-insert into public.properties (id, tenant_id, title, operation, property_type, price_uf, commune) values
+insert into public.properties (id, tenant_id, title, operation, property_type, price_amount, commune) values
   ('a0a0a0a0-0000-0000-0000-0000000000a1', 'a1a1a1a1-0000-0000-0000-0000000000a1', 'Propiedad A', 'venta', 'casa', 1000, 'Vitacura'),
   ('b0b0b0b0-0000-0000-0000-0000000000b2', 'b2b2b2b2-0000-0000-0000-0000000000b2', 'Propiedad B', 'venta', 'casa', 2000, 'Las Condes');
 
@@ -50,7 +50,7 @@ begin
   end;
 
   begin
-    insert into public.properties (tenant_id, title, operation, property_type, price_uf, commune)
+    insert into public.properties (tenant_id, title, operation, property_type, price_amount, commune)
     values ('a1a1a1a1-0000-0000-0000-0000000000a1', 'Intrusa', 'venta', 'casa', 1, 'X');
     raise exception 'FALLO: el visitante pudo crear una propiedad';
   exception when insufficient_privilege then null;
@@ -95,13 +95,13 @@ begin
   if n <> 0 then raise exception 'FALLO: el admin de A modificó una propiedad de B'; end if;
 
   begin
-    insert into public.properties (tenant_id, title, operation, property_type, price_uf, commune)
+    insert into public.properties (tenant_id, title, operation, property_type, price_amount, commune)
     values ('b2b2b2b2-0000-0000-0000-0000000000b2', 'Colada', 'venta', 'casa', 1, 'X');
     raise exception 'FALLO: el admin de A creó una propiedad en B';
   exception when insufficient_privilege then null;
   end;
 
-  insert into public.properties (tenant_id, title, operation, property_type, price_uf, commune)
+  insert into public.properties (tenant_id, title, operation, property_type, price_amount, commune)
   values ('a1a1a1a1-0000-0000-0000-0000000000a1', 'Nueva de A', 'venta', 'casa', 1, 'X');
 
   update public.properties set title = 'Editada' where id = 'a0a0a0a0-0000-0000-0000-0000000000a1';
@@ -134,7 +134,7 @@ begin
   get diagnostics n = row_count;
   if n <> 0 then raise exception 'FALLO: el agente borró % propiedades (solo el admin puede)', n; end if;
 
-  insert into public.properties (tenant_id, title, operation, property_type, price_uf, commune)
+  insert into public.properties (tenant_id, title, operation, property_type, price_amount, commune)
   values ('a1a1a1a1-0000-0000-0000-0000000000a1', 'Del agente', 'arriendo', 'departamento', 40, 'X');
 end $$;
 

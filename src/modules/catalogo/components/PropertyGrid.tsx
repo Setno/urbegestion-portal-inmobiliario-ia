@@ -3,6 +3,8 @@ import { PropertyCard } from './PropertyCard';
 import { usePropertyStore } from '../stores/usePropertyStore';
 import { isPublished } from '../services/publicationWorkflow';
 import { matchesFilters } from '../services/propertyFilters';
+import { priceOf } from '../services/propertyPrice';
+import { comparePrices, currentRates } from '../../../core/money/money';
 import { Property } from '../types/property';
 import { useMarket } from '../../../core/market/useMarketStore';
 import { ArrowUpDown, Sparkles, Building, RotateCcw } from 'lucide-react';
@@ -16,14 +18,15 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
   onOpenDetails, 
   onOpenBooking 
 }) => {
-  const { properties: allProperties, filters, resetFilters, loading } = usePropertyStore();
+  const { properties: allProperties, filters, resetFilters, loading, currency } = usePropertyStore();
   // El sitio solo muestra lo publicado (el borrador y lo que espera aprobación quedan en el panel)
   const properties = allProperties.filter(isPublished);
   const { pack, scopeLabel } = useMarket();
+  const rates = currentRates();
   const [sortBy, setSortBy] = useState<'featured' | 'priceAsc' | 'priceDesc' | 'areaDesc'>('featured');
 
   // Filter properties based on store state
-  const filtered = properties.filter((p) => matchesFilters(p, filters, pack));
+  const filtered = properties.filter((p) => matchesFilters(p, filters, pack, currency, rates));
 
   // Sort properties
   const sorted = [...filtered].sort((a, b) => {
@@ -32,8 +35,8 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
       if (!a.featured && b.featured) return 1;
       return 0;
     }
-    if (sortBy === 'priceAsc') return a.priceUf - b.priceUf;
-    if (sortBy === 'priceDesc') return b.priceUf - a.priceUf;
+    if (sortBy === 'priceAsc') return comparePrices(priceOf(a), priceOf(b), pack, rates);
+    if (sortBy === 'priceDesc') return comparePrices(priceOf(b), priceOf(a), pack, rates);
     if (sortBy === 'areaDesc') return (b.totalAreaM2 || b.builtAreaM2) - (a.totalAreaM2 || a.builtAreaM2);
     return 0;
   });

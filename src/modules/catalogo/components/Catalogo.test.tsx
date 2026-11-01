@@ -42,7 +42,7 @@ describe('Catálogo: buscador y grilla', () => {
         disconnect() {}
       },
     );
-    usePropertyStore.setState({ properties: [...initialProperties], loading: false });
+    usePropertyStore.setState({ properties: [...initialProperties], loading: false, currency: 'UF' });
     usePropertyStore.getState().resetFilters();
     useMarketStore.setState({ marketId: 'cl', serviceAreas: [] });
   });
@@ -139,6 +139,49 @@ describe('Catálogo: buscador y grilla', () => {
       expect(visible(T.parcela)).toBe(true);
       fireEvent.change(comuna, { target: { value: 'Pirque' } });
       expect(visible(initialProperties[4].title)).toBe(true);
+    });
+  });
+
+  describe('precios en distintas monedas', () => {
+    const conPrecios = () =>
+      usePropertyStore.setState({
+        properties: [
+          { ...initialProperties[0], id: 'a', title: 'Casa en UF', priceAmount: 5000, priceCurrency: 'UF' }, // 193.250.000 CLP
+          { ...initialProperties[1], id: 'b', title: 'Casa en pesos', priceAmount: 100000000, priceCurrency: 'CLP' }, // 2.587 UF
+          { ...initialProperties[2], id: 'c', title: 'Casa cara en UF', priceAmount: 9000, priceCurrency: 'UF' }, // 347.850.000 CLP
+        ],
+      });
+    const orden = (a: string, b: string) =>
+      !!(screen.getAllByAltText(a)[0].compareDocumentPosition(screen.getAllByAltText(b)[0]) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+    it('ordena por valor real aunque los precios estén cargados en monedas distintas', () => {
+      conPrecios();
+      pantalla();
+      fireEvent.change(screen.getByDisplayValue('Destacadas primero'), { target: { value: 'priceAsc' } });
+      expect(orden('Casa en pesos', 'Casa en UF')).toBe(true); // 100 millones < 193 millones
+      expect(orden('Casa en UF', 'Casa cara en UF')).toBe(true);
+    });
+
+    it('viendo el catálogo en pesos, el precio máximo se interpreta en pesos', () => {
+      conPrecios();
+      usePropertyStore.setState({ currency: 'CLP' });
+      pantalla();
+      mostrarFiltros();
+      fireEvent.change(screen.getByPlaceholderText(/Ej: 900000000/), { target: { value: '200000000' } });
+      expect(visible('Casa en pesos')).toBe(true);
+      expect(visible('Casa en UF')).toBe(true);
+      expect(visible('Casa cara en UF')).toBe(false);
+      expect(contador()).toBe('2 propiedades');
+    });
+
+    it('viendo el catálogo en UF, el precio máximo se interpreta en UF', () => {
+      conPrecios();
+      pantalla();
+      mostrarFiltros();
+      fireEvent.change(screen.getByPlaceholderText(/Ej: 25000/), { target: { value: '6000' } });
+      expect(visible('Casa en pesos')).toBe(true); // 2.587 UF
+      expect(visible('Casa en UF')).toBe(true);
+      expect(visible('Casa cara en UF')).toBe(false);
     });
   });
 

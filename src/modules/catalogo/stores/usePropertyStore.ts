@@ -1,21 +1,23 @@
 import { create } from 'zustand';
 import { Property, PropertyFilterState } from '../types/property';
 import { initialProperties } from '../data/initialProperties';
-import { agencyConfig } from '../../../core/config/agencyConfig';
+import { getMarketPack } from '../../../markets';
+import { useMarketStore } from '../../../core/market/useMarketStore';
+import { currentRates, priceLabels, type Money } from '../../../core/money/money';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { getPropertyRepository } from '../services/propertyRepository';
 
 interface PropertyStore {
   properties: Property[];
   filters: PropertyFilterState;
-  currency: 'UF' | 'CLP';
+  currency: string; // moneda con que se mira el catálogo ('UF', 'CLP'…)
   selectedProperty: Property | null;
   loading: boolean;
   
   // Actions
   setFilters: (filters: Partial<PropertyFilterState>) => void;
   resetFilters: () => void;
-  setCurrency: (currency: 'UF' | 'CLP') => void;
+  setCurrency: (currency: string) => void;
   setSelectedProperty: (property: Property | null) => void;
   
   // CRUD Actions
@@ -30,15 +32,15 @@ interface PropertyStore {
   load: () => Promise<void>;
   
   // Helper
-  formatPrice: (priceUf: number) => { display: string; full: string };
+  formatPrice: (price: Money) => { display: string; full: string };
 }
 
 const defaultFilters: PropertyFilterState = {
   operation: 'todas',
   propertyType: 'todos',
   commune: 'Todas las comunas',
-  minPriceUf: '',
-  maxPriceUf: '',
+  minPrice: '',
+  maxPrice: '',
   minBedrooms: '',
   minBathrooms: '',
   searchQuery: '',
@@ -60,7 +62,7 @@ export const usePropertyStore = create<PropertyStore>((set, get) => {
     properties: initialData,
     loading: remote,
     filters: defaultFilters,
-    currency: agencyConfig.market.defaultCurrency,
+    currency: getMarketPack().defaultCurrency,
     selectedProperty: null,
 
     setFilters: (newFilters) => {
@@ -139,23 +141,7 @@ export const usePropertyStore = create<PropertyStore>((set, get) => {
       }
     },
 
-    formatPrice: (priceUf: number) => {
-      const { currency } = get();
-      const ufRate = agencyConfig.market.ufValueClp;
-      
-      if (currency === 'UF') {
-        const isRental = priceUf < 100;
-        return {
-          display: `${priceUf.toLocaleString('es-CL')} UF`,
-          full: `${priceUf.toLocaleString('es-CL')} UF ≈ $${Math.round(priceUf * ufRate).toLocaleString('es-CL')} CLP`,
-        };
-      } else {
-        const clpVal = Math.round(priceUf * ufRate);
-        return {
-          display: `$${clpVal.toLocaleString('es-CL')} CLP`,
-          full: `$${clpVal.toLocaleString('es-CL')} CLP (${priceUf.toLocaleString('es-CL')} UF)`,
-        };
-      }
-    },
+    formatPrice: (price) =>
+      priceLabels(price, get().currency, getMarketPack(useMarketStore.getState().marketId), currentRates()),
   };
 });

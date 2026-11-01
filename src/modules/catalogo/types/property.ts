@@ -17,8 +17,8 @@ export interface Property {
   title: string;
   operation: OperationType;
   propertyType: PropertyType;
-  priceUf: number;
-  priceClp?: number;
+  priceAmount: number; // monto en la moneda del precio
+  priceCurrency: string; // 'UF', 'CLP', 'USD'…: la moneda en que se cargó el precio
   commune: string;
   address: string;
   bedrooms: number;
@@ -47,8 +47,8 @@ export interface PropertyFilterState {
   operation: OperationType | 'todas';
   propertyType: PropertyType | 'todos';
   commune: string;
-  minPriceUf: number | '';
-  maxPriceUf: number | '';
+  minPrice: number | ''; // en la moneda con que se está mirando el catálogo
+  maxPrice: number | '';
   minBedrooms: number | '';
   minBathrooms: number | '';
   searchQuery: string;

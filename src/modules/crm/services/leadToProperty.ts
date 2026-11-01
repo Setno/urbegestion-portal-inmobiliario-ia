@@ -1,3 +1,4 @@
+import { getMarketPack } from '../../../markets';
 import type { Lead } from '../types/lead';
 import type { OperationType, Property, PropertyType } from '../../catalogo/types/property';
 
@@ -23,7 +24,8 @@ export function buildPropertyFromLead(lead: Lead): Omit<Property, 'id' | 'create
     title: `${label.charAt(0).toUpperCase()}${label.slice(1)} en ${commune}`,
     operation,
     propertyType,
-    priceUf: 0,
+    priceAmount: 0,
+    priceCurrency: getMarketPack().defaultCurrency,
     commune,
     address: '',
     bedrooms: toNumber(specs.bedrooms),

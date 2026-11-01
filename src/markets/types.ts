@@ -13,6 +13,13 @@ export interface LocationArea {
   zones: LocationZone[];
 }
 
+// Una moneda o unidad de cuenta que el mercado usa para precios (en Chile: el peso y la UF).
+export interface CurrencyDef {
+  code: string; // 'CLP', 'UF'
+  symbol?: string; // '$' va antes del monto; sin símbolo solo se muestra el código después
+  fractionDigits: number;
+}
+
 export interface MarketPack {
   id: string; // 'cl'
   name: string;
@@ -21,6 +28,9 @@ export interface MarketPack {
   localityLabel: string; // y el segundo: "Comuna"
   phonePrefix: string;
   privacyLaw: string;
+  baseCurrency: string; // moneda en la que se convierten las demás ('CLP')
+  defaultCurrency: string; // moneda con la que se muestran y cargan los precios por defecto ('UF')
+  currencies: CurrencyDef[];
   areas: LocationArea[];
   // Palabras que una persona usa para nombrar una comuna ("golf" para Las Condes). Clave en minúsculas, igual que
   // parte del nombre de la comuna guardada; sirve al chat para entender búsquedas.

@@ -3,6 +3,9 @@ import { agencyConfig } from '../../../core/config/agencyConfig';
 import { emitLeadCreated } from '../../../core/events/appEvents';
 import { useMarketStore, marketView } from '../../../core/market/useMarketStore';
 import { featuredLocalities } from '../../catalogo/services/propertySummary';
+import { priceOf } from '../../catalogo/services/propertyPrice';
+import { formatMoney } from '../../../core/money/money';
+import { getMarketPack } from '../../../markets';
 import type { LeadPrivacyNotice } from '../../crm/types/lead';
 
 export type AiProviderType = 'local_rules' | 'server';
@@ -71,7 +74,7 @@ async function callLlmApi(
     title: p.title,
     propertyType: p.propertyType,
     commune: p.commune,
-    price: `${p.priceUf} UF`,
+    price: formatMoney(priceOf(p), getMarketPack(useMarketStore.getState().marketId)),
     specs: `${p.bedrooms} dorm, ${p.bathrooms} baños, ${p.builtAreaM2 || p.totalAreaM2} m²`,
     operation: p.operation,
   }));
@@ -204,7 +207,7 @@ Déjanos tus datos y ${agencyConfig.brokerName} te contactará para ayudarte.`,
 
   if (matchedProps.length > 0) {
     const topMatches = matchedProps.slice(0, 3);
-    const names = topMatches.map(p => `• **${p.title}** (${p.commune}) - ${p.priceUf.toLocaleString('es-CL')} UF`).join('\n');
+    const names = topMatches.map(p => `• **${p.title}** (${p.commune}) - ${formatMoney(priceOf(p), pack)}`).join('\n');
     
     return {
       text: `He encontrado opciones destacadas en nuestro inventario que coinciden con lo que buscas:\n\n${names}\n\nPuedes hacer clic sobre cualquiera de ellas para ver la ficha técnica completa, fotos en alta resolución. ¿Te gustaría coordinar una visita a alguna de ellas?`,

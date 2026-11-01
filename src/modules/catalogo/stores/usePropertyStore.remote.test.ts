@@ -7,7 +7,8 @@ const base = (): Omit<Property, 'id' | 'createdAt'> => ({
   title: 'Casa',
   operation: 'venta',
   propertyType: 'casa',
-  priceUf: 1000,
+  priceAmount: 1000,
+  priceCurrency: 'UF',
   commune: 'Vitacura',
   address: 'Calle 1',
   bedrooms: 3,
@@ -52,8 +53,8 @@ describe('usePropertyStore con repositorio remoto', () => {
     expect(creada.id).toBe('uuid-prop');
     expect(repo.create).toHaveBeenCalledWith(expect.objectContaining({ id: 'uuid-prop', title: 'Casa' }), expect.any(Array));
 
-    usePropertyStore.getState().updateProperty('uuid-prop', { priceUf: 900 });
-    expect(repo.update).toHaveBeenCalledWith('uuid-prop', { priceUf: 900 }, expect.any(Array));
+    usePropertyStore.getState().updateProperty('uuid-prop', { priceAmount: 900 });
+    expect(repo.update).toHaveBeenCalledWith('uuid-prop', { priceAmount: 900 }, expect.any(Array));
 
     usePropertyStore.getState().deleteProperty('uuid-prop');
     expect(repo.remove).toHaveBeenCalledWith('uuid-prop', expect.any(Array));

@@ -78,6 +78,15 @@ describe('propertiesToCsv', () => {
     expect(csv).not.toContain('data:image');
   });
 
+  it('incluye el precio y su moneda en columnas separadas', () => {
+    const p = { ...initialProperties[0], priceAmount: 150000000, priceCurrency: 'CLP' };
+    const [cabecera, fila] = sinBom(propertiesToCsv([p])).split('\r\n');
+    const columnas = cabecera.split(';');
+    const valores = fila.split(';');
+    expect(valores[columnas.indexOf('Precio')]).toBe('150000000');
+    expect(valores[columnas.indexOf('Moneda')]).toBe('CLP');
+  });
+
   it('una propiedad sin estado de publicación se exporta como publicada', () => {
     const p = { ...initialProperties[0], publicationStatus: undefined };
     expect(propertiesToCsv([p])).toContain('publicada');

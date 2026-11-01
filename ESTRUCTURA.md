@@ -11,6 +11,7 @@ Todo el código vive en `src/`. Cada carpeta corresponde a una pieza del Bluepri
 | `src/markets/` | Interfaz `MarketPack`, registro de paquetes y ayudas de zonas (ADR-008) | Paquetes de mercado |
 | `src/markets/cl/` | Datos específicos de Chile (16 regiones, 346 comunas, alias y sectores) | Paquete de mercado Chile |
 | `src/core/market/` | Mercado y zonas de trabajo de la corredora (tienda y servicio) | Core |
+| `src/core/money/` | Dinero con su moneda: formato, conversión y comparación según el paquete de mercado | Core |
 | `src/site/` | Landing de la corredora: portada, menú, secciones (la sección de Instagram está archivada, H-014). Será la semilla de la plantilla 1 del sitio con plantillas (ADR-005); el sitio público pasará a Next.js (ADR-006) | Sitio propio con plantillas (producto base) |
 | `src/App.tsx`, `src/main.tsx` | Arranque de la aplicación | — |
 

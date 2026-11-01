@@ -15,6 +15,7 @@ import { usePropertyStore } from '../../modules/catalogo/stores/usePropertyStore
 import { useLeadStore } from '../../modules/crm/stores/useLeadStore';
 import { useChatStore } from '../../modules/captacion/stores/useChatStore';
 import { useBrandStore } from '../../core/brand/useBrandStore';
+import { useMarket } from '../../core/market/useMarketStore';
 
 interface NavbarProps {
   onOpenAdmin: () => void;
@@ -24,6 +25,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { currency, setCurrency } = usePropertyStore();
+  const { pack } = useMarket();
   const { leads } = useLeadStore();
   const { toggleChat } = useChatStore();
   const { config: agencyConfig } = useBrandStore();
@@ -73,26 +75,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
             
             {/* Currency Toggle (UF / CLP) */}
             <div className="flex items-center bg-slate-100 p-0.5 sm:p-1 rounded-lg border border-slate-200 text-[11px] font-bold">
-              <button
-                onClick={() => setCurrency('UF')}
-                className={`px-2 py-1 rounded-md transition-all ${
-                  currency === 'UF' 
-                    ? 'bg-white text-urbe-primary shadow-sm font-black' 
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                UF
-              </button>
-              <button
-                onClick={() => setCurrency('CLP')}
-                className={`px-2 py-1 rounded-md transition-all ${
-                  currency === 'CLP' 
-                    ? 'bg-white text-urbe-primary shadow-sm font-black' 
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                CLP
-              </button>
+              {pack.currencies.map((c) => (
+                <button
+                  key={c.code}
+                  onClick={() => setCurrency(c.code)}
+                  className={`px-2 py-1 rounded-md transition-all ${
+                    currency === c.code
+                      ? 'bg-white text-urbe-primary shadow-sm font-black'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {c.code}
+                </button>
+              ))}
             </div>
 
             {/* Direct Instagram Link Button */}
@@ -164,18 +159,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs">
             <span className="font-semibold text-slate-500">Moneda del portal:</span>
             <div className="flex items-center bg-slate-100 p-1 rounded-lg">
-              <button
-                onClick={() => setCurrency('UF')}
-                className={`px-3 py-1 rounded-md ${currency === 'UF' ? 'bg-white font-black text-urbe-primary shadow-sm' : 'text-slate-600'}`}
-              >
-                UF
-              </button>
-              <button
-                onClick={() => setCurrency('CLP')}
-                className={`px-3 py-1 rounded-md ${currency === 'CLP' ? 'bg-white font-black text-urbe-primary shadow-sm' : 'text-slate-600'}`}
-              >
-                CLP
-              </button>
+              {pack.currencies.map((c) => (
+                <button
+                  key={c.code}
+                  onClick={() => setCurrency(c.code)}
+                  className={`px-3 py-1 rounded-md ${currency === c.code ? 'bg-white font-black text-urbe-primary shadow-sm' : 'text-slate-600'}`}
+                >
+                  {c.code}
+                </button>
+              ))}
             </div>
           </div>
           

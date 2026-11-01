@@ -64,12 +64,40 @@ describe('PropertiesTab (gestor de propiedades)', () => {
 
       const creada = usePropertyStore.getState().properties.find((p) => p.title === 'Depto nuevo en Ñuñoa')!;
       expect(creada).toBeTruthy();
-      expect(creada.priceUf).toBe(9500);
+      expect(creada.priceAmount).toBe(9500);
       expect(creada.address).toBe('Av. Irarrázaval 1234');
       expect(creada.operation).toBe('venta');
       expect(creada.publicationStatus).toBe('publicada');
       expect(creada.images).toHaveLength(1);
       expect(screen.queryByText('Publicar Nueva Propiedad', { selector: 'h3' })).toBeNull(); // el formulario se cerró
+    });
+
+    it('el precio se carga con su moneda: en pesos queda guardado en pesos', () => {
+      render(<PropertiesTab />);
+      abrirNueva();
+      llenarFormulario('Casa en pesos', 'Calle 20');
+      fireEvent.change(screen.getByLabelText('Monto del precio'), { target: { value: '180000000' } });
+      fireEvent.change(screen.getByLabelText('Moneda del precio'), { target: { value: 'CLP' } });
+      guardar(/Crear Propiedad/);
+      const creada = usePropertyStore.getState().properties.find((p) => p.title === 'Casa en pesos')!;
+      expect(creada.priceAmount).toBe(180000000);
+      expect(creada.priceCurrency).toBe('CLP');
+      expect(within(tarjeta('Casa en pesos')).getByText('$180.000.000 CLP')).toBeTruthy();
+    });
+
+    it('por defecto el precio se carga en UF (la moneda por defecto de Chile)', () => {
+      render(<PropertiesTab />);
+      abrirNueva();
+      expect((screen.getByLabelText('Moneda del precio') as HTMLSelectElement).value).toBe('UF');
+    });
+
+    it('editar una propiedad precargada en pesos conserva su moneda', () => {
+      usePropertyStore.setState({ properties: [{ ...conEstado('p9', 'Casa en pesos'), priceAmount: 95000000, priceCurrency: 'CLP' }] });
+      render(<PropertiesTab />);
+      fireEvent.click(within(tarjeta('Casa en pesos')).getByRole('button', { name: /Editar/ }));
+      expect((screen.getByLabelText('Moneda del precio') as HTMLSelectElement).value).toBe('CLP');
+      guardar(/Guardar Cambios/);
+      expect(usePropertyStore.getState().properties[0].priceCurrency).toBe('CLP');
     });
 
     it('la comuna es obligatoria: sin elegirla no se guarda', () => {

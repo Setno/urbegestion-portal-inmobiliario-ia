@@ -36,7 +36,7 @@ describe('buildPropertyFromLead', () => {
   it('deja anotado de qué contacto viene, sin publicar precio ni dirección inventados', () => {
     const p = buildPropertyFromLead(lead());
     expect(p.description).toContain('Carla Soto');
-    expect(p.priceUf).toBe(0);
+    expect(p.priceAmount).toBe(0);
     expect(p.address).toBe('');
   });
 

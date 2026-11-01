@@ -19,6 +19,8 @@ import {
 } from '../services/publicationWorkflow';
 import type { PublicationStatus } from '../types/property';
 import { useMarket } from '../../../core/market/useMarketStore';
+import { formatMoney } from '../../../core/money/money';
+import { priceOf } from '../services/propertyPrice';
 import { Property, PropertyType, OperationType } from '../types/property';
 
 const STATUS_STYLE: Record<PublicationStatus, string> = {
@@ -45,7 +47,8 @@ export const PropertiesTab: React.FC = () => {
   const [propTitle, setPropTitle] = useState('');
   const [propOperation, setPropOperation] = useState<OperationType>('venta');
   const [propType, setPropType] = useState<PropertyType>('departamento');
-  const [propPriceUf, setPropPriceUf] = useState(12000);
+  const [propPrice, setPropPrice] = useState(12000);
+  const [propCurrency, setPropCurrency] = useState(pack.defaultCurrency);
   const [propCommune, setPropCommune] = useState('');
   const [propAddress, setPropAddress] = useState('');
   const [propBedrooms, setPropBedrooms] = useState(3);
@@ -136,7 +139,8 @@ export const PropertiesTab: React.FC = () => {
     setPropTitle('');
     setPropOperation('venta');
     setPropType('departamento');
-    setPropPriceUf(12000);
+    setPropPrice(12000);
+    setPropCurrency(pack.defaultCurrency);
     setPropCommune('');
     setPropAddress('');
     setPropBedrooms(3);
@@ -156,7 +160,8 @@ export const PropertiesTab: React.FC = () => {
     setPropTitle(p.title);
     setPropOperation(p.operation);
     setPropType(p.propertyType);
-    setPropPriceUf(p.priceUf);
+    setPropPrice(p.priceAmount);
+    setPropCurrency(p.priceCurrency);
     setPropCommune(p.commune);
     setPropAddress(p.address);
     setPropBedrooms(p.bedrooms);
@@ -184,7 +189,8 @@ export const PropertiesTab: React.FC = () => {
         title: propTitle,
         operation: propOperation,
         propertyType: propType,
-        priceUf: propPriceUf,
+        priceAmount: propPrice,
+        priceCurrency: propCurrency,
         commune: propCommune,
         address: propAddress,
         bedrooms: propBedrooms,
@@ -205,7 +211,8 @@ export const PropertiesTab: React.FC = () => {
         title: propTitle,
         operation: propOperation,
         propertyType: propType,
-        priceUf: propPriceUf,
+        priceAmount: propPrice,
+        priceCurrency: propCurrency,
         commune: propCommune,
         address: propAddress,
         bedrooms: propBedrooms,
@@ -253,7 +260,7 @@ export const PropertiesTab: React.FC = () => {
                 <div className="relative aspect-video bg-slate-950 overflow-hidden">
                   <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-bold">
-                    {p.priceUf} UF
+                    {formatMoney(priceOf(p), pack)}
                   </div>
                   <div className="absolute top-2.5 right-2.5 flex items-center gap-1">
                     {p.images.length > 1 && (
@@ -423,14 +430,28 @@ export const PropertiesTab: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Precio en UF *</label>
-                  <input
-                    type="number"
-                    required
-                    value={propPriceUf}
-                    onChange={(e) => setPropPriceUf(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
+                  <label className="block font-bold text-slate-700 mb-1">Precio *</label>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      aria-label="Monto del precio"
+                      value={propPrice}
+                      onChange={(e) => setPropPrice(Number(e.target.value))}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                    />
+                    <select
+                      aria-label="Moneda del precio"
+                      value={propCurrency}
+                      onChange={(e) => setPropCurrency(e.target.value)}
+                      className="px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
+                    >
+                      {pack.currencies.map((c) => (
+                        <option key={c.code} value={c.code}>{c.code}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">{pack.localityLabel}</label>

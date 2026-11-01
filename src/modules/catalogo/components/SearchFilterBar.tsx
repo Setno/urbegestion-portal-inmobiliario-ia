@@ -19,14 +19,14 @@ export const SearchFilterBar: React.FC = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { pack, zones, scopeLabel } = useMarket();
 
-  const count = properties.filter((p) => matchesFilters(p, filters, pack)).length;
+  const count = properties.filter((p) => matchesFilters(p, filters, pack, currency)).length;
 
   const isFiltered = 
     filters.operation !== 'todas' || 
     filters.propertyType !== 'todos' || 
     filters.commune !== 'Todas las comunas' || 
-    filters.minPriceUf !== '' || 
-    filters.maxPriceUf !== '' || 
+    filters.minPrice !== '' || 
+    filters.maxPrice !== '' || 
     filters.minBedrooms !== '' ||
     filters.searchQuery !== '';
 
@@ -143,7 +143,7 @@ export const SearchFilterBar: React.FC = () => {
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
               className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 border transition-all ${
-                showAdvanced || filters.minPriceUf !== '' || filters.maxPriceUf !== '' || filters.minBedrooms !== ''
+                showAdvanced || filters.minPrice !== '' || filters.maxPrice !== '' || filters.minBedrooms !== ''
                   ? 'bg-urbe-primary/10 border-urbe-primary text-urbe-primary'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
               }`}
@@ -166,9 +166,9 @@ export const SearchFilterBar: React.FC = () => {
               </label>
               <input
                 type="number"
-                placeholder={`Ej: ${currency === 'UF' ? '5000' : '150000000'}`}
-                value={filters.minPriceUf}
-                onChange={(e) => setFilters({ minPriceUf: e.target.value ? Number(e.target.value) : '' })}
+                placeholder={`Ej: ${currency === pack.baseCurrency ? '150000000' : '5000'}`}
+                value={filters.minPrice}
+                onChange={(e) => setFilters({ minPrice: e.target.value ? Number(e.target.value) : '' })}
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white"
               />
             </div>
@@ -180,9 +180,9 @@ export const SearchFilterBar: React.FC = () => {
               </label>
               <input
                 type="number"
-                placeholder={`Ej: ${currency === 'UF' ? '25000' : '900000000'}`}
-                value={filters.maxPriceUf}
-                onChange={(e) => setFilters({ maxPriceUf: e.target.value ? Number(e.target.value) : '' })}
+                placeholder={`Ej: ${currency === pack.baseCurrency ? '900000000' : '25000'}`}
+                value={filters.maxPrice}
+                onChange={(e) => setFilters({ maxPrice: e.target.value ? Number(e.target.value) : '' })}
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white"
               />
             </div>

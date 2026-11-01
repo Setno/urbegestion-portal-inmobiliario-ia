@@ -42,13 +42,13 @@ export const notesToCsv = (leads: Lead[]): string =>
 export const propertiesToCsv = (properties: Property[]): string =>
   toCsv(
     [
-      'ID', 'Título', 'Operación', 'Tipo', 'Precio UF', 'Comuna', 'Dirección', 'Dormitorios', 'Baños',
+      'ID', 'Título', 'Operación', 'Tipo', 'Precio', 'Moneda', 'Comuna', 'Dirección', 'Dormitorios', 'Baños',
       'M² construidos', 'M² totales', 'Estacionamientos', 'Bodegas', 'Destacada', 'Disponibilidad',
       'Estado de publicación', 'Motivo de rechazo', 'Fecha de aprobación', 'Cantidad de fotos', 'Descripción',
       'Características', 'Fecha de registro',
     ],
     properties.map((p) => [
-      p.id, p.title, p.operation, p.propertyType, p.priceUf, p.commune, p.address, p.bedrooms, p.bathrooms,
+      p.id, p.title, p.operation, p.propertyType, p.priceAmount, p.priceCurrency, p.commune, p.address, p.bedrooms, p.bathrooms,
       p.builtAreaM2, p.totalAreaM2, p.parkingSpots, p.storageUnits, p.featured, p.status,
       p.publicationStatus ?? 'publicada', p.rejectionReason, p.approvedAt, p.images.length, p.description,
       p.features.join(', '), p.createdAt,

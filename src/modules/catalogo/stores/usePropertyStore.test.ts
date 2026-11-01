@@ -33,11 +33,11 @@ describe('usePropertyStore', () => {
   });
 
   it('edita solo la propiedad indicada y la persiste', () => {
-    usePropertyStore.getState().updateProperty('prop-02', { title: 'Título editado', priceUf: 1 });
+    usePropertyStore.getState().updateProperty('prop-02', { title: 'Título editado', priceAmount: 1 });
     const { properties } = usePropertyStore.getState();
     const editada = properties.find((p) => p.id === 'prop-02');
     expect(editada?.title).toBe('Título editado');
-    expect(editada?.priceUf).toBe(1);
+    expect(editada?.priceAmount).toBe(1);
     expect(properties.find((p) => p.id === 'prop-01')?.title).toBe(initialProperties[0].title);
     expect(guardadas().find((p) => p.id === 'prop-02')?.title).toBe('Título editado');
   });
@@ -51,9 +51,15 @@ describe('usePropertyStore', () => {
 
   it('muestra el precio en UF o en pesos según la moneda elegida', () => {
     usePropertyStore.setState({ currency: 'UF' });
-    expect(usePropertyStore.getState().formatPrice(1000).display).toContain('UF');
+    expect(usePropertyStore.getState().formatPrice({ amount: 1000, currency: 'UF' }).display).toContain('UF');
     usePropertyStore.setState({ currency: 'CLP' });
-    expect(usePropertyStore.getState().formatPrice(1000).display).toContain('CLP');
+    expect(usePropertyStore.getState().formatPrice({ amount: 1000, currency: 'UF' }).display).toContain('CLP');
+  });
+
+  it('un precio cargado en pesos se muestra en UF cuando se elige UF', () => {
+    usePropertyStore.setState({ currency: 'UF' });
+    const r = usePropertyStore.getState().formatPrice({ amount: 38650000, currency: 'CLP' });
+    expect(r.display).toBe('1.000 UF');
   });
 
   it('dos propiedades creadas en el mismo milisegundo reciben ids distintos', () => {

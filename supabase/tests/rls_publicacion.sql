@@ -19,7 +19,7 @@ insert into public.memberships (tenant_id, user_id, role) values
   ('b2b2b2b2-0000-0000-0000-0000000000b2', 'bbbbbbbb-0000-0000-0000-00000000000b', 'agente');
 
 -- Datos de ejemplo cargados sin usuario (como el SQL Editor): una publicada y una en revisión de la corredora A.
-insert into public.properties (id, tenant_id, title, operation, property_type, price_uf, commune, publication_status) values
+insert into public.properties (id, tenant_id, title, operation, property_type, price_amount, commune, publication_status) values
   ('a0a0a0a0-0000-0000-0000-0000000000a1', 'a1a1a1a1-0000-0000-0000-0000000000a1', 'Publicada A', 'venta', 'casa', 1000, 'Vitacura', 'publicada'),
   ('a0a0a0a0-0000-0000-0000-0000000000a2', 'a1a1a1a1-0000-0000-0000-0000000000a1', 'Borrador A', 'venta', 'casa', 1000, 'Vitacura', 'borrador');
 
@@ -43,7 +43,7 @@ begin
   if n <> 2 then raise exception 'FALLO: el agente ve % propiedades de su corredora (debería ver 2)', n; end if;
 
   -- Intenta crear directamente publicada: la base la deja en borrador y fija quién la creó.
-  insert into public.properties (id, tenant_id, title, operation, property_type, price_uf, commune, publication_status)
+  insert into public.properties (id, tenant_id, title, operation, property_type, price_amount, commune, publication_status)
   values ('a0a0a0a0-0000-0000-0000-0000000000a3', 'a1a1a1a1-0000-0000-0000-0000000000a1', 'Del agente', 'venta', 'casa', 500, 'Lo Barnechea', 'publicada');
   select publication_status, approved_by into st, ab from public.properties where id = 'a0a0a0a0-0000-0000-0000-0000000000a3';
   if st <> 'borrador' then raise exception 'FALLO: un agente creó una propiedad "%" (debería quedar borrador)', st; end if;
@@ -158,7 +158,7 @@ select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-0000000
 do $$
 declare st text; ab uuid;
 begin
-  insert into public.properties (id, tenant_id, title, operation, property_type, price_uf, commune, publication_status)
+  insert into public.properties (id, tenant_id, title, operation, property_type, price_amount, commune, publication_status)
   values ('a0a0a0a0-0000-0000-0000-0000000000a4', 'a1a1a1a1-0000-0000-0000-0000000000a1', 'Directa del agente', 'venta', 'casa', 700, 'Vitacura', 'publicada');
   select publication_status, approved_by into st, ab from public.properties where id = 'a0a0a0a0-0000-0000-0000-0000000000a4';
   if st <> 'publicada' then raise exception 'FALLO: en modo directa el agente no pudo publicar (quedó %)', st; end if;
@@ -176,7 +176,7 @@ select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-0000000
 do $$
 declare st text;
 begin
-  insert into public.properties (id, tenant_id, title, operation, property_type, price_uf, commune, publication_status)
+  insert into public.properties (id, tenant_id, title, operation, property_type, price_amount, commune, publication_status)
   values ('b0b0b0b0-0000-0000-0000-0000000000b9', 'b2b2b2b2-0000-0000-0000-0000000000b2', 'De B', 'venta', 'casa', 700, 'Providencia', 'publicada');
   select publication_status into st from public.properties where id = 'b0b0b0b0-0000-0000-0000-0000000000b9';
   if st <> 'borrador' then raise exception 'FALLO: un agente de una corredora con aprobación pudo publicar (quedó %)', st; end if;

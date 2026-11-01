@@ -10,7 +10,8 @@ const propiedad: Property = {
   title: 'Casa de prueba',
   operation: 'venta',
   propertyType: 'casa',
-  priceUf: 5000,
+  priceAmount: 5000,
+  priceCurrency: 'UF',
   commune: 'Vitacura',
   address: 'Calle 1',
   bedrooms: 3,
@@ -36,8 +37,8 @@ const fila = {
   title: 'Casa de prueba',
   operation: 'venta',
   property_type: 'casa',
-  price_uf: 5000,
-  price_clp: null,
+  price_amount: 5000,
+  price_currency: 'UF',
   commune: 'Vitacura',
   address: 'Calle 1',
   bedrooms: 3,
@@ -72,7 +73,8 @@ describe('propertyRepository remoto', () => {
     expect(lista![0]).toMatchObject({
       id: propiedad.id,
       propertyType: 'casa',
-      priceUf: 5000,
+      priceAmount: 5000,
+      priceCurrency: 'UF',
       builtAreaM2: 120,
       parkingSpots: 2,
       expensesMonthlyClp: 90000,
@@ -92,7 +94,8 @@ describe('propertyRepository remoto', () => {
       id: propiedad.id,
       tenant_id: TENANT,
       property_type: 'casa',
-      price_uf: 5000,
+      price_amount: 5000,
+      price_currency: 'UF',
       built_area_m2: 120,
       lat: -33.4,
       lng: -70.6,
@@ -104,11 +107,11 @@ describe('propertyRepository remoto', () => {
   it('al editar envía solo los campos cambiados', async () => {
     const fake = createFakeSupabase({ data: [{ id: propiedad.id }], error: null });
     const repo = createRemotePropertyRepository(fake.client, TENANT);
-    await repo.update(propiedad.id, { priceUf: 4500, status: 'reservada' }, []);
+    await repo.update(propiedad.id, { priceAmount: 4500, status: 'reservada' }, []);
 
     const [patch] = fake.argsOf(0, 'update') as [Record<string, unknown>];
-    expect(patch).toMatchObject({ price_uf: 4500, status: 'reservada' });
-    expect(Object.keys(patch).sort()).toEqual(['price_uf', 'status', 'updated_at']);
+    expect(patch).toMatchObject({ price_amount: 4500, status: 'reservada' });
+    expect(Object.keys(patch).sort()).toEqual(['price_amount', 'status', 'updated_at']);
     expect(fake.argsOf(0, 'eq')).toEqual(['id', propiedad.id]);
   });
 
@@ -123,7 +126,7 @@ describe('propertyRepository remoto', () => {
   it('si editar o borrar no afecta ninguna fila (sin permiso o no existe), lanza error', async () => {
     const fake = createFakeSupabase({ data: [], error: null });
     const repo = createRemotePropertyRepository(fake.client, TENANT);
-    await expect(repo.update(propiedad.id, { priceUf: 1 }, [])).rejects.toThrow(/permiso/);
+    await expect(repo.update(propiedad.id, { priceAmount: 1 }, [])).rejects.toThrow(/permiso/);
     await expect(repo.remove(propiedad.id, [])).rejects.toThrow(/permiso/);
   });
 

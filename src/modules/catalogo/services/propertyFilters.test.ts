@@ -8,8 +8,8 @@ const sinFiltros: PropertyFilterState = {
   operation: 'todas',
   propertyType: 'todos',
   commune: 'Todas las comunas',
-  minPriceUf: '',
-  maxPriceUf: '',
+  minPrice: '',
+  maxPrice: '',
   minBedrooms: '',
   minBathrooms: '',
   searchQuery: '',
@@ -39,7 +39,7 @@ describe('matchesFilters', () => {
   });
 
   it('combina operación, precio y dormitorios', () => {
-    const f = { ...sinFiltros, operation: 'arriendo' as const, maxPriceUf: 50, minBedrooms: 2 };
+    const f = { ...sinFiltros, operation: 'arriendo' as const, maxPrice: 50, minBedrooms: 2 };
     const titulos = initialProperties.filter((p) => matchesFilters(p, f)).map((p) => p.commune);
     expect(titulos.sort()).toEqual(['Las Condes', 'Providencia']);
   });
@@ -52,5 +52,26 @@ describe('sectores definidos por el paquete de mercado', () => {
     expect(matchesCommune('Costa Norte', 'Sector Costa (Playas)', otroPais)).toBe(true);
     expect(matchesCommune('Pirque / Paine (Agrícola)', 'Pirque', otroPais)).toBe(true); // coincide por contener el nombre
     expect(matchesCommune('Chicureo / Colina', 'Colina (Chicureo / Chamisero)', otroPais)).toBe(false);
+  });
+});
+
+describe('filtro de precio en la moneda que se está viendo', () => {
+  const casa = initialProperties.find((p) => p.priceAmount === 24900)!; // 24.900 UF = 962.385.000 CLP con la UF a 38.650
+  const rates = { UF: 38650 };
+
+  it('en UF compara el precio contra los montos en UF', () => {
+    expect(matchesFilters(casa, { ...sinFiltros, maxPrice: 25000 }, CHILE_PACK_FOR_TEST, 'UF', rates)).toBe(true);
+    expect(matchesFilters(casa, { ...sinFiltros, maxPrice: 20000 }, CHILE_PACK_FOR_TEST, 'UF', rates)).toBe(false);
+  });
+
+  it('en pesos convierte el precio antes de comparar (antes comparaba UF con pesos)', () => {
+    expect(matchesFilters(casa, { ...sinFiltros, maxPrice: 900000000 }, CHILE_PACK_FOR_TEST, 'CLP', rates)).toBe(false);
+    expect(matchesFilters(casa, { ...sinFiltros, minPrice: 900000000, maxPrice: 1000000000 }, CHILE_PACK_FOR_TEST, 'CLP', rates)).toBe(true);
+  });
+
+  it('un precio cargado en pesos también se compara bien contra montos en UF', () => {
+    const enPesos = { ...casa, priceAmount: 96238500, priceCurrency: 'CLP' }; // 2.490 UF
+    expect(matchesFilters(enPesos, { ...sinFiltros, maxPrice: 3000 }, CHILE_PACK_FOR_TEST, 'UF', rates)).toBe(true);
+    expect(matchesFilters(enPesos, { ...sinFiltros, minPrice: 3000 }, CHILE_PACK_FOR_TEST, 'UF', rates)).toBe(false);
   });
 });

@@ -17,6 +17,7 @@ import { useChatStore } from '../stores/useChatStore';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
 import { isPublished } from '../../catalogo/services/publicationWorkflow';
 import { quickSearchChips } from '../../catalogo/services/propertySummary';
+import { priceOf } from '../../catalogo/services/propertyPrice';
 import { processAiChatMessage, registerLeadFromChat } from '../services/aiService';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
@@ -179,7 +180,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
                         {msg.suggestedProperties.map((propId) => {
                           const prop = properties.find((p) => p.id === propId);
                           if (!prop) return null;
-                          const pInfo = formatPrice(prop.priceUf);
+                          const pInfo = formatPrice(priceOf(prop));
 
                           return (
                             <div
