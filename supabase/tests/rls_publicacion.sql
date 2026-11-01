@@ -28,8 +28,8 @@ set local role anon;
 do $$
 declare n int;
 begin
-  select count(*) into n from public.properties;
-  if n <> 1 then raise exception 'FALLO: el visitante ve % propiedades (debería ver 1: solo la publicada)', n; end if;
+  select count(*) into n from public.properties where tenant_id = 'a1a1a1a1-0000-0000-0000-0000000000a1';
+  if n <> 1 then raise exception 'FALLO: el visitante ve % propiedades de la corredora A (debería ver 1: solo la publicada)', n; end if;
 end $$;
 reset role;
 
@@ -39,7 +39,7 @@ select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-0000000
 do $$
 declare n int; st text; ab uuid;
 begin
-  select count(*) into n from public.properties;
+  select count(*) into n from public.properties where tenant_id = 'a1a1a1a1-0000-0000-0000-0000000000a1';
   if n <> 2 then raise exception 'FALLO: el agente ve % propiedades de su corredora (debería ver 2)', n; end if;
 
   -- Intenta crear directamente publicada: la base la deja en borrador y fija quién la creó.
@@ -122,6 +122,64 @@ begin
   if not exists (select 1 from public.property_events where property_id = 'a0a0a0a0-0000-0000-0000-0000000000a3' and action = 'aprobada' and actor = 'aaaaaaaa-0000-0000-0000-00000000000a') then
     raise exception 'FALLO: no quedó el evento "aprobada" con el administrador como autor';
   end if;
+end $$;
+reset role;
+
+-- 5. Modo "directa": el administrador lo activa y cada agente publica lo suyo ----------
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+do $$
+begin
+  begin
+    perform public.set_publication_mode('directa');
+    raise exception 'FALLO: un agente pudo cambiar el modo de publicación';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+reset role;
+
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+select public.set_publication_mode('directa');
+reset role;
+
+do $$
+begin
+  if (select publication_mode from public.tenants where id = 'a1a1a1a1-0000-0000-0000-0000000000a1') <> 'directa' then
+    raise exception 'FALLO: el administrador no pudo activar el modo directa';
+  end if;
+  if (select publication_mode from public.tenants where id = 'b2b2b2b2-0000-0000-0000-0000000000b2') <> 'con_aprobacion' then
+    raise exception 'FALLO: el cambio afectó a otra corredora';
+  end if;
+end $$;
+
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+do $$
+declare st text; ab uuid;
+begin
+  insert into public.properties (id, tenant_id, title, operation, property_type, price_uf, commune, publication_status)
+  values ('a0a0a0a0-0000-0000-0000-0000000000a4', 'a1a1a1a1-0000-0000-0000-0000000000a1', 'Directa del agente', 'venta', 'casa', 700, 'Vitacura', 'publicada');
+  select publication_status, approved_by into st, ab from public.properties where id = 'a0a0a0a0-0000-0000-0000-0000000000a4';
+  if st <> 'publicada' then raise exception 'FALLO: en modo directa el agente no pudo publicar (quedó %)', st; end if;
+  if ab <> 'cccccccc-0000-0000-0000-00000000000c' then raise exception 'FALLO: no quedó registrado el agente como responsable de la publicación'; end if;
+
+  update public.properties set title = 'Directa editada' where id = 'a0a0a0a0-0000-0000-0000-0000000000a4';
+  select publication_status into st from public.properties where id = 'a0a0a0a0-0000-0000-0000-0000000000a4';
+  if st <> 'publicada' then raise exception 'FALLO: en modo directa editar una publicada la sacó del sitio (quedó %)', st; end if;
+end $$;
+reset role;
+
+-- Un agente de la corredora B (con aprobación) sigue sin poder publicar.
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+do $$
+declare st text;
+begin
+  insert into public.properties (id, tenant_id, title, operation, property_type, price_uf, commune, publication_status)
+  values ('b0b0b0b0-0000-0000-0000-0000000000b9', 'b2b2b2b2-0000-0000-0000-0000000000b2', 'De B', 'venta', 'casa', 700, 'Providencia', 'publicada');
+  select publication_status into st from public.properties where id = 'b0b0b0b0-0000-0000-0000-0000000000b9';
+  if st <> 'borrador' then raise exception 'FALLO: un agente de una corredora con aprobación pudo publicar (quedó %)', st; end if;
 end $$;
 reset role;
 

@@ -1,9 +1,14 @@
 import { supabase } from './supabaseClient';
 import type { Role } from './permissions';
 
+// Cómo se publican las propiedades de la corredora: el administrador aprueba (corredoras grandes)
+// o cada agente publica lo suyo y responde por ello (corredoras de una o dos personas).
+export type PublicationMode = 'con_aprobacion' | 'directa';
+
 export interface Membership {
   tenantName: string;
   role: Role;
+  publicationMode: PublicationMode;
 }
 
 export type AuthError = 'credenciales' | 'conexion' | 'no_configurado' | 'clave_corta' | 'enlace_invalido';
@@ -15,6 +20,7 @@ export type InviteResult = { ok: true; status: 'invitado' | 'agregado' } | { ok:
 
 const MIN_PASSWORD_LENGTH = 8;
 const VALID_ROLES: Role[] = ['admin', 'agente'];
+const VALID_MODES: PublicationMode[] = ['con_aprobacion', 'directa'];
 
 interface SupabaseErrorLike {
   status?: number;
@@ -60,13 +66,17 @@ export async function getSessionEmail(): Promise<string | null> {
 // para no confundir "sin conexión" con "sin corredora".
 export async function getMembership(): Promise<Membership | null> {
   if (!supabase) return null;
-  const { data, error } = await supabase.from('memberships').select('role, tenants(name)').limit(1).maybeSingle();
+  const { data, error } = await supabase.from('memberships').select('role, tenants(name, publication_mode)').limit(1).maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return null;
-  const row = data as unknown as { role: string; tenants: { name: string } | { name: string }[] | null };
+  type TenantRow = { name: string; publication_mode?: string };
+  const row = data as unknown as { role: string; tenants: TenantRow | TenantRow[] | null };
   const tenant = Array.isArray(row.tenants) ? row.tenants[0] : row.tenants;
   if (!VALID_ROLES.includes(row.role as Role) || !tenant?.name) return null;
-  return { tenantName: tenant.name, role: row.role as Role };
+  const mode = VALID_MODES.includes(tenant.publication_mode as PublicationMode)
+    ? (tenant.publication_mode as PublicationMode)
+    : 'con_aprobacion';
+  return { tenantName: tenant.name, role: row.role as Role, publicationMode: mode };
 }
 
 // Siempre informa éxito si Supabase acepta la petición, exista o no el correo (no se revela quién tiene cuenta).
@@ -92,6 +102,18 @@ export async function updatePassword(newPassword: string): Promise<SimpleResult>
     return { ok: true };
   } catch (err) {
     console.warn('[auth] No se pudo actualizar la clave:', err);
+    return { ok: false, error: 'conexion' };
+  }
+}
+
+// Solo el administrador puede cambiar el modo de publicación (lo exige la base con una función protegida).
+export async function setPublicationMode(mode: PublicationMode): Promise<SimpleResult> {
+  if (!supabase) return { ok: false, error: 'no_configurado' };
+  try {
+    const { error } = await supabase.rpc('set_publication_mode', { p_mode: mode });
+    return error ? { ok: false, error: 'conexion' } : { ok: true };
+  } catch (err) {
+    console.warn('[auth] No se pudo cambiar el modo de publicación:', err);
     return { ok: false, error: 'conexion' };
   }
 }

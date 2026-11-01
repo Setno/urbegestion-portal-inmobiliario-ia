@@ -87,7 +87,20 @@ describe('authService', () => {
   describe('getMembership', () => {
     it('devuelve la corredora y el rol del usuario', async () => {
       consulta.maybeSingle.mockResolvedValue({ data: { role: 'admin', tenants: { name: 'UrbeGestión' } }, error: null });
-      expect(await getMembership()).toEqual({ tenantName: 'UrbeGestión', role: 'admin' });
+      expect(await getMembership()).toEqual({ tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' });
+    });
+
+    it('devuelve el modo de publicación directa si la corredora lo tiene activado', async () => {
+      consulta.maybeSingle.mockResolvedValue({
+        data: { role: 'agente', tenants: { name: 'Corredora Chica', publication_mode: 'directa' } },
+        error: null,
+      });
+      expect((await getMembership())?.publicationMode).toBe('directa');
+    });
+
+    it('ante un modo desconocido usa el más estricto (con aprobación)', async () => {
+      consulta.maybeSingle.mockResolvedValue({ data: { role: 'agente', tenants: { name: 'X', publication_mode: 'libre' } }, error: null });
+      expect((await getMembership())?.publicationMode).toBe('con_aprobacion');
     });
 
     it('devuelve null si el usuario no pertenece a ninguna corredora', async () => {

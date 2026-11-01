@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import * as auth from './authService';
-import type { AuthError, Membership, SimpleResult } from './authService';
+import type { AuthError, Membership, PublicationMode, SimpleResult } from './authService';
 
 export type AuthStatus = 'cargando' | 'sin_sesion' | 'sin_membresia' | 'con_sesion' | 'recuperando';
 
@@ -16,6 +16,7 @@ interface AuthStore {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<SimpleResult>;
   setNewPassword: (password: string) => Promise<SimpleResult>;
+  changePublicationMode: (mode: PublicationMode) => Promise<SimpleResult>;
 }
 
 let unsubscribe: (() => void) | null = null;
@@ -74,6 +75,13 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     },
 
     resetPassword: async (email) => auth.requestPasswordReset(email),
+
+    changePublicationMode: async (mode) => {
+      const result = await auth.setPublicationMode(mode);
+      const current = get().membership;
+      if (result.ok && current) set({ membership: { ...current, publicationMode: mode } });
+      return result;
+    },
 
     setNewPassword: async (password) => {
       const result = await auth.updatePassword(password);

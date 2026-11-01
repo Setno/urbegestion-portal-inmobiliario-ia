@@ -12,6 +12,7 @@ import { uploadIfRemote } from '../services/imageStorage';
 import { useAuthStore } from '../../../core/auth/useAuthStore';
 import {
   PUBLICATION_LABEL,
+  actorFor,
   availableActions,
   statusAfterEdit,
   statusForNew,
@@ -32,6 +33,8 @@ export const PropertiesTab: React.FC = () => {
     usePropertyStore();
   // Sin Supabase no hay roles ni flujo de aprobación: todo se publica directo, como antes.
   const role = useAuthStore((s) => s.membership?.role ?? null);
+  const mode = useAuthStore((s) => s.membership?.publicationMode);
+  const actor = actorFor(role, mode);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
@@ -192,7 +195,7 @@ export const PropertiesTab: React.FC = () => {
         videoUrl: propVideoUrl || undefined,
         description: propDescription,
         publicationStatus: statusAfterEdit(
-          role,
+          actor,
           properties.find((x) => x.id === editingPropId)?.publicationStatus ?? 'publicada',
         ),
       });
@@ -216,7 +219,7 @@ export const PropertiesTab: React.FC = () => {
         videoUrl: propVideoUrl || undefined,
         description: propDescription,
         features: ['Termopanel', 'Seguridad 24/7', 'Estacionamiento'],
-        publicationStatus: statusForNew(role),
+        publicationStatus: statusForNew(actor),
       });
     }
 
@@ -238,7 +241,7 @@ export const PropertiesTab: React.FC = () => {
             className="px-4 py-2 bg-urbe-primary hover:bg-urbe-primaryDark text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow"
           >
             <Plus className="w-4 h-4" />
-            <span>{role === 'agente' ? 'Crear borrador' : 'Publicar Nueva Propiedad'}</span>
+            <span>{actor === 'proponente' ? 'Crear borrador' : 'Publicar Nueva Propiedad'}</span>
           </button>
         </div>
 
@@ -292,7 +295,7 @@ export const PropertiesTab: React.FC = () => {
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Editar</span>
                 </button>
-                {availableActions(role, p.publicationStatus ?? 'publicada').map((action) => (
+                {availableActions(actor, p.publicationStatus ?? 'publicada').map((action) => (
                   <button
                     key={action}
                     onClick={() => {

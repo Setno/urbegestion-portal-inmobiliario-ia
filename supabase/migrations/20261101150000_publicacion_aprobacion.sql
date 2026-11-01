@@ -4,8 +4,12 @@
 -- Reglas:
 --  * Una propiedad tiene un estado de publicación: borrador, en_revision, publicada o rechazada.
 --  * El sitio público solo ve las publicadas. Los miembros de la corredora ven todas las suyas.
---  * El agente crea en borrador y envía a revisión; solo el administrador publica o rechaza (con motivo).
---  * Si un agente cambia una propiedad ya publicada, vuelve a revisión hasta que el administrador la apruebe.
+--  * Cada corredora elige cómo publica (tenants.publication_mode):
+--      'con_aprobacion' (por defecto): el agente crea en borrador y envía a revisión; solo el administrador
+--        publica o rechaza (con motivo). Si un agente cambia una propiedad ya publicada, vuelve a revisión.
+--      'directa': cada agente publica lo suyo y responde por ello (queda registrado quién y cuándo).
+--  * El administrador siempre puede publicar, editar y borrar cualquier propiedad, en ambos modos.
+--  * Solo el administrador cambia el modo, con la función set_publication_mode.
 --  * Quién creó, quién aprobó y cuándo lo fija la base (disparador); el cliente no puede falsearlo.
 --  * Cada cambio queda en un registro de eventos (trazabilidad).
 --  * Las propiedades que ya existen quedan "publicada".
@@ -18,6 +22,38 @@ alter table public.properties
   add column approved_by      uuid references auth.users (id) on delete set null,
   add column approved_at      timestamptz,
   add column rejection_reason text;
+
+-- Modo de publicación de cada corredora (la lectura ya la cubre la política "tenants: ver las propias").
+alter table public.tenants
+  add column publication_mode text not null default 'con_aprobacion'
+    check (publication_mode in ('con_aprobacion', 'directa'));
+
+-- Solo el administrador de su corredora cambia el modo (los usuarios no tienen permiso de escritura sobre tenants).
+create or replace function public.set_publication_mode(p_mode text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_tenant uuid;
+begin
+  if p_mode not in ('con_aprobacion', 'directa') then
+    raise exception 'Modo de publicación no válido';
+  end if;
+  select m.tenant_id into v_tenant
+    from public.memberships m
+   where m.user_id = (select auth.uid()) and m.role = 'admin'
+   limit 1;
+  if v_tenant is null then
+    raise exception 'Solo el administrador de la corredora puede cambiar el modo de publicación' using errcode = '42501';
+  end if;
+  update public.tenants set publication_mode = p_mode where id = v_tenant;
+end;
+$$;
+
+revoke all on function public.set_publication_mode(text) from public, anon;
+grant execute on function public.set_publication_mode(text) to authenticated;
 
 -- Lectura: el sitio solo ve lo publicado; los miembros de la corredora ven todo lo suyo.
 drop policy "properties: catálogo público de lectura" on public.properties;
@@ -65,19 +101,24 @@ security invoker
 set search_path = public
 as $$
 declare
-  v_uid   uuid := (select auth.uid());
-  v_admin boolean;
+  v_uid       uuid := (select auth.uid());
+  v_publisher boolean;
 begin
-  -- Sin usuario (SQL Editor o servicio) se trata como administrador: así funcionan los datos de ejemplo.
-  v_admin := v_uid is null or exists (
-    select 1 from public.memberships m
-    where m.tenant_id = new.tenant_id and m.user_id = v_uid and m.role = 'admin'
+  -- Publica quien es administrador, o cualquier agente si la corredora publica directo.
+  -- Sin usuario (SQL Editor o servicio) se trata como publicador: así funcionan los datos de ejemplo.
+  v_publisher := v_uid is null or exists (
+    select 1
+      from public.memberships m
+      join public.tenants t on t.id = m.tenant_id
+     where m.tenant_id = new.tenant_id
+       and m.user_id = v_uid
+       and (m.role = 'admin' or t.publication_mode = 'directa')
   );
 
   if tg_op = 'INSERT' then
     new.created_by := v_uid;
     new.updated_by := v_uid;
-    if not v_admin and new.publication_status not in ('borrador', 'en_revision') then
+    if not v_publisher and new.publication_status not in ('borrador', 'en_revision') then
       new.publication_status := 'borrador';
     end if;
     new.approved_by := null;
@@ -94,7 +135,7 @@ begin
   new.created_by := old.created_by;
   new.updated_by := v_uid;
 
-  if v_admin then
+  if v_publisher then
     if new.publication_status = 'publicada' and old.publication_status <> 'publicada' then
       new.approved_by := v_uid;
       new.approved_at := now();
@@ -115,7 +156,7 @@ begin
       new.rejection_reason := null;
     end if;
   else
-    -- El agente solo puede dejar borrador o enviar a revisión.
+    -- El proponente (agente con aprobación) solo puede dejar borrador o enviar a revisión.
     if new.publication_status not in ('borrador', 'en_revision') then
       new.publication_status := case when old.publication_status = 'publicada' then 'en_revision' else old.publication_status end;
     end if;
