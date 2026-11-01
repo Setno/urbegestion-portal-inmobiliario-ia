@@ -15,6 +15,7 @@ import { agencyConfig } from '../../config/agencyConfig';
 import { webhookService, WebhookStatus } from '../../../modules/captacion/services/webhookService';
 import { getAiConfig, saveAiConfig, AiProviderType } from '../../../modules/captacion/services/aiService';
 import { TeamSection } from './TeamSection';
+import { PlatformSection } from './PlatformSection';
 
 export const IntegrationsTab: React.FC = () => {
 
@@ -273,6 +274,7 @@ export const IntegrationsTab: React.FC = () => {
         </div>
 
         <TeamSection />
+        <PlatformSection />
       </div>
   );
 };
