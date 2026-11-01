@@ -53,15 +53,14 @@ export async function POST(request: Request): Promise<Response> {
   if (!isOwner(auth.email)) return json({ error: 'not_owner' }, 403);
   const { client } = auth;
 
-  let name = '';
-  let adminEmail = '';
+  let body: { name?: unknown; adminEmail?: unknown };
   try {
-    const body = (await request.json()) as { name?: unknown; adminEmail?: unknown };
-    name = typeof body.name === 'string' ? body.name.trim() : '';
-    adminEmail = typeof body.adminEmail === 'string' ? body.adminEmail.trim().toLowerCase() : '';
+    body = (await request.json()) as { name?: unknown; adminEmail?: unknown };
   } catch {
     return json({ error: 'invalid_json' }, 400);
   }
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  const adminEmail = typeof body.adminEmail === 'string' ? body.adminEmail.trim().toLowerCase() : '';
   if (name.length < 2 || name.length > 80) return json({ error: 'invalid_name' }, 400);
   if (adminEmail.length > 254 || !EMAIL_RE.test(adminEmail)) return json({ error: 'invalid_email' }, 400);
 
