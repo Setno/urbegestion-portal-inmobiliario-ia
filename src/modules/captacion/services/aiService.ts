@@ -1,6 +1,6 @@
 import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';
-import { useLeadStore } from '../../crm/stores/useLeadStore';
+import { emitLeadCreated } from '../../../core/events/appEvents';
 
 export type AiProviderType = 'local_rules' | 'server';
 
@@ -247,9 +247,7 @@ export function registerLeadFromChat(
     notes?: string;
   }
 ) {
-  const addLead = useLeadStore.getState().addLead;
-  
-  return addLead({
+  emitLeadCreated({
     fullName: name,
     email: email || 'sin-correo@solicitud.cl',
     phone: phone,

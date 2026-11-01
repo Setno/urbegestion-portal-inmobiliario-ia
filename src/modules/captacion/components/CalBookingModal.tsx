@@ -13,7 +13,7 @@ import {
 import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { webhookService } from '../services/webhookService';
-import { useLeadStore } from '../../crm/stores/useLeadStore';
+import { emitLeadCreated } from '../../../core/events/appEvents';
 
 interface CalBookingModalProps {
   isOpen: boolean;
@@ -26,7 +26,6 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
   property,
   onClose,
 }) => {
-  const { addLead } = useLeadStore();
   const calConfig = webhookService.getWebhookConfig();
   const calendarUrl = calConfig.calComUrl || agencyConfig.aiAgent.calendarUrl || 'https://cal.com';
 
@@ -44,7 +43,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
     e.preventDefault();
     if (!name || !phone) return;
 
-    addLead({
+    emitLeadCreated({
       fullName: name,
       email: email || 'visita@cal.cl',
       phone: phone,

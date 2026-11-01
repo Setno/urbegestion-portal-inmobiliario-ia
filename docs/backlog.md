@@ -19,7 +19,7 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-009.1 | Capa de datos con repositorios: las tiendas de leads y propiedades pasan por un repositorio (local o Supabase); sin Supabase configurado todo sigue como hoy | Alta (Must) | S | en revisión | H-008 |
 | H-009.2 | Propiedades en Supabase: catálogo público leído de la base, panel de propiedades guarda por corredora | Alta (Must) | M | en revisión | H-009.1 |
 | H-009.3 | Leads en Supabase: el sitio crea leads en la corredora, el panel los ve y gestiona solo si es de esa corredora | Alta (Must) | M | en revisión | H-009.1 |
-| H-009.4 | Evento `lead.created` entre Captación y CRM (Captación deja de importar el almacén de CRM) | Media (Should) | S | pendiente | H-009.3 |
+| H-009.4 | Evento `lead.created` entre Captación y CRM (Captación deja de importar el almacén de CRM) | Media (Should) | S | hecha | H-009.3 |
 | H-009.5 | Imágenes de propiedades en Supabase Storage (hoy se guardan como texto base64) | Media (Should) | M | pendiente | H-009.2 |
 | H-010 | Extraer textos de interfaz a archivos de traducción (es-419 e inglés) | Media | M+ (dividir) | pendiente | — |
 | H-011 | Paquete de mercado Chile (UF, comunas, RUT, ley de datos) | Media | M | pendiente | H-010 |

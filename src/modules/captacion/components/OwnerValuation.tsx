@@ -15,7 +15,7 @@ import {
   Video,
   Camera
 } from 'lucide-react';
-import { useLeadStore } from '../../crm/stores/useLeadStore';
+import { emitLeadCreated } from '../../../core/events/appEvents';
 import { REGION_METROPOLITANA_ZONES } from '../../../markets/cl/chileanLocations';
 
 interface OwnerValuationProps {
@@ -32,7 +32,6 @@ interface UploadedFilePreview {
 }
 
 export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose }) => {
-  const { addLead } = useLeadStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(1);
@@ -134,7 +133,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
 
     const attachmentUrls = uploadedFiles.map((f) => f.url);
 
-    addLead({
+    emitLeadCreated({
       fullName: name,
       email: email || 'propietario@sin-email.cl',
       phone: phone,

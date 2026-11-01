@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { Property } from '../types/property';
 import { usePropertyStore } from '../stores/usePropertyStore';
-import { useLeadStore } from '../../crm/stores/useLeadStore';
+import { emitLeadCreated } from '../../../core/events/appEvents';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { CalBookingModal } from '../../captacion/components/CalBookingModal';
 
@@ -33,7 +33,6 @@ interface PropertyModalProps {
 
 export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose }) => {
   const { formatPrice } = usePropertyStore();
-  const { addLead } = useLeadStore();
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [showBookingForm, setShowBookingForm] = useState(false);
@@ -89,7 +88,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
     e.preventDefault();
     if (!name || !phone) return;
 
-    addLead({
+    emitLeadCreated({
       fullName: name,
       email: email || 'sin-correo@visita.cl',
       phone: phone,
