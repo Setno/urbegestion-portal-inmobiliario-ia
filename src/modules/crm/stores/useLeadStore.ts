@@ -139,7 +139,11 @@ export const useLeadStore = create<LeadStore>((set, get) => {
       const notes = [...lead.notes, note];
       const updated = get().leads.map((l) => (l.id === id ? { ...l, notes } : l));
       set({ leads: updated });
-      warnOnFail(getLeadRepository().update(id, { notes }, updated), 'guardar la nota del lead');
+      const repo = getLeadRepository();
+      warnOnFail(
+        repo.appendNote ? repo.appendNote(id, note) : repo.update(id, { notes }, updated),
+        'guardar la nota del lead',
+      );
     },
 
     setSelectedLead: (lead) => {

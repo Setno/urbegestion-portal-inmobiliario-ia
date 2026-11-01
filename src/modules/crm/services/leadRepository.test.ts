@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createFakeSupabase } from '../../../core/data/fakeSupabase';
 import { createRemoteLeadRepository, createLocalLeadRepository } from './leadRepository';
 import type { Lead } from '../types/lead';
@@ -140,6 +141,21 @@ describe('leadRepository remoto', () => {
     fake.setResult({ data: null, error: { message: 'sin permiso' } });
     await expect(repo.remove(lead.id, [])).rejects.toThrow('sin permiso');
     await expect(repo.create(lead, [])).rejects.toThrow('sin permiso');
+  });
+});
+
+describe('leadRepository remoto: appendNote', () => {
+  it('agrega la nota con la función append_lead_note de la base', async () => {
+    const rpc = vi.fn().mockResolvedValue({ error: null });
+    const repo = createRemoteLeadRepository({ rpc } as unknown as SupabaseClient, 'tenant-1');
+    await repo.appendNote!('lead-1', 'nota nueva');
+    expect(rpc).toHaveBeenCalledWith('append_lead_note', { p_lead_id: 'lead-1', p_note: 'nota nueva' });
+  });
+
+  it('lanza un error si la base falla', async () => {
+    const rpc = vi.fn().mockResolvedValue({ error: { message: 'sin permiso' } });
+    const repo = createRemoteLeadRepository({ rpc } as unknown as SupabaseClient, 'tenant-1');
+    await expect(repo.appendNote!('lead-1', 'x')).rejects.toThrow('sin permiso');
   });
 });
 

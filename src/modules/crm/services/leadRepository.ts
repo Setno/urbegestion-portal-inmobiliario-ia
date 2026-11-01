@@ -4,7 +4,11 @@ import { createLocalRepository, throwIfError, throwIfNoRows, type Repository } f
 import { remoteContext } from '../../../core/data/dataSource';
 import { isUuid, newId, newUuid } from '../../../core/utils/newId';
 
-export type LeadRepository = Repository<Lead>;
+// `appendNote` solo existe en el repositorio remoto: agrega la nota dentro de la base en un solo paso,
+// para que dos agentes que escriben a la vez no se pisen.
+export type LeadRepository = Repository<Lead> & {
+  appendNote?: (id: string, note: string) => Promise<void>;
+};
 
 type Row = Record<string, unknown>;
 
@@ -94,6 +98,10 @@ export function createRemoteLeadRepository(client: SupabaseClient, tenantId: str
       const { data, error } = await client.from('leads').update(toRow(patch, true)).eq('id', id).select('id');
       throwIfError(error);
       throwIfNoRows(data, 'actualizar el lead');
+    },
+    appendNote: async (id, note) => {
+      const { error } = await client.rpc('append_lead_note', { p_lead_id: id, p_note: note });
+      throwIfError(error);
     },
     remove: async (id) => {
       const { data, error } = await client.from('leads').delete().eq('id', id).select('id');

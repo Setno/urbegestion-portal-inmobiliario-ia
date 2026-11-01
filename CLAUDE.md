@@ -8,7 +8,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 - Lenguaje / framework: TypeScript, React 18, Vite 6, Tailwind 3, Zustand, Recharts, Framer Motion.
 - Base de datos: Supabase (PostgreSQL) para usuarios, corredoras, propiedades y leads cuando hay `VITE_TENANT_ID`; sin él, los datos siguen en `localStorage` (`src/core/storage/localStore.ts`). Acceso a datos vía repositorios (`src/core/data/`). Ver docs/adr/004 y 007.
 - Sitio público por corredora (decidido, sin implementar): Next.js, ver docs/adr/006; la consola y el widget siguen en React + Vite.
-- Hosting: Vercel (SPA + funciones en `api/`). **No hay despliegue hasta nuevo aviso**; solo habrá uno final.
+- Hosting: Vercel (SPA + funciones en `api/`). Desde 2026-11-01 cada commit se despliega como *preview* (con variables de desarrollo) para probar en la web; producción no se toca sin orden explícita.
 
 ## Comandos (verificados el 2026-10-30)
 | Acción | Comando |
@@ -36,9 +36,9 @@ Las rutas `api/*` no existen bajo `npm run dev`; requieren `vercel dev` o un des
 
 ## Reglas de este proyecto (pedidas por el usuario)
 - El usuario tiene conocimientos bajos de programación y es ingeniero civil y de procesos: explicar en español claro, sin jerga innecesaria, y dar pasos concretos para probar.
-- **Commits** solo al cerrar una fase grande, y antes se prueba en local (`npm run dev`, `npm run build` + `npm run preview`) y el usuario da el visto bueno.
+- **Commits** al cerrar cada historia con suite, tipos, lint y build en verde; no se pide autorización por commit (orden del 2026-11-01).
 - **Cada commit local se sube también a GitHub** (`origin`). Nunca force push.
-- **No desplegar en Vercel** hasta orden explícita; `vercel.json` desactiva los despliegues automáticos desde Git.
+- **Cada commit se despliega en Vercel como preview** (no producción), a mano; `vercel.json` mantiene desactivados los despliegues automáticos desde Git. Producción solo con orden explícita.
 - **No mezclar versiones antiguas con nuevas**: lo desechado va a `_archivo/` (ignorado por git, con su `LEEME.md`), no se commitea ni se sube.
 - `BLUEPRINT Inmobiliario.md` es del usuario: no se versiona sin permiso.
 

@@ -75,6 +75,19 @@ describe('useLeadStore con repositorio remoto', () => {
     expect(useLeadStore.getState().leads).toHaveLength(0);
   });
 
+  it('con appendNote en el repositorio, la nota se agrega en la base sin reescribir la lista de notas', () => {
+    const appendNote = vi.fn().mockResolvedValue(undefined);
+    const repo = remoto({ appendNote });
+    setLeadRepository(repo);
+    const id = useLeadStore.getState().addLead(base());
+
+    useLeadStore.getState().addNoteToLead(id, 'n2');
+
+    expect(appendNote).toHaveBeenCalledWith(id, 'n2');
+    expect(repo.update).not.toHaveBeenCalled();
+    expect(useLeadStore.getState().leads[0].notes).toEqual(['n1', 'n2']);
+  });
+
   it('load() reemplaza la lista con la de la base', async () => {
     const delaBase: Lead[] = [{ ...base(), id: 'x1', createdAt: '2026-10-31' }];
     setLeadRepository(remoto({ list: vi.fn().mockResolvedValue(delaBase) }));

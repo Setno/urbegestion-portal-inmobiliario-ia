@@ -8,6 +8,7 @@ import {
   Video
 } from 'lucide-react';
 import { usePropertyStore } from '../stores/usePropertyStore';
+import { uploadIfRemote } from '../services/imageStorage';
 import { REGION_METROPOLITANA_ZONES } from '../../../markets/cl/chileanLocations';
 import { Property, PropertyType, OperationType } from '../types/property';
 
@@ -58,19 +59,33 @@ export const PropertiesTab: React.FC = () => {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const url = e.target?.result as string;
-        if (isVideo) {
-          setPropVideoUrl(url);
-        } else {
-          setPropImages((prev) => {
-            if (prev.length >= MAX_PROP_IMAGES) return prev;
-            return [...prev, url];
-          });
-        }
+      const addImage = (url: string) =>
+        setPropImages((prev) => {
+          if (prev.length >= MAX_PROP_IMAGES) return prev;
+          return [...prev, url];
+        });
+
+      const readAsDataUrl = () => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const url = e.target?.result as string;
+          if (isVideo) setPropVideoUrl(url);
+          else addImage(url);
+        };
+        reader.readAsDataURL(file);
       };
-      reader.readAsDataURL(file);
+
+      // Con Supabase las fotos se suben a Storage; si falla o no hay Supabase, queda la imagen local como hasta hoy.
+      if (isImage) {
+        uploadIfRemote(file)
+          .then((url) => (url ? addImage(url) : readAsDataUrl()))
+          .catch((err) => {
+            console.warn('[PropertiesTab] No se pudo subir la foto a Storage, se guarda local:', err);
+            readAsDataUrl();
+          });
+      } else {
+        readAsDataUrl();
+      }
     });
   };
 
