@@ -118,17 +118,25 @@ describe('Catálogo: buscador y grilla', () => {
       expect(screen.queryByRole('button', { name: /Limpiar/ })).toBeNull();
     });
 
-    // BUG CONOCIDO (H-039): el contador del buscador compara comunas de forma flexible y la grilla de forma exacta.
-    // Al elegir "Lo Barnechea (La Dehesa / Los Trapenses)" el contador dice 1 propiedad y la grilla queda vacía.
-    // Al corregirlo, esta prueba debe invertirse: la casa de La Dehesa tiene que verse en la grilla.
-    it('BUG CONOCIDO: con una comuna compuesta el contador y la grilla no coinciden', () => {
+    it('con una comuna compuesta (La Dehesa) la grilla muestra lo mismo que cuenta el buscador', () => {
       pantalla();
       fireEvent.change(screen.getByDisplayValue(/Todas las comunas/), {
         target: { value: 'Lo Barnechea (La Dehesa / Los Trapenses)' },
       });
       expect(contador()).toBe('1 propiedad');
-      expect(visible(T.casaDehesa)).toBe(false);
-      expect(screen.getByText(/No se encontraron propiedades con estos filtros/)).toBeTruthy();
+      expect(visible(T.casaDehesa)).toBe(true);
+      expect(visible(T.penthouse)).toBe(false);
+    });
+
+    it('lo mismo ocurre con Chicureo, Melipilla y Pirque', () => {
+      pantalla();
+      const comuna = screen.getByDisplayValue(/Todas las comunas/);
+      fireEvent.change(comuna, { target: { value: 'Colina (Chicureo / Chamisero)' } });
+      expect(visible(initialProperties[6].title)).toBe(true);
+      fireEvent.change(comuna, { target: { value: 'Melipilla' } });
+      expect(visible(T.parcela)).toBe(true);
+      fireEvent.change(comuna, { target: { value: 'Pirque' } });
+      expect(visible(initialProperties[4].title)).toBe(true);
     });
   });
 

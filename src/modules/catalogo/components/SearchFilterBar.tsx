@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { usePropertyStore } from '../stores/usePropertyStore';
 import { isPublished } from '../services/publicationWorkflow';
+import { matchesFilters } from '../services/propertyFilters';
 import { REGION_METROPOLITANA_ZONES } from '../../../markets/cl/chileanLocations';
 import { PropertyType } from '../types/property';
 
@@ -17,37 +18,7 @@ export const SearchFilterBar: React.FC = () => {
   const properties = allProperties.filter(isPublished);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const count = properties.filter((p) => {
-    if (filters.operation !== 'todas' && p.operation !== filters.operation) return false;
-    if (filters.propertyType !== 'todos' && p.propertyType !== filters.propertyType) return false;
-    
-    // Fuzzy / prefix matching for communes (e.g. "Lo Barnechea" matches "Lo Barnechea (La Dehesa / Los Trapenses)")
-    if (filters.commune !== 'Todas las comunas') {
-      const selected = filters.commune.toLowerCase();
-      const propComm = p.commune.toLowerCase();
-      const match = propComm.includes(selected) || selected.includes(propComm) ||
-        (selected.includes('melipilla') && propComm.includes('melipilla')) ||
-        (selected.includes('chicureo') && propComm.includes('chicureo')) ||
-        (selected.includes('pirque') && propComm.includes('pirque')) ||
-        (selected.includes('barnechea') && propComm.includes('barnechea'));
-      if (!match) return false;
-    }
-
-    if (filters.minPriceUf !== '' && p.priceUf < Number(filters.minPriceUf)) return false;
-    if (filters.maxPriceUf !== '' && p.priceUf > Number(filters.maxPriceUf)) return false;
-    if (filters.minBedrooms !== '' && p.bedrooms < Number(filters.minBedrooms)) return false;
-    if (filters.minBathrooms !== '' && p.bathrooms < Number(filters.minBathrooms)) return false;
-    if (filters.searchQuery) {
-      const q = filters.searchQuery.toLowerCase();
-      const match = p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.commune.toLowerCase().includes(q) ||
-        p.address.toLowerCase().includes(q) ||
-        p.features.some(f => f.toLowerCase().includes(q));
-      if (!match) return false;
-    }
-    return true;
-  }).length;
+  const count = properties.filter((p) => matchesFilters(p, filters)).length;
 
   const isFiltered = 
     filters.operation !== 'todas' || 

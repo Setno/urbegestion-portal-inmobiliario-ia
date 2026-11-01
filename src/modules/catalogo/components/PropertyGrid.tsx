@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PropertyCard } from './PropertyCard';
 import { usePropertyStore } from '../stores/usePropertyStore';
 import { isPublished } from '../services/publicationWorkflow';
+import { matchesFilters } from '../services/propertyFilters';
 import { Property } from '../types/property';
 import { ArrowUpDown, Sparkles, Building, RotateCcw } from 'lucide-react';
 
@@ -20,25 +21,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
   const [sortBy, setSortBy] = useState<'featured' | 'priceAsc' | 'priceDesc' | 'areaDesc'>('featured');
 
   // Filter properties based on store state
-  const filtered = properties.filter((p) => {
-    if (filters.operation !== 'todas' && p.operation !== filters.operation) return false;
-    if (filters.propertyType !== 'todos' && p.propertyType !== filters.propertyType) return false;
-    if (filters.commune !== 'Todas las comunas' && p.commune !== filters.commune) return false;
-    if (filters.minPriceUf !== '' && p.priceUf < Number(filters.minPriceUf)) return false;
-    if (filters.maxPriceUf !== '' && p.priceUf > Number(filters.maxPriceUf)) return false;
-    if (filters.minBedrooms !== '' && p.bedrooms < Number(filters.minBedrooms)) return false;
-    if (filters.minBathrooms !== '' && p.bathrooms < Number(filters.minBathrooms)) return false;
-    if (filters.searchQuery) {
-      const q = filters.searchQuery.toLowerCase();
-      const match = p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.commune.toLowerCase().includes(q) ||
-        p.address.toLowerCase().includes(q) ||
-        p.features.some(f => f.toLowerCase().includes(q));
-      if (!match) return false;
-    }
-    return true;
-  });
+  const filtered = properties.filter((p) => matchesFilters(p, filters));
 
   // Sort properties
   const sorted = [...filtered].sort((a, b) => {
