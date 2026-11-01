@@ -3,6 +3,7 @@ import { render, screen, fireEvent, cleanup, within } from '@testing-library/rea
 import { PropertiesTab } from './PropertiesTab';
 import { usePropertyStore } from '../stores/usePropertyStore';
 import { useAuthStore } from '../../../core/auth/useAuthStore';
+import { useMarketStore } from '../../../core/market/useMarketStore';
 import { initialProperties } from '../data/initialProperties';
 import type { Property, PublicationStatus } from '../types/property';
 import type { Role } from '../../../core/auth/permissions';
@@ -21,9 +22,13 @@ const entrar = (role: Role, publicationMode: PublicationMode) =>
 
 const abrirNueva = () => fireEvent.click(screen.getByRole('button', { name: /Publicar Nueva Propiedad|Crear borrador/ }));
 
-const llenarFormulario = (titulo: string, direccion: string) => {
+const elegirComuna = (comuna: string) =>
+  fireEvent.change(screen.getByDisplayValue('Selecciona la comuna'), { target: { value: comuna } });
+
+const llenarFormulario = (titulo: string, direccion: string, comuna = 'Las Condes') => {
   fireEvent.change(screen.getByPlaceholderText(/Penthouse Dúplex con Terraza/), { target: { value: titulo } });
   fireEvent.change(screen.getByPlaceholderText(/Av\. Nueva Costanera/), { target: { value: direccion } });
+  elegirComuna(comuna);
 };
 
 const guardar = (nombre: RegExp) => fireEvent.click(screen.getByRole('button', { name: nombre }));
@@ -36,6 +41,7 @@ describe('PropertiesTab (gestor de propiedades)', () => {
   beforeEach(() => {
     localStorage.clear();
     useAuthStore.setState({ membership: null });
+    useMarketStore.setState({ marketId: 'cl', serviceAreas: [] });
     usePropertyStore.setState({ properties: [conEstado('p1', 'Casa Uno'), conEstado('p2', 'Casa Dos')] });
   });
 
@@ -64,6 +70,42 @@ describe('PropertiesTab (gestor de propiedades)', () => {
       expect(creada.publicationStatus).toBe('publicada');
       expect(creada.images).toHaveLength(1);
       expect(screen.queryByText('Publicar Nueva Propiedad', { selector: 'h3' })).toBeNull(); // el formulario se cerró
+    });
+
+    it('la comuna es obligatoria: sin elegirla no se guarda', () => {
+      render(<PropertiesTab />);
+      abrirNueva();
+      fireEvent.change(screen.getByPlaceholderText(/Penthouse Dúplex con Terraza/), { target: { value: 'Sin comuna' } });
+      fireEvent.change(screen.getByPlaceholderText(/Av\. Nueva Costanera/), { target: { value: 'Calle 9' } });
+      fireEvent.submit(screen.getByPlaceholderText(/Av\. Nueva Costanera/).closest('form')!);
+      expect(usePropertyStore.getState().properties).toHaveLength(2);
+    });
+
+    it('guarda la comuna elegida, también fuera de Santiago', () => {
+      render(<PropertiesTab />);
+      abrirNueva();
+      llenarFormulario('Casa en Concepción', 'Calle 10', 'Concepción');
+      guardar(/Crear Propiedad/);
+      expect(usePropertyStore.getState().properties.find((p) => p.title === 'Casa en Concepción')?.commune).toBe('Concepción');
+    });
+
+    it('con zonas de trabajo acotadas solo ofrece las comunas de esas regiones', () => {
+      useMarketStore.setState({ serviceAreas: ['CL-BI'] });
+      render(<PropertiesTab />);
+      abrirNueva();
+      const opciones = Array.from(screen.getByDisplayValue('Selecciona la comuna').querySelectorAll('option')).map((o) => o.value);
+      expect(opciones).toContain('Concepción');
+      expect(opciones).not.toContain('Vitacura');
+    });
+
+    it('editar una propiedad de una comuna fuera de las zonas actuales conserva su comuna', () => {
+      useMarketStore.setState({ serviceAreas: ['CL-BI'] });
+      usePropertyStore.setState({ properties: [{ ...conEstado('p1', 'Casa Uno'), commune: 'Vitacura' }] });
+      render(<PropertiesTab />);
+      fireEvent.click(within(tarjeta('Casa Uno')).getByRole('button', { name: /Editar/ }));
+      expect((screen.getByDisplayValue('Vitacura') as HTMLSelectElement).value).toBe('Vitacura');
+      guardar(/Guardar Cambios/);
+      expect(usePropertyStore.getState().properties[0].commune).toBe('Vitacura');
     });
 
     it('sin título o sin dirección no guarda nada', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { allowedTabs, canOpenTab, safeTab, canInviteAgents, canExportData } from './permissions';
+import { allowedTabs, canOpenTab, safeTab, canInviteAgents, canExportData, canEditServiceAreas } from './permissions';
 
 describe('permisos por rol', () => {
   it('el administrador ve todas las pestañas', () => {
@@ -33,5 +33,11 @@ describe('permisos por rol', () => {
     expect(canExportData('admin')).toBe(true);
     expect(canExportData('agente')).toBe(false);
     expect(canExportData(null)).toBe(false);
+  });
+
+  it('solo el administrador puede elegir las zonas de trabajo de la corredora', () => {
+    expect(canEditServiceAreas('admin')).toBe(true);
+    expect(canEditServiceAreas('agente')).toBe(false);
+    expect(canEditServiceAreas(null)).toBe(false);
   });
 });

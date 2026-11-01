@@ -18,7 +18,7 @@ import {
   statusForNew,
 } from '../services/publicationWorkflow';
 import type { PublicationStatus } from '../types/property';
-import { REGION_METROPOLITANA_ZONES } from '../../../markets/cl/chileanLocations';
+import { useMarket } from '../../../core/market/useMarketStore';
 import { Property, PropertyType, OperationType } from '../types/property';
 
 const STATUS_STYLE: Record<PublicationStatus, string> = {
@@ -35,6 +35,7 @@ export const PropertiesTab: React.FC = () => {
   const role = useAuthStore((s) => s.membership?.role ?? null);
   const mode = useAuthStore((s) => s.membership?.publicationMode);
   const actor = actorFor(role, mode);
+  const { pack, zones, localities } = useMarket();
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
@@ -45,7 +46,7 @@ export const PropertiesTab: React.FC = () => {
   const [propOperation, setPropOperation] = useState<OperationType>('venta');
   const [propType, setPropType] = useState<PropertyType>('departamento');
   const [propPriceUf, setPropPriceUf] = useState(12000);
-  const [propCommune, setPropCommune] = useState('Las Condes');
+  const [propCommune, setPropCommune] = useState('');
   const [propAddress, setPropAddress] = useState('');
   const [propBedrooms, setPropBedrooms] = useState(3);
   const [propBathrooms, setPropBathrooms] = useState(2);
@@ -136,7 +137,7 @@ export const PropertiesTab: React.FC = () => {
     setPropOperation('venta');
     setPropType('departamento');
     setPropPriceUf(12000);
-    setPropCommune('Las Condes');
+    setPropCommune('');
     setPropAddress('');
     setPropBedrooms(3);
     setPropBathrooms(2);
@@ -172,7 +173,7 @@ export const PropertiesTab: React.FC = () => {
 
   const handleSaveProperty = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!propTitle || !propAddress) return;
+    if (!propTitle || !propAddress || !propCommune) return;
 
     const finalImages = propImages.length > 0 
       ? propImages 
@@ -432,19 +433,27 @@ export const PropertiesTab: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Comuna (Región Metropolitana)</label>
+                  <label className="block font-bold text-slate-700 mb-1">{pack.localityLabel}</label>
                   <select
                     value={propCommune}
+                    required
                     onChange={(e) => setPropCommune(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                   >
-                    {REGION_METROPOLITANA_ZONES.map(zone => (
+                    <option value="" disabled>
+                      Selecciona la {pack.localityLabel.toLowerCase()}
+                    </option>
+                    {zones.map((zone) => (
                       <optgroup key={zone.groupName} label={zone.groupName}>
-                        {zone.communes.map(c => (
+                        {zone.localities.map((c) => (
                           <option key={c} value={c}>{c}</option>
                         ))}
                       </optgroup>
                     ))}
+                    {/* Una propiedad guardada antes de acotar las zonas conserva su comuna al editarla */}
+                    {propCommune && !localities.includes(propCommune) && (
+                      <option value={propCommune}>{propCommune}</option>
+                    )}
                   </select>
                 </div>
               </div>

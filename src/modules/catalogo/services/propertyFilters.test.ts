@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { matchesCommune, matchesFilters } from './propertyFilters';
 import { initialProperties } from '../data/initialProperties';
+import { CHILE as CHILE_PACK_FOR_TEST } from '../../../markets/cl';
 import type { PropertyFilterState } from '../types/property';
 
 const sinFiltros: PropertyFilterState = {
@@ -41,5 +42,15 @@ describe('matchesFilters', () => {
     const f = { ...sinFiltros, operation: 'arriendo' as const, maxPriceUf: 50, minBedrooms: 2 };
     const titulos = initialProperties.filter((p) => matchesFilters(p, f)).map((p) => p.commune);
     expect(titulos.sort()).toEqual(['Las Condes', 'Providencia']);
+  });
+});
+
+describe('sectores definidos por el paquete de mercado', () => {
+  const otroPais = { ...CHILE_PACK_FOR_TEST, sectorKeywords: ['costa'] };
+
+  it('usa las palabras clave del paquete que se le pase, no las de Chile', () => {
+    expect(matchesCommune('Costa Norte', 'Sector Costa (Playas)', otroPais)).toBe(true);
+    expect(matchesCommune('Pirque / Paine (Agrícola)', 'Pirque', otroPais)).toBe(true); // coincide por contener el nombre
+    expect(matchesCommune('Chicureo / Colina', 'Colina (Chicureo / Chamisero)', otroPais)).toBe(false);
   });
 });

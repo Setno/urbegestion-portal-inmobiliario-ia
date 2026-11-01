@@ -4,6 +4,7 @@ import { usePropertyStore } from '../stores/usePropertyStore';
 import { isPublished } from '../services/publicationWorkflow';
 import { matchesFilters } from '../services/propertyFilters';
 import { Property } from '../types/property';
+import { useMarket } from '../../../core/market/useMarketStore';
 import { ArrowUpDown, Sparkles, Building, RotateCcw } from 'lucide-react';
 
 interface PropertyGridProps {
@@ -18,10 +19,11 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
   const { properties: allProperties, filters, resetFilters, loading } = usePropertyStore();
   // El sitio solo muestra lo publicado (el borrador y lo que espera aprobación quedan en el panel)
   const properties = allProperties.filter(isPublished);
+  const { pack, scopeLabel } = useMarket();
   const [sortBy, setSortBy] = useState<'featured' | 'priceAsc' | 'priceDesc' | 'areaDesc'>('featured');
 
   // Filter properties based on store state
-  const filtered = properties.filter((p) => matchesFilters(p, filters));
+  const filtered = properties.filter((p) => matchesFilters(p, filters, pack));
 
   // Sort properties
   const sorted = [...filtered].sort((a, b) => {
@@ -47,7 +49,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
             Catálogo Exclusivo
           </div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Propiedades en Santiago y Alrededores
+            Propiedades en {scopeLabel}
           </h2>
           <p className="text-sm text-slate-500 mt-1 max-w-xl">
             Cartera selecta de departamentos de alto estándar, casas en condominios cerrados y parcelas agrícolas con títulos al día.

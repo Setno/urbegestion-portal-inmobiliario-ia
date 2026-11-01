@@ -18,7 +18,7 @@ import {
 import { emitLeadCreated } from '../../../core/events/appEvents';
 import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
 import { buildPrivacyNotice } from '../../../core/privacy/privacy';
-import { REGION_METROPOLITANA_ZONES } from '../../../markets/cl/chileanLocations';
+import { useMarket } from '../../../core/market/useMarketStore';
 
 interface OwnerValuationProps {
   isOpen: boolean;
@@ -36,10 +36,11 @@ interface UploadedFilePreview {
 export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { pack, zones } = useMarket();
   const [step, setStep] = useState(1);
   const [operation, setOperation] = useState<'venta' | 'arriendo'>('venta');
   const [propertyType, setPropertyType] = useState('casa');
-  const [commune, setCommune] = useState('Las Condes');
+  const [commune, setCommune] = useState('');
   const [areaM2, setAreaM2] = useState('140');
   const [bedrooms, setBedrooms] = useState('3');
   
@@ -324,16 +325,19 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                 <div className="space-y-4 sm:space-y-5">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Comuna (Región Metropolitana)
+                      {pack.localityLabel} *
                     </label>
                     <select
                       value={commune}
                       onChange={(e) => setCommune(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-urbe-primary font-medium"
                     >
-                      {REGION_METROPOLITANA_ZONES.map((zone) => (
+                      <option value="" disabled>
+                        Selecciona la {pack.localityLabel.toLowerCase()}
+                      </option>
+                      {zones.map((zone) => (
                         <optgroup key={zone.groupName} label={zone.groupName}>
-                          {zone.communes.map((c) => (
+                          {zone.localities.map((c) => (
                             <option key={c} value={c}>{c}</option>
                           ))}
                         </optgroup>
@@ -384,7 +388,8 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                     <button
                       type="button"
                       onClick={() => setStep(3)}
-                      className="px-5 py-2.5 rounded-xl bg-urbe-primary text-white text-xs font-bold flex items-center gap-2 shadow hover:bg-urbe-primaryDark transition-colors"
+                      disabled={!commune}
+                      className="px-5 py-2.5 rounded-xl bg-urbe-primary text-white text-xs font-bold flex items-center gap-2 shadow hover:bg-urbe-primaryDark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span>Siguiente: Fotos & Antecedentes</span>
                       <ArrowRight className="w-3.5 h-3.5" />

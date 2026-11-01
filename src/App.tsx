@@ -16,6 +16,7 @@ import { ADMIN_ENABLED } from './core/config/adminAccess';
 import { useBrandStore } from './core/brand/useBrandStore';
 import { useAuthStore } from './core/auth/useAuthStore';
 import { usePropertyStore } from './modules/catalogo/stores/usePropertyStore';
+import { useMarketStore } from './core/market/useMarketStore';
 import { Property } from './modules/catalogo/types/property';
 
 export const App: React.FC = () => {
@@ -32,9 +33,10 @@ export const App: React.FC = () => {
     document.documentElement.style.setProperty('--color-urbe-accent-hover', themeColors.accentHover);
   }, [themeColors]);
 
-  // Con Supabase, el catálogo público se lee de la base (sin Supabase no hace nada)
+  // Con Supabase, el catálogo público y el mercado y las zonas de la corredora se leen de la base (sin Supabase no hace nada)
   useEffect(() => {
     void usePropertyStore.getState().load();
+    void useMarketStore.getState().load();
   }, []);
 
   // Restaura la sesión al cargar y escucha cambios (ingreso, salida, enlace de recuperación de clave)

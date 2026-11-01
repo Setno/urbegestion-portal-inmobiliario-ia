@@ -1,6 +1,8 @@
 import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { emitLeadCreated } from '../../../core/events/appEvents';
+import { useMarketStore, marketView } from '../../../core/market/useMarketStore';
+import { featuredLocalities } from '../../catalogo/services/propertySummary';
 import type { LeadPrivacyNotice } from '../../crm/types/lead';
 
 export type AiProviderType = 'local_rules' | 'server';
@@ -147,7 +149,7 @@ function processLocalRuleEngine(
     query.includes('poner en arriendo')
   ) {
     return {
-      text: `En UrbeGestión contamos con más de 25 años de experiencia valorando y comercializando inmuebles urbanos y agrícolas en la Región Metropolitana con un tiempo promedio de venta de 42 días.\n\nTe invitamos a utilizar nuestra sección "Vende con Nosotros" para subir fotos desde tu celular o ingresar tu teléfono para que Pilar Osorio te contacte con un estudio de mercado sin costo.`,
+      text: `En UrbeGestión contamos con más de 25 años de experiencia valorando y comercializando inmuebles urbanos y agrícolas en ${marketView(useMarketStore.getState().marketId, useMarketStore.getState().serviceAreas).scopeLabel} con un tiempo promedio de venta de 42 días.\n\nTe invitamos a utilizar nuestra sección "Vende con Nosotros" para subir fotos desde tu celular o ingresar tu teléfono para que Pilar Osorio te contacte con un estudio de mercado sin costo.`,
       actionRequired: 'provide_contact',
     };
   }
@@ -163,15 +165,9 @@ Déjanos tus datos y ${agencyConfig.brokerName} te contactará para ayudarte.`,
   }
 
   // 4. Búsqueda por comuna, tipo y operación: lo que el usuario menciona debe cumplirse (no basta una coincidencia)
-  const communeAliases: Record<string, string[]> = {
-    melipilla: ['melipilla'],
-    'las condes': ['las condes', 'golf', 'manquehue'],
-    vitacura: ['vitacura'],
-    barnechea: ['barnechea', 'dehesa', 'trapenses'],
-    pirque: ['pirque', 'paine'],
-    providencia: ['providencia'],
-    chicureo: ['chicureo', 'colina', 'chamisero'],
-  };
+  // Los alias de las comunas ("golf" para Las Condes) los define el paquete de mercado de la corredora.
+  const { pack, scopeLabel } = marketView(useMarketStore.getState().marketId, useMarketStore.getState().serviceAreas);
+  const communeAliases = pack.localityAliases;
   const communeMatches = (p: Property) => {
     const commune = p.commune.toLowerCase();
     return (
@@ -231,9 +227,13 @@ Déjanos tus datos y ${agencyConfig.brokerName} te contactará para ayudarte.`,
     };
   }
 
-  // 6. Respuesta por defecto consultiva y proactiva
+  // 6. Respuesta por defecto consultiva y proactiva: nombra las comunas donde hay propiedades publicadas
+  const places = featuredLocalities(properties, 4);
+  const lugares = places.length > 1 ? `${places.slice(0, -1).join(', ')} y ${places[places.length - 1]}` : (places[0] ?? '');
   return {
-    text: `Comprendo perfectamente. En UrbeGestión tenemos propiedades exclusivas tanto en arriendo como en venta en sectores de alta plusvalía de Santiago (Las Condes, Vitacura, La Dehesa, Chicureo) y parcelas agrícolas con derechos de agua en Melipilla y Pirque.\n\n¿Tienes alguna comuna o presupuesto aproximado en mente para mostrarte las mejores opciones?`,
+    text: `Comprendo perfectamente. En UrbeGestión tenemos propiedades tanto en arriendo como en venta en ${lugares || scopeLabel}.
+
+¿Tienes alguna comuna o presupuesto aproximado en mente para mostrarte las mejores opciones?`,
   };
 }
 

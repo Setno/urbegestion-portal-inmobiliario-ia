@@ -16,6 +16,7 @@ import {
 import { useChatStore } from '../stores/useChatStore';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
 import { isPublished } from '../../catalogo/services/publicationWorkflow';
+import { quickSearchChips } from '../../catalogo/services/propertySummary';
 import { processAiChatMessage, registerLeadFromChat } from '../services/aiService';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
@@ -98,13 +99,8 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
     });
   };
 
-  const quickChips = [
-    "Casas en Lo Barnechea",
-    "Deptos en Vitacura",
-    "Parcelas en Melipilla",
-    "Vender mi propiedad",
-    "Agendar visita"
-  ];
+  // Las sugerencias salen de lo que la corredora tiene publicado, más las dos acciones fijas.
+  const quickChips = [...quickSearchChips(properties), 'Vender mi propiedad', 'Agendar visita'];
 
   return (
     <>

@@ -121,3 +121,21 @@ describe('processAiChatMessage (motor local)', () => {
     expect(agencyConfig.features.mortgageSimulator).toBe(false);
   });
 });
+
+describe('motor local: otras regiones de Chile', () => {
+  const enValparaiso = [
+    { ...initialProperties[0], id: 'v1', title: 'Casa en Viña', commune: 'Viña del Mar', operation: 'venta' as const },
+    { ...initialProperties[1], id: 'v2', title: 'Depto en Concón', commune: 'Concón', propertyType: 'departamento' as const },
+  ];
+
+  it('la respuesta por defecto nombra las comunas donde hay propiedades, no Santiago', async () => {
+    const r = await processAiChatMessage('Hola, buenas tardes', enValparaiso);
+    expect(r.text).toContain('Viña del Mar y Concón');
+    expect(r.text).not.toContain('Santiago');
+  });
+
+  it('encuentra propiedades por el nombre de su comuna aunque no esté en los alias de Santiago', async () => {
+    const r = await processAiChatMessage('Busco algo en Viña del Mar', enValparaiso);
+    expect(r.suggestedProperties).toEqual(['v1']);
+  });
+});

@@ -1,6 +1,6 @@
 # ADR-008: Todo lo específico de un país vive en un paquete de mercado que se asigna a cada corredora
 
-- Estado: propuesta (pendiente de aprobación del responsable)
+- Estado: aceptada (aprobada por el responsable el 2026-11-01, incluidas las migraciones de H-040 y H-041)
 - Fecha: 2026-11-01
 
 ## Contexto

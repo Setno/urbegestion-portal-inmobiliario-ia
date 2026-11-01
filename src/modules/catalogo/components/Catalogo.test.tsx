@@ -3,6 +3,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { SearchFilterBar } from './SearchFilterBar';
 import { PropertyGrid } from './PropertyGrid';
 import { usePropertyStore } from '../stores/usePropertyStore';
+import { useMarketStore } from '../../../core/market/useMarketStore';
 import { initialProperties } from '../data/initialProperties';
 import type { Property } from '../types/property';
 
@@ -43,6 +44,7 @@ describe('Catálogo: buscador y grilla', () => {
     );
     usePropertyStore.setState({ properties: [...initialProperties], loading: false });
     usePropertyStore.getState().resetFilters();
+    useMarketStore.setState({ marketId: 'cl', serviceAreas: [] });
   });
 
   afterEach(() => {
@@ -137,6 +139,41 @@ describe('Catálogo: buscador y grilla', () => {
       expect(visible(T.parcela)).toBe(true);
       fireEvent.change(comuna, { target: { value: 'Pirque' } });
       expect(visible(initialProperties[4].title)).toBe(true);
+    });
+  });
+
+  describe('mercado y zonas de la corredora', () => {
+    const opcionesDeComuna = () =>
+      Array.from(screen.getByDisplayValue(/Todas las comunas/).querySelectorAll('option')).map((o) => o.value);
+
+    it('sin zonas elegidas el buscador ofrece las comunas de todo Chile', () => {
+      pantalla();
+      const opciones = opcionesDeComuna();
+      expect(opciones).toContain('Punta Arenas');
+      expect(opciones).toContain('Vitacura');
+      expect(opciones).toHaveLength(346 + 1); // las comunas más "Todas las comunas"
+      expect(screen.getByText(/Todas las comunas de Chile/)).toBeTruthy();
+      expect(screen.getByText('Propiedades en Chile')).toBeTruthy();
+    });
+
+    it('con una región elegida ofrece solo sus comunas y el título nombra la región', () => {
+      useMarketStore.setState({ serviceAreas: ['CL-VS'] });
+      pantalla();
+      const opciones = opcionesDeComuna();
+      expect(opciones).toContain('Viña del Mar');
+      expect(opciones).not.toContain('Vitacura');
+      expect(screen.getByText('Propiedades en Valparaíso')).toBeTruthy();
+      expect(screen.getByText(/Todas las comunas de Valparaíso/)).toBeTruthy();
+    });
+
+    it('una propiedad de otra región se encuentra por su comuna', () => {
+      usePropertyStore.setState({
+        properties: [{ ...initialProperties[0], id: 'v1', title: 'Casa frente al mar en Viña', commune: 'Viña del Mar' }],
+      });
+      pantalla();
+      fireEvent.change(screen.getByDisplayValue(/Todas las comunas/), { target: { value: 'Viña del Mar' } });
+      expect(visible('Casa frente al mar en Viña')).toBe(true);
+      expect(contador()).toBe('1 propiedad');
     });
   });
 

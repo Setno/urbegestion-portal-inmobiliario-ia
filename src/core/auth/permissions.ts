@@ -20,3 +20,6 @@ export const canInviteAgents = (role: Role | null): boolean => role === 'admin';
 
 // Solo el administrador se lleva una copia de los datos de su corredora.
 export const canExportData = (role: Role | null): boolean => role === 'admin';
+
+// Solo el administrador decide en qué zonas trabaja su corredora.
+export const canEditServiceAreas = (role: Role | null): boolean => role === 'admin';

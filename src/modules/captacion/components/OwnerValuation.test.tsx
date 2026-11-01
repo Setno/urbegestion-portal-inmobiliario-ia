@@ -3,6 +3,7 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 import { OwnerValuation } from './OwnerValuation';
 import { useLeadStore } from '../../crm/stores/useLeadStore';
 import { registerLeadEvents } from '../../crm/services/leadEvents';
+import { useMarketStore } from '../../../core/market/useMarketStore';
 
 const siguiente = (texto: RegExp) => fireEvent.click(screen.getByRole('button', { name: texto }));
 const atras = () => fireEvent.click(screen.getByRole('button', { name: /Atrás/ }));
@@ -17,9 +18,18 @@ const subir = (...files: File[]) => {
   fireEvent.change(input, { target: { files } });
 };
 
-const hastaContacto = () => {
+const elegirComuna = (comuna = 'Las Condes') =>
+  fireEvent.change(screen.getByDisplayValue('Selecciona la comuna'), { target: { value: comuna } });
+
+// Ubicación (con comuna elegida) y luego Fotos
+const irAFotos = () => {
   siguiente(/Siguiente: Ubicación/);
+  elegirComuna();
   siguiente(/Siguiente: Fotos & Antecedentes/);
+};
+
+const hastaContacto = () => {
+  irAFotos();
   siguiente(/Siguiente: Datos de Contacto/);
 };
 
@@ -38,6 +48,7 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200 }));
     vi.spyOn(window, 'alert').mockImplementation(() => {});
     useLeadStore.setState({ leads: [] });
+    useMarketStore.setState({ marketId: 'cl', serviceAreas: [] });
     dejarDeEscuchar = registerLeadEvents();
   });
 
@@ -71,6 +82,7 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
     it('avanza por los 4 pasos y se puede volver atrás conservando lo escrito', () => {
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
       siguiente(/Siguiente: Ubicación/);
+      elegirComuna('Providencia');
       fireEvent.change(screen.getByPlaceholderText('Ej: 140'), { target: { value: '200' } });
       siguiente(/Siguiente: Fotos & Antecedentes/);
       expect(screen.getByText(/Haz clic para seleccionar fotos/)).toBeTruthy();
@@ -79,14 +91,44 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
       atras();
       atras();
       expect((screen.getByPlaceholderText('Ej: 140') as HTMLInputElement).value).toBe('200');
+      expect((screen.getByDisplayValue('Providencia') as HTMLSelectElement).value).toBe('Providencia');
+    });
+  });
+
+  describe('ubicación', () => {
+    const opciones = () =>
+      Array.from(screen.getByDisplayValue('Selecciona la comuna').querySelectorAll('option')).map((o) => o.value);
+
+    it('la comuna es obligatoria: sin elegirla no se puede pasar a las fotos', () => {
+      render(<OwnerValuation isOpen onClose={vi.fn()} />);
+      siguiente(/Siguiente: Ubicación/);
+      const next = () => screen.getByRole('button', { name: /Siguiente: Fotos & Antecedentes/ }) as HTMLButtonElement;
+      expect(next().disabled).toBe(true);
+      elegirComuna('Viña del Mar');
+      expect(next().disabled).toBe(false);
+    });
+
+    it('ofrece las comunas de todo Chile, no solo las de Santiago', () => {
+      render(<OwnerValuation isOpen onClose={vi.fn()} />);
+      siguiente(/Siguiente: Ubicación/);
+      expect(opciones()).toContain('Punta Arenas');
+      expect(opciones()).toContain('Arica');
+      expect(opciones()).toContain('Vitacura');
+    });
+
+    it('si la corredora trabaja en una región, solo ofrece las comunas de esa región', () => {
+      useMarketStore.setState({ serviceAreas: ['CL-VS'] });
+      render(<OwnerValuation isOpen onClose={vi.fn()} />);
+      siguiente(/Siguiente: Ubicación/);
+      expect(opciones()).toContain('Viña del Mar');
+      expect(opciones()).not.toContain('Vitacura');
     });
   });
 
   describe('fotos y antecedentes', () => {
     it('adjunta una imagen, la muestra y se puede quitar con Eliminar todos', async () => {
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
-      siguiente(/Siguiente: Ubicación/);
-      siguiente(/Siguiente: Fotos & Antecedentes/);
+      irAFotos();
       subir(archivo('living.jpg', 'image/jpeg'));
       await screen.findByText('Archivos adjuntados (1)');
       expect(screen.getByAltText('living.jpg')).toBeTruthy();
@@ -96,8 +138,7 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
 
     it('quita una foto con su botón', async () => {
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
-      siguiente(/Siguiente: Ubicación/);
-      siguiente(/Siguiente: Fotos & Antecedentes/);
+      irAFotos();
       subir(archivo('a.jpg', 'image/jpeg'), archivo('b.jpg', 'image/jpeg'));
       await screen.findByText('Archivos adjuntados (2)');
       fireEvent.click(screen.getAllByTitle('Eliminar foto')[0]);
@@ -106,8 +147,7 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
 
     it('rechaza archivos de más de 15 MB y formatos no válidos, con aviso', async () => {
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
-      siguiente(/Siguiente: Ubicación/);
-      siguiente(/Siguiente: Fotos & Antecedentes/);
+      irAFotos();
       subir(archivo('enorme.jpg', 'image/jpeg', 16 * 1024 * 1024));
       subir(archivo('virus.exe', 'application/octet-stream'));
       expect(window.alert).toHaveBeenCalledTimes(2);
@@ -118,16 +158,14 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
 
     it('acepta PDF y video además de imágenes', async () => {
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
-      siguiente(/Siguiente: Ubicación/);
-      siguiente(/Siguiente: Fotos & Antecedentes/);
+      irAFotos();
       subir(archivo('plano.pdf', 'application/pdf'), archivo('recorrido.mp4', 'video/mp4'));
       await screen.findByText('Archivos adjuntados (2)');
     });
 
     it('no pasa de 8 archivos por solicitud', async () => {
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
-      siguiente(/Siguiente: Ubicación/);
-      siguiente(/Siguiente: Fotos & Antecedentes/);
+      irAFotos();
       subir(...Array.from({ length: 10 }, (_, i) => archivo(`f${i}.jpg`, 'image/jpeg')));
       await waitFor(() => expect(screen.getByText('Archivos adjuntados (8)')).toBeTruthy());
       subir(archivo('extra.jpg', 'image/jpeg'));
@@ -140,7 +178,7 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
       fireEvent.click(screen.getByRole('button', { name: 'Departamento' }));
       siguiente(/Siguiente: Ubicación/);
-      fireEvent.change(screen.getByDisplayValue('Las Condes'), { target: { value: 'Providencia' } });
+      elegirComuna('Providencia');
       fireEvent.change(screen.getByPlaceholderText('Ej: 140'), { target: { value: '85' } });
       fireEvent.change(screen.getByDisplayValue('3 Dormitorios'), { target: { value: '2' } });
       siguiente(/Siguiente: Fotos & Antecedentes/);
@@ -167,8 +205,7 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
 
     it('sin correo usa uno genérico, y con fotos las incluye en el lead', async () => {
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
-      siguiente(/Siguiente: Ubicación/);
-      siguiente(/Siguiente: Fotos & Antecedentes/);
+      irAFotos();
       subir(archivo('fachada.jpg', 'image/jpeg'));
       await screen.findByText('Archivos adjuntados (1)');
       siguiente(/Siguiente: Datos de Contacto/);

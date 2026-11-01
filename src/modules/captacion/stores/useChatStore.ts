@@ -19,7 +19,7 @@ const initialMessages: ChatMessage[] = [
   {
     id: 'msg-welcome',
     sender: 'bot',
-    text: `¡Hola! Soy ${agencyConfig.aiAgent.botName}. Estoy aquí para ayudarte a encontrar la propiedad ideal en Santiago o gestionar la venta/arriendo de tu inmueble. 
+    text: `¡Hola! Soy ${agencyConfig.aiAgent.botName}. Estoy aquí para ayudarte a encontrar la propiedad ideal o gestionar la venta/arriendo de tu inmueble. 
 
 ¿Qué tipo de propiedad estás buscando hoy o en qué comuna te gustaría residir?`,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

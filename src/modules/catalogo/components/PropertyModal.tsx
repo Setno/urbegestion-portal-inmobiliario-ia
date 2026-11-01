@@ -26,6 +26,7 @@ import { emitLeadCreated } from '../../../core/events/appEvents';
 import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
 import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 import { agencyConfig } from '../../../core/config/agencyConfig';
+import { useMarket } from '../../../core/market/useMarketStore';
 import { CalBookingModal } from '../../captacion/components/CalBookingModal';
 
 interface PropertyModalProps {
@@ -35,6 +36,7 @@ interface PropertyModalProps {
 
 export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose }) => {
   const { formatPrice } = usePropertyStore();
+  const { pack } = useMarket();
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [showBookingForm, setShowBookingForm] = useState(false);
@@ -118,7 +120,7 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
   };
 
   const mapQueryText = encodeURIComponent(
-    property.mapQuery || `${property.address}, ${property.commune}, Santiago, Chile`
+    property.mapQuery || `${property.address}, ${property.commune}, ${pack.name}`
   );
   const googleMapsEmbedUrl = `https://maps.google.com/maps?q=${mapQueryText}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
   const googleMapsExternalUrl = `https://www.google.com/maps/search/?api=1&query=${mapQueryText}`;

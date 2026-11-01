@@ -10,15 +10,16 @@ import {
 import { usePropertyStore } from '../stores/usePropertyStore';
 import { isPublished } from '../services/publicationWorkflow';
 import { matchesFilters } from '../services/propertyFilters';
-import { REGION_METROPOLITANA_ZONES } from '../../../markets/cl/chileanLocations';
+import { useMarket } from '../../../core/market/useMarketStore';
 import { PropertyType } from '../types/property';
 
 export const SearchFilterBar: React.FC = () => {
   const { filters, setFilters, resetFilters, currency, properties: allProperties } = usePropertyStore();
   const properties = allProperties.filter(isPublished);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const { pack, zones, scopeLabel } = useMarket();
 
-  const count = properties.filter((p) => matchesFilters(p, filters)).length;
+  const count = properties.filter((p) => matchesFilters(p, filters, pack)).length;
 
   const isFiltered = 
     filters.operation !== 'todas' || 
@@ -91,7 +92,7 @@ export const SearchFilterBar: React.FC = () => {
           {/* Commune Filter with Complete Región Metropolitana Zones */}
           <div className="md:col-span-4">
             <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-              Comuna / Sector (52 Comunas RM)
+              {pack.localityLabel} / Sector
             </label>
             <div className="relative">
               <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -100,10 +101,10 @@ export const SearchFilterBar: React.FC = () => {
                 onChange={(e) => setFilters({ commune: e.target.value })}
                 className="w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white transition-all appearance-none cursor-pointer"
               >
-                <option value="Todas las comunas">📍 Todas las comunas de Santiago</option>
-                {REGION_METROPOLITANA_ZONES.map((zone) => (
+                <option value="Todas las comunas">📍 Todas las comunas de {scopeLabel}</option>
+                {zones.map((zone) => (
                   <optgroup key={zone.groupName} label={`--- ${zone.groupName} ---`} className="font-bold text-slate-900 bg-slate-100">
-                    {zone.communes.map((comm) => (
+                    {zone.localities.map((comm) => (
                       <option key={comm} value={comm} className="font-normal text-slate-800 bg-white">
                         {comm}
                       </option>
