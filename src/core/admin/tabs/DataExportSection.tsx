@@ -7,6 +7,7 @@ import { usePropertyStore } from '../../../modules/catalogo/stores/usePropertySt
 import {
   buildFullExportJson, downloadFile, exportFileName, leadsToCsv, notesToCsv, propertiesToCsv,
 } from '../../export/dataExport';
+import { useT } from '../../i18n/i18n';
 
 const CSV = 'text/csv';
 
@@ -15,15 +16,16 @@ export const DataExportSection: React.FC = () => {
   const role = useAuthStore((s) => s.membership?.role ?? null);
   const leads = useLeadStore((s) => s.leads);
   const properties = usePropertyStore((s) => s.properties);
+  const { t } = useT();
 
   if (!canExportData(role)) return null;
 
   const buttons: Array<{ label: string; run: () => void }> = [
-    { label: 'Propiedades (Excel)', run: () => downloadFile(exportFileName('propiedades', 'csv'), propertiesToCsv(properties), CSV) },
-    { label: 'Contactos (Excel)', run: () => downloadFile(exportFileName('contactos', 'csv'), leadsToCsv(leads), CSV) },
-    { label: 'Notas (Excel)', run: () => downloadFile(exportFileName('notas', 'csv'), notesToCsv(leads), CSV) },
+    { label: t('export.properties'), run: () => downloadFile(exportFileName('propiedades', 'csv'), propertiesToCsv(properties), CSV) },
+    { label: t('export.contacts'), run: () => downloadFile(exportFileName('contactos', 'csv'), leadsToCsv(leads), CSV) },
+    { label: t('export.notes'), run: () => downloadFile(exportFileName('notas', 'csv'), notesToCsv(leads), CSV) },
     {
-      label: 'Copia completa (JSON)',
+      label: t('export.full'),
       run: () => downloadFile(exportFileName('copia_completa', 'json'), buildFullExportJson({ leads, properties }), 'application/json'),
     },
   ];
@@ -31,11 +33,10 @@ export const DataExportSection: React.FC = () => {
   return (
     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mt-6">
       <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-1">
-        <Download className="w-4 h-4 text-urbe-primary" /> Tus datos son tuyos: descargar una copia
+        <Download className="w-4 h-4 text-urbe-primary" /> {t('export.title')}
       </h3>
       <p className="text-xs text-slate-500 mb-4">
-        Descarga cuando quieras tus propiedades, contactos y notas. Los archivos de Excel abren directo con tildes y
-        columnas ordenadas; la copia completa sirve para llevar tus datos a otro sistema.
+        {t('export.help')}
       </p>
       <div className="flex flex-wrap gap-2">
         {buttons.map((b) => (

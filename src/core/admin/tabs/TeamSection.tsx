@@ -3,18 +3,20 @@ import { UserPlus } from 'lucide-react';
 import { useAuthStore } from '../../auth/useAuthStore';
 import { inviteAgent, type InviteError } from '../../auth/authService';
 import { canInviteAgents } from '../../auth/permissions';
+import { useT, type MessageKey } from '../../i18n/i18n';
 
-const ERROR_TEXT: Record<InviteError, string> = {
-  correo_invalido: 'El correo no es válido. Revísalo e inténtalo de nuevo.',
-  ya_miembro: 'Esa persona ya es parte de tu corredora o ya tiene una invitación enviada.',
-  otra_corredora: 'Ese correo ya pertenece a otra corredora.',
-  sin_permiso: 'No tienes permiso para invitar agentes. Vuelve a iniciar sesión.',
-  no_configurado: 'La invitación aún no está configurada en el servidor.',
-  conexion: 'No se pudo enviar la invitación. Inténtalo de nuevo en unos minutos.',
+const ERROR_TEXT: Record<InviteError, MessageKey> = {
+  correo_invalido: 'team.err.correo_invalido',
+  ya_miembro: 'team.err.ya_miembro',
+  otra_corredora: 'team.err.otra_corredora',
+  sin_permiso: 'team.err.sin_permiso',
+  no_configurado: 'team.err.no_configurado',
+  conexion: 'team.err.conexion',
 };
 
 export const TeamSection: React.FC = () => {
   const role = useAuthStore((s) => s.membership?.role ?? null);
+  const { t } = useT();
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -29,14 +31,11 @@ export const TeamSection: React.FC = () => {
     const result = await inviteAgent(email);
     setBusy(false);
     if ('error' in result) {
-      setMessage({ ok: false, text: ERROR_TEXT[result.error] });
+      setMessage({ ok: false, text: t(ERROR_TEXT[result.error]) });
     } else {
       setMessage({
         ok: true,
-        text:
-          result.status === 'invitado'
-            ? `Invitación enviada a ${email.trim()}. Recibirá un correo con un enlace para fijar su clave.`
-            : `${email.trim()} ya tenía cuenta y ahora es agente de tu corredora.`,
+        text: t(result.status === 'invitado' ? 'team.ok.invited' : 'team.ok.existing', { email: email.trim() }),
       });
       setEmail('');
     }
@@ -45,18 +44,18 @@ export const TeamSection: React.FC = () => {
   return (
     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mt-6">
       <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-1">
-        <UserPlus className="w-4 h-4 text-urbe-primary" /> Equipo: invitar a un agente
+        <UserPlus className="w-4 h-4 text-urbe-primary" /> {t('team.title')}
       </h3>
       <p className="text-xs text-slate-500 mb-4">
-        El agente recibe un correo con un enlace, fija su clave y entra a tu corredora con rol agente.
+        {t('team.help')}
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="correo@ejemplo.cl"
-          aria-label="Correo del agente"
+          placeholder={t('team.placeholder')}
+          aria-label={t('team.aria')}
           className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-urbe-primary"
         />
         <button
@@ -64,7 +63,7 @@ export const TeamSection: React.FC = () => {
           disabled={busy || !email.trim()}
           className="px-5 py-2.5 bg-urbe-primary text-white rounded-xl text-sm font-bold disabled:opacity-50"
         >
-          {busy ? 'Enviando…' : 'Invitar'}
+          {busy ? t('team.sending') : t('team.submit')}
         </button>
       </form>
       {message && (

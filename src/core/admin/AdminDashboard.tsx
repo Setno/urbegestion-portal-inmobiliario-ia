@@ -21,18 +21,21 @@ import { BrandingTab } from './tabs/BrandingTab';
 import { useAuthStore } from '../auth/useAuthStore';
 import { LoginScreen, NewPasswordScreen, NoMembershipScreen } from '../auth/AuthScreens';
 import { allowedTabs, safeTab, type AdminTab } from '../auth/permissions';
+import { useT, type MessageKey } from '../i18n/i18n';
+import { LanguageToggle } from '../ui/LanguageToggle';
 
 interface AdminDashboardProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ROLE_LABEL = { admin: 'Administrador', agente: 'Agente' } as const;
+const ROLE_LABEL: Record<'admin' | 'agente', MessageKey> = { admin: 'admin.role.admin', agente: 'admin.role.agente' };
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
   const { leads } = useLeadStore();
   const { properties } = usePropertyStore();
   const { status, email, membership, signOut } = useAuthStore();
+  const { t } = useT();
 
   // Con sesión y corredora, los leads se leen de la base (privados: sin sesión no se piden)
   useEffect(() => {
@@ -73,32 +76,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
             </div>
             <div>
               <h2 className="text-sm sm:text-lg font-bold text-white flex items-center gap-2">
-                Panel Auto-Gestión & CRM
+                {t('admin.title')}
               </h2>
               <p className="text-[10px] sm:text-xs text-slate-400">
                 {status === 'con_sesion' && membership
-                  ? `${membership.tenantName} • ${ROLE_LABEL[membership.role]} • ${email}`
+                  ? `${membership.tenantName} • ${t(ROLE_LABEL[membership.role])} • ${email}`
                   : `${agencyConfig.brandName} • ${agencyConfig.brokerName}`}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            <LanguageToggle tone="dark" />
             {(status === 'con_sesion' || status === 'sin_membresia') && (
               <button
                 onClick={handleSignOut}
                 className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-300 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors"
-                title="Cerrar sesión"
+                title={t('admin.signOut.title')}
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Cerrar Sesión</span>
+                <span className="hidden sm:inline">{t('admin.signOut')}</span>
               </button>
             )}
 
             <button
               onClick={onClose}
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
-              aria-label="Cerrar panel"
+              aria-label={t('admin.close')}
             >
               <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -106,7 +110,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
         </div>
 
         {status === 'cargando' && (
-          <div className="flex-1 flex items-center justify-center text-sm text-slate-500">Cargando…</div>
+          <div className="flex-1 flex items-center justify-center text-sm text-slate-500">{t('admin.loading')}</div>
         )}
         {status === 'sin_sesion' && <LoginScreen />}
         {status === 'recuperando' && <NewPasswordScreen />}
@@ -119,31 +123,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
               {visibleTabs.includes('crm') && (
                 <button onClick={() => setRequestedTab('crm')} className={tabClass('crm')}>
                   <Users className="w-3.5 h-3.5" />
-                  <span>Leads CRM ({leads.length})</span>
+                  <span>{t('admin.tab.crm', { count: leads.length })}</span>
                 </button>
               )}
               {visibleTabs.includes('properties') && (
                 <button onClick={() => setRequestedTab('properties')} className={tabClass('properties')}>
                   <Building className="w-3.5 h-3.5" />
-                  <span>Propiedades ({properties.length})</span>
+                  <span>{t('admin.tab.properties', { count: properties.length })}</span>
                 </button>
               )}
               {visibleTabs.includes('analytics') && (
                 <button onClick={() => setRequestedTab('analytics')} className={tabClass('analytics')}>
                   <BarChart3 className="w-3.5 h-3.5" />
-                  <span>Métricas</span>
+                  <span>{t('admin.tab.analytics')}</span>
                 </button>
               )}
               {visibleTabs.includes('settings') && (
                 <button onClick={() => setRequestedTab('settings')} className={tabClass('settings')}>
                   <Zap className="w-3.5 h-3.5 text-urbe-accent" />
-                  <span>Integraciones & IA</span>
+                  <span>{t('admin.tab.settings')}</span>
                 </button>
               )}
               {visibleTabs.includes('branding') && (
                 <button onClick={() => setRequestedTab('branding')} className={tabClass('branding')}>
                   <Palette className="w-3.5 h-3.5" />
-                  <span>Identidad & Marca</span>
+                  <span>{t('admin.tab.branding')}</span>
                 </button>
               )}
             </div>

@@ -35,10 +35,32 @@ interface LocaleStore {
   setLocale: (locale: Locale) => void;
 }
 
-// El idioma de la interfaz. Hoy parte en español; más adelante saldrá de la corredora y de la preferencia de cada usuario.
+const LOCALE_KEY = 'ui.locale';
+
+// Preferencia de esta persona en este navegador (no es un dato de negocio); sin ella, español.
+const readStoredLocale = (): Locale => {
+  try {
+    const stored = localStorage.getItem(LOCALE_KEY);
+    return LOCALES.find((l) => l === stored) ?? 'es';
+  } catch (error) {
+    console.warn('No se pudo leer el idioma guardado', error);
+    return 'es';
+  }
+};
+
+// El idioma de la interfaz: el que eligió la persona (queda en su navegador) o español.
+// Más adelante el idioma de la corredora será el valor inicial para quien no haya elegido.
 export const useLocaleStore = create<LocaleStore>((set) => ({
-  locale: 'es',
-  setLocale: (locale) => set({ locale }),
+  locale: readStoredLocale(),
+  setLocale: (locale) => {
+    try {
+      localStorage.setItem(LOCALE_KEY, locale);
+    } catch (error) {
+      console.warn('No se pudo guardar el idioma', error);
+    }
+    if (typeof document !== 'undefined') document.documentElement.lang = locale;
+    set({ locale });
+  },
 }));
 
 const marketMessages = (locale: Locale): Record<string, string> | undefined =>

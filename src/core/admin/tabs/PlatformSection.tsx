@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Building2 } from 'lucide-react';
 import { createTenant, isPlatformOwner, type CreateTenantError } from '../../auth/platformService';
+import { useT, type MessageKey } from '../../i18n/i18n';
 
-const ERROR_TEXT: Record<CreateTenantError, string> = {
-  nombre_invalido: 'El nombre de la corredora debe tener entre 2 y 80 caracteres.',
-  correo_invalido: 'El correo del administrador no es válido.',
-  nombre_repetido: 'Ya existe una corredora con ese nombre. Usa otro.',
-  correo_existente: 'Ese correo ya tiene una cuenta. Usa un correo nuevo para el administrador.',
-  sin_permiso: 'No tienes permiso para crear corredoras.',
-  conexion: 'No se pudo crear la corredora. Inténtalo de nuevo en unos minutos.',
+const ERROR_TEXT: Record<CreateTenantError, MessageKey> = {
+  nombre_invalido: 'platform.err.nombre_invalido',
+  correo_invalido: 'platform.err.correo_invalido',
+  nombre_repetido: 'platform.err.nombre_repetido',
+  correo_existente: 'platform.err.correo_existente',
+  sin_permiso: 'platform.err.sin_permiso',
+  conexion: 'platform.err.conexion',
 };
 
 // Solo la ve el dueño del producto (el servidor lo confirma); para el resto no se dibuja nada.
 export const PlatformSection: React.FC = () => {
+  const { t } = useT();
   const [owner, setOwner] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -39,9 +41,9 @@ export const PlatformSection: React.FC = () => {
     const result = await createTenant(name, email);
     setBusy(false);
     if ('error' in result) {
-      setMessage({ ok: false, text: ERROR_TEXT[result.error] });
+      setMessage({ ok: false, text: t(ERROR_TEXT[result.error]) });
     } else {
-      setMessage({ ok: true, text: `Corredora "${name.trim()}" creada. Se invitó a ${email.trim()} como administrador.` });
+      setMessage({ ok: true, text: t('platform.ok', { name: name.trim(), email: email.trim() }) });
       setName('');
       setEmail('');
     }
@@ -53,25 +55,25 @@ export const PlatformSection: React.FC = () => {
   return (
     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mt-6">
       <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-1">
-        <Building2 className="w-4 h-4 text-urbe-primary" /> Plataforma: crear una corredora
+        <Building2 className="w-4 h-4 text-urbe-primary" /> {t('platform.title')}
       </h3>
       <p className="text-xs text-slate-500 mb-4">
-        Crea la corredora y envía la invitación a su primer administrador. Solo la ve el dueño del producto.
+        {t('platform.help')}
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Nombre de la corredora"
-          aria-label="Nombre de la corredora"
+          placeholder={t('platform.name.placeholder')}
+          aria-label={t('platform.name.placeholder')}
           className={inputClass}
         />
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="correo del administrador"
-          aria-label="Correo del administrador"
+          placeholder={t('platform.email.placeholder')}
+          aria-label={t('platform.email.aria')}
           className={inputClass}
         />
         <button
@@ -79,7 +81,7 @@ export const PlatformSection: React.FC = () => {
           disabled={busy || !name.trim() || !email.trim()}
           className="px-5 py-2.5 bg-urbe-primary text-white rounded-xl text-sm font-bold disabled:opacity-50"
         >
-          {busy ? 'Creando…' : 'Crear'}
+          {busy ? t('platform.creating') : t('platform.submit')}
         </button>
       </form>
       {message && (

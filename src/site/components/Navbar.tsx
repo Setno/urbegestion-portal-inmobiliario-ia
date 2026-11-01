@@ -17,6 +17,7 @@ import { useChatStore } from '../../modules/captacion/stores/useChatStore';
 import { useBrandStore } from '../../core/brand/useBrandStore';
 import { useMarket } from '../../core/market/useMarketStore';
 import { useT } from '../../core/i18n/i18n';
+import { LanguageToggle } from '../../core/ui/LanguageToggle';
 
 interface NavbarProps {
   onOpenAdmin: () => void;
@@ -91,6 +92,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
                 </button>
               ))}
             </div>
+
+            <LanguageToggle />
 
             {/* Direct Instagram Link Button */}
             <a

@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { LogIn, KeyRound, Mail, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuthStore } from './useAuthStore';
 import type { AuthError } from './authService';
+import { useT, type MessageKey } from '../i18n/i18n';
 
-const MENSAJES: Record<AuthError, string> = {
-  credenciales: 'Correo o clave incorrectos.',
-  conexion: 'No se pudo conectar. Revisa tu internet e inténtalo de nuevo.',
-  no_configurado: 'El acceso no está configurado en este entorno.',
-  clave_corta: 'La clave debe tener al menos 8 caracteres.',
-  enlace_invalido: 'El enlace venció o ya fue usado. Pide uno nuevo.',
+const MENSAJES: Record<AuthError, MessageKey> = {
+  credenciales: 'auth.err.credenciales',
+  conexion: 'auth.err.conexion',
+  no_configurado: 'auth.err.no_configurado',
+  clave_corta: 'auth.err.clave_corta',
+  enlace_invalido: 'auth.err.enlace_invalido',
 };
 
 const inputClase =
@@ -30,11 +31,12 @@ export const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [olvido, setOlvido] = useState(false);
+  const { t } = useT();
 
   if (olvido) return <ForgotScreen onBack={() => setOlvido(false)} />;
 
   return (
-    <Tarjeta titulo="Ingresar al panel">
+    <Tarjeta titulo={t('auth.login.title')}>
       <form
         className="space-y-3"
         onSubmit={(e) => {
@@ -43,7 +45,7 @@ export const LoginScreen: React.FC = () => {
         }}
       >
         <label className="block text-xs font-semibold text-slate-600">
-          Correo
+          {t('auth.email')}
           <input
             type="email"
             autoComplete="email"
@@ -54,7 +56,7 @@ export const LoginScreen: React.FC = () => {
           />
         </label>
         <label className="block text-xs font-semibold text-slate-600">
-          Clave
+          {t('auth.password')}
           <input
             type="password"
             autoComplete="current-password"
@@ -66,16 +68,16 @@ export const LoginScreen: React.FC = () => {
         </label>
         {error && (
           <p role="alert" className="text-xs font-semibold text-rose-600">
-            {MENSAJES[error]}
+            {t(MENSAJES[error])}
           </p>
         )}
         <button type="submit" disabled={busy} className={botonClase}>
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
-          Ingresar
+          {t('auth.login.submit')}
         </button>
       </form>
       <button type="button" onClick={() => setOlvido(true)} className="text-xs font-semibold text-urbe-primary hover:underline">
-        ¿Olvidaste tu clave?
+        {t('auth.forgot.link')}
       </button>
     </Tarjeta>
   );
@@ -83,14 +85,15 @@ export const LoginScreen: React.FC = () => {
 
 const ForgotScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const resetPassword = useAuthStore((s) => s.resetPassword);
+  const { t } = useT();
   const [email, setEmail] = useState('');
   const [estado, setEstado] = useState<'idle' | 'enviando' | 'enviado' | AuthError>('idle');
 
   return (
-    <Tarjeta titulo="Recuperar clave">
+    <Tarjeta titulo={t('auth.forgot.title')}>
       {estado === 'enviado' ? (
         <p role="status" className="text-sm text-slate-700">
-          Si el correo está registrado, te enviamos un enlace para crear una clave nueva. Revisa tu bandeja y la carpeta de spam.
+          {t('auth.forgot.sent')}
         </p>
       ) : (
         <form
@@ -103,7 +106,7 @@ const ForgotScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           }}
         >
           <label className="block text-xs font-semibold text-slate-600">
-            Correo
+            {t('auth.email')}
             <input
               type="email"
               autoComplete="email"
@@ -115,17 +118,17 @@ const ForgotScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           </label>
           {estado !== 'idle' && estado !== 'enviando' && (
             <p role="alert" className="text-xs font-semibold text-rose-600">
-              {MENSAJES[estado]}
+              {t(MENSAJES[estado])}
             </p>
           )}
           <button type="submit" disabled={estado === 'enviando'} className={botonClase}>
             {estado === 'enviando' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-            Enviar enlace
+            {t('auth.forgot.submit')}
           </button>
         </form>
       )}
       <button type="button" onClick={onBack} className="text-xs font-semibold text-slate-500 hover:underline flex items-center gap-1">
-        <ArrowLeft className="w-3 h-3" /> Volver a ingresar
+        <ArrowLeft className="w-3 h-3" /> {t('auth.forgot.back')}
       </button>
     </Tarjeta>
   );
@@ -133,15 +136,16 @@ const ForgotScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
 export const NewPasswordScreen: React.FC = () => {
   const setNewPassword = useAuthStore((s) => s.setNewPassword);
+  const { t } = useT();
   const [password, setPassword] = useState('');
   const [error, setError] = useState<AuthError | null>(null);
   const [listo, setListo] = useState(false);
 
   return (
-    <Tarjeta titulo="Crea tu clave nueva">
+    <Tarjeta titulo={t('auth.new.title')}>
       {listo ? (
         <p role="status" className="text-sm text-slate-700">
-          Listo. Ya puedes ingresar con tu clave nueva.
+          {t('auth.new.done')}
         </p>
       ) : (
         <form
@@ -154,7 +158,7 @@ export const NewPasswordScreen: React.FC = () => {
           }}
         >
           <label className="block text-xs font-semibold text-slate-600">
-            Clave nueva (mínimo 8 caracteres)
+            {t('auth.new.label')}
             <input
               type="password"
               autoComplete="new-password"
@@ -166,11 +170,11 @@ export const NewPasswordScreen: React.FC = () => {
           </label>
           {error && (
             <p role="alert" className="text-xs font-semibold text-rose-600">
-              {MENSAJES[error]}
+              {t(MENSAJES[error])}
             </p>
           )}
           <button type="submit" className={botonClase}>
-            <KeyRound className="w-4 h-4" /> Guardar clave
+            <KeyRound className="w-4 h-4" /> {t('auth.new.submit')}
           </button>
         </form>
       )}
@@ -178,10 +182,11 @@ export const NewPasswordScreen: React.FC = () => {
   );
 };
 
-export const NoMembershipScreen: React.FC<{ email: string | null }> = ({ email }) => (
-  <Tarjeta titulo="Cuenta sin corredora">
-    <p className="text-sm text-slate-700">
-      Tu cuenta{email ? ` (${email})` : ''} aún no está asociada a una corredora. Pide al administrador que te invite.
-    </p>
-  </Tarjeta>
-);
+export const NoMembershipScreen: React.FC<{ email: string | null }> = ({ email }) => {
+  const { t } = useT();
+  return (
+    <Tarjeta titulo={t('auth.nomember.title')}>
+      <p className="text-sm text-slate-700">{t('auth.nomember.text', { email: email ? ` (${email})` : '' })}</p>
+    </Tarjeta>
+  );
+};
