@@ -17,3 +17,6 @@ export const safeTab = (role: Role | null, tab: AdminTab): AdminTab =>
 
 // Solo el administrador invita agentes a su corredora.
 export const canInviteAgents = (role: Role | null): boolean => role === 'admin';
+
+// Solo el administrador se lleva una copia de los datos de su corredora.
+export const canExportData = (role: Role | null): boolean => role === 'admin';

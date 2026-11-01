@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { allowedTabs, canOpenTab, safeTab, canInviteAgents } from './permissions';
+import { allowedTabs, canOpenTab, safeTab, canInviteAgents, canExportData } from './permissions';
 
 describe('permisos por rol', () => {
   it('el administrador ve todas las pestañas', () => {
@@ -27,5 +27,11 @@ describe('permisos por rol', () => {
     expect(canInviteAgents('admin')).toBe(true);
     expect(canInviteAgents('agente')).toBe(false);
     expect(canInviteAgents(null)).toBe(false);
+  });
+
+  it('solo el administrador puede exportar los datos de la corredora', () => {
+    expect(canExportData('admin')).toBe(true);
+    expect(canExportData('agente')).toBe(false);
+    expect(canExportData(null)).toBe(false);
   });
 });
