@@ -48,6 +48,10 @@ export const es = {
   'grid.empty.text':
     'Intenta ampliar el rango de precio, cambiar de {locality} o restablecer todos los filtros para ver la cartera completa.',
   'grid.empty.reset': 'Restablecer todos los filtros',
+  'grid.empty.none': 'Aún no hay propiedades publicadas en {scope}.',
+
+  // Panel: lista de propiedades
+  'properties.outsideAreas': 'Fuera de tus zonas',
 
   // Panel: zonas de trabajo de la corredora
   'areas.title': 'Dónde trabaja tu corredora',

@@ -211,6 +211,56 @@ describe('Catálogo: buscador y grilla', () => {
       expect(screen.getByText(/Todas las comunas de Valparaíso/)).toBeTruthy();
     });
 
+    it('con una región elegida el catálogo solo muestra las propiedades de esa región', () => {
+      useMarketStore.setState({ serviceAreas: ['CL-VS'] });
+      usePropertyStore.setState({
+        properties: [
+          { ...initialProperties[0], id: 'v1', title: 'Casa frente al mar en Viña', commune: 'Viña del Mar' },
+          { ...initialProperties[1], id: 's1', title: 'Casa en Santiago', commune: 'Vitacura' },
+          { ...initialProperties[2], id: 's2', title: 'Casa en La Dehesa', commune: 'Lo Barnechea' },
+        ],
+      });
+      pantalla();
+      expect(visible('Casa frente al mar en Viña')).toBe(true);
+      expect(visible('Casa en Santiago')).toBe(false);
+      expect(visible('Casa en La Dehesa')).toBe(false);
+      expect(contador()).toBe('1 propiedad');
+    });
+
+    it('con varias regiones muestra las de todas ellas, y con la Metropolitana reconoce las comunas con alias', () => {
+      useMarketStore.setState({ serviceAreas: ['CL-VS', 'CL-RM'] });
+      usePropertyStore.setState({
+        properties: [
+          { ...initialProperties[0], id: 'v1', title: 'Casa en Viña', commune: 'Viña del Mar' },
+          { ...initialProperties[1], id: 's2', title: 'Casa en La Dehesa', commune: 'Lo Barnechea' },
+          { ...initialProperties[2], id: 'c1', title: 'Casa en Concepción', commune: 'Concepción' },
+        ],
+      });
+      pantalla();
+      expect(visible('Casa en Viña')).toBe(true);
+      expect(visible('Casa en La Dehesa')).toBe(true);
+      expect(visible('Casa en Concepción')).toBe(false);
+    });
+
+    it('sin zonas elegidas se muestran las de todo el país', () => {
+      usePropertyStore.setState({
+        properties: [
+          { ...initialProperties[0], id: 'v1', title: 'Casa en Viña', commune: 'Viña del Mar' },
+          { ...initialProperties[1], id: 's1', title: 'Casa en Santiago', commune: 'Vitacura' },
+        ],
+      });
+      pantalla();
+      expect(contador()).toBe('2 propiedades');
+    });
+
+    it('si todavía no hay propiedades en las zonas elegidas, lo dice con claridad', () => {
+      useMarketStore.setState({ serviceAreas: ['CL-VS'] });
+      pantalla(); // las propiedades de ejemplo son de Santiago
+      expect(contador()).toBe('0 propiedades');
+      expect(screen.getByText('Aún no hay propiedades publicadas en Valparaíso.')).toBeTruthy();
+      expect(screen.queryByText(/No se encontraron propiedades con estos filtros/)).toBeNull();
+    });
+
     it('una propiedad de otra región se encuentra por su comuna', () => {
       usePropertyStore.setState({
         properties: [{ ...initialProperties[0], id: 'v1', title: 'Casa frente al mar en Viña', commune: 'Viña del Mar' }],

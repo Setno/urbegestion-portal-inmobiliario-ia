@@ -8,15 +8,16 @@ import {
   ChevronDown 
 } from 'lucide-react';
 import { usePropertyStore } from '../stores/usePropertyStore';
-import { isPublished } from '../services/publicationWorkflow';
+import { useOfferedProperties } from '../hooks/useOfferedProperties';
 import { matchesFilters } from '../services/propertyFilters';
 import { useMarket } from '../../../core/market/useMarketStore';
+import { NumberInput } from '../../../core/ui/NumberInput';
 import { PropertyType } from '../types/property';
 import { useT, capitalize } from '../../../core/i18n/i18n';
 
 export const SearchFilterBar: React.FC = () => {
-  const { filters, setFilters, resetFilters, currency, properties: allProperties } = usePropertyStore();
-  const properties = allProperties.filter(isPublished);
+  const { filters, setFilters, resetFilters, currency } = usePropertyStore();
+  const properties = useOfferedProperties();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { pack, zones, scopeLabel } = useMarket();
   const { t, tn } = useT();
@@ -166,11 +167,11 @@ export const SearchFilterBar: React.FC = () => {
               <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
                 {t('search.price.min', { currency })}
               </label>
-              <input
-                type="number"
+              <NumberInput
+                locale={pack.locale}
                 placeholder={t('search.price.example', { example: currency === pack.baseCurrency ? '150000000' : '5000' })}
                 value={filters.minPrice}
-                onChange={(e) => setFilters({ minPrice: e.target.value ? Number(e.target.value) : '' })}
+                onChange={(n) => setFilters({ minPrice: n })}
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white"
               />
             </div>
@@ -180,11 +181,11 @@ export const SearchFilterBar: React.FC = () => {
               <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
                 {t('search.price.max', { currency })}
               </label>
-              <input
-                type="number"
+              <NumberInput
+                locale={pack.locale}
                 placeholder={t('search.price.example', { example: currency === pack.baseCurrency ? '900000000' : '25000' })}
                 value={filters.maxPrice}
-                onChange={(e) => setFilters({ maxPrice: e.target.value ? Number(e.target.value) : '' })}
+                onChange={(n) => setFilters({ maxPrice: n })}
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white"
               />
             </div>

@@ -19,6 +19,8 @@ import {
 } from '../services/publicationWorkflow';
 import type { PublicationStatus } from '../types/property';
 import { useMarket } from '../../../core/market/useMarketStore';
+import { isInServiceAreas } from '../services/propertyFilters';
+import { NumberInput } from '../../../core/ui/NumberInput';
 import { useT, capitalize } from '../../../core/i18n/i18n';
 import { formatMoney } from '../../../core/money/money';
 import { priceOf } from '../services/propertyPrice';
@@ -38,7 +40,8 @@ export const PropertiesTab: React.FC = () => {
   const role = useAuthStore((s) => s.membership?.role ?? null);
   const mode = useAuthStore((s) => s.membership?.publicationMode);
   const actor = actorFor(role, mode);
-  const { pack, zones, localities } = useMarket();
+  const view = useMarket();
+  const { pack, zones, localities } = view;
   const { t } = useT();
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -49,7 +52,7 @@ export const PropertiesTab: React.FC = () => {
   const [propTitle, setPropTitle] = useState('');
   const [propOperation, setPropOperation] = useState<OperationType>('venta');
   const [propType, setPropType] = useState<PropertyType>('departamento');
-  const [propPrice, setPropPrice] = useState(12000);
+  const [propPrice, setPropPrice] = useState<number | ''>('');
   const [propCurrency, setPropCurrency] = useState(pack.defaultCurrency);
   const [propCommune, setPropCommune] = useState('');
   const [propAddress, setPropAddress] = useState('');
@@ -141,7 +144,7 @@ export const PropertiesTab: React.FC = () => {
     setPropTitle('');
     setPropOperation('venta');
     setPropType('departamento');
-    setPropPrice(12000);
+    setPropPrice('');
     setPropCurrency(pack.defaultCurrency);
     setPropCommune('');
     setPropAddress('');
@@ -180,7 +183,7 @@ export const PropertiesTab: React.FC = () => {
 
   const handleSaveProperty = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!propTitle || !propAddress || !propCommune) return;
+    if (!propTitle || !propAddress || !propCommune || propPrice === '') return;
 
     const finalImages = propImages.length > 0 
       ? propImages 
@@ -287,6 +290,11 @@ export const PropertiesTab: React.FC = () => {
                       className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold ${STATUS_STYLE[p.publicationStatus ?? 'publicada']}`}
                     >
                       {PUBLICATION_LABEL[p.publicationStatus ?? 'publicada']}
+                    </span>
+                  )}
+                  {!isInServiceAreas(p, view, pack) && (
+                    <span className="inline-block ml-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-500">
+                      {t('properties.outsideAreas')}
                     </span>
                   )}
                   {p.publicationStatus === 'rechazada' && p.rejectionReason && (
@@ -434,13 +442,13 @@ export const PropertiesTab: React.FC = () => {
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Precio *</label>
                   <div className="flex gap-1.5">
-                    <input
-                      type="number"
+                    <NumberInput
                       required
-                      min={0}
                       aria-label="Monto del precio"
+                      placeholder="Ej: 12.000"
                       value={propPrice}
-                      onChange={(e) => setPropPrice(Number(e.target.value))}
+                      locale={pack.locale}
+                      onChange={setPropPrice}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
                     />
                     <select

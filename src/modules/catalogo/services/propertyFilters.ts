@@ -44,3 +44,10 @@ export const matchesFilters = (
   }
   return true;
 };
+
+// Una corredora que acotó sus zonas solo muestra en el sitio las propiedades que están dentro de ellas.
+export const isInServiceAreas = (
+  p: Pick<Property, 'commune'>,
+  view: { restricted: boolean; localities: string[] },
+  pack: MarketPack,
+): boolean => !view.restricted || view.localities.some((l) => matchesCommune(p.commune, l, pack));

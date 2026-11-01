@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PropertyCard } from './PropertyCard';
 import { usePropertyStore } from '../stores/usePropertyStore';
-import { isPublished } from '../services/publicationWorkflow';
+import { useOfferedProperties } from '../hooks/useOfferedProperties';
 import { matchesFilters } from '../services/propertyFilters';
 import { priceOf } from '../services/propertyPrice';
 import { comparePrices, currentRates } from '../../../core/money/money';
@@ -19,9 +19,10 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
   onOpenDetails, 
   onOpenBooking 
 }) => {
-  const { properties: allProperties, filters, resetFilters, loading, currency } = usePropertyStore();
-  // El sitio solo muestra lo publicado (el borrador y lo que espera aprobación quedan en el panel)
-  const properties = allProperties.filter(isPublished);
+  const { filters, resetFilters, loading, currency } = usePropertyStore();
+  // El sitio solo muestra lo publicado y lo que está dentro de las zonas de trabajo de la corredora
+  const properties = useOfferedProperties();
+  const { restricted } = useMarket();
   const { pack, scopeLabel } = useMarket();
   const { t } = useT();
   const rates = currentRates();
@@ -93,6 +94,11 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
       ) : loading ? (
         <div role="status" className="text-center py-16 text-sm text-slate-500">
           {t('grid.loading')}
+        </div>
+      ) : restricted && properties.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+          <Building className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-slate-800">{t('grid.empty.none', { scope: scopeLabel })}</h3>
         </div>
       ) : (
         /* Empty State */

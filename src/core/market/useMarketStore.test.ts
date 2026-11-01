@@ -46,6 +46,13 @@ describe('marketView', () => {
     expect(marketView('cl', ['CL-VS', 'CL-BI', 'CL-AR']).scopeLabel).toBe('Biobío, La Araucanía y Valparaíso');
   });
 
+  it('indica si la corredora acotó sus zonas (restricted)', () => {
+    expect(marketView('cl', []).restricted).toBe(false);
+    expect(marketView('cl', ['XX']).restricted).toBe(false); // ninguna zona válida: vale todo el país
+    expect(marketView('cl', ['CL-VS']).restricted).toBe(true);
+    expect(marketView('cl', ['CL-VS', 'CL-BI']).restricted).toBe(true);
+  });
+
   it('un mercado desconocido cae en Chile', () => {
     expect(marketView('zz', []).pack.id).toBe('cl');
   });

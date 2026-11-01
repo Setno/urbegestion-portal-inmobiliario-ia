@@ -25,10 +25,11 @@ const abrirNueva = () => fireEvent.click(screen.getByRole('button', { name: /Pub
 const elegirComuna = (comuna: string) =>
   fireEvent.change(screen.getByDisplayValue('Selecciona la comuna'), { target: { value: comuna } });
 
-const llenarFormulario = (titulo: string, direccion: string, comuna = 'Las Condes') => {
+const llenarFormulario = (titulo: string, direccion: string, comuna = 'Las Condes', precio = '5000') => {
   fireEvent.change(screen.getByPlaceholderText(/Penthouse Dúplex con Terraza/), { target: { value: titulo } });
   fireEvent.change(screen.getByPlaceholderText(/Av\. Nueva Costanera/), { target: { value: direccion } });
   elegirComuna(comuna);
+  fireEvent.change(screen.getByLabelText('Monto del precio'), { target: { value: precio } });
 };
 
 const guardar = (nombre: RegExp) => fireEvent.click(screen.getByRole('button', { name: nombre }));
@@ -59,7 +60,7 @@ describe('PropertiesTab (gestor de propiedades)', () => {
       render(<PropertiesTab />);
       abrirNueva();
       llenarFormulario('Depto nuevo en Ñuñoa', 'Av. Irarrázaval 1234');
-      fireEvent.change(screen.getByDisplayValue('12000'), { target: { value: '9500' } });
+      fireEvent.change(screen.getByLabelText('Monto del precio'), { target: { value: '9500' } });
       guardar(/Crear Propiedad/);
 
       const creada = usePropertyStore.getState().properties.find((p) => p.title === 'Depto nuevo en Ñuñoa')!;
@@ -83,6 +84,42 @@ describe('PropertiesTab (gestor de propiedades)', () => {
       expect(creada.priceAmount).toBe(180000000);
       expect(creada.priceCurrency).toBe('CLP');
       expect(within(tarjeta('Casa en pesos')).getByText('$180.000.000 CLP')).toBeTruthy();
+    });
+
+    it('el monto se muestra con puntos de miles mientras se escribe y parte vacío', () => {
+      render(<PropertiesTab />);
+      abrirNueva();
+      const monto = screen.getByLabelText('Monto del precio') as HTMLInputElement;
+      expect(monto.value).toBe('');
+      fireEvent.change(monto, { target: { value: '180000000' } });
+      expect(monto.value).toBe('180.000.000');
+    });
+
+    it('sin monto no se guarda la propiedad', () => {
+      render(<PropertiesTab />);
+      abrirNueva();
+      llenarFormulario('Sin precio', 'Calle 30');
+      fireEvent.change(screen.getByLabelText('Monto del precio'), { target: { value: '' } });
+      fireEvent.submit(screen.getByPlaceholderText(/Av\. Nueva Costanera/).closest('form')!);
+      expect(usePropertyStore.getState().properties).toHaveLength(2);
+    });
+
+    it('marca como "Fuera de tus zonas" las propiedades que el sitio no muestra por las zonas elegidas', () => {
+      useMarketStore.setState({ serviceAreas: ['CL-VS'] });
+      usePropertyStore.setState({
+        properties: [
+          { ...conEstado('p1', 'En Santiago'), commune: 'Vitacura' },
+          { ...conEstado('p2', 'En Viña'), commune: 'Viña del Mar' },
+        ],
+      });
+      render(<PropertiesTab />);
+      expect(within(tarjeta('En Santiago')).getByText('Fuera de tus zonas')).toBeTruthy();
+      expect(within(tarjeta('En Viña')).queryByText('Fuera de tus zonas')).toBeNull();
+    });
+
+    it('sin zonas elegidas no marca ninguna propiedad como fuera de zonas', () => {
+      render(<PropertiesTab />);
+      expect(screen.queryByText('Fuera de tus zonas')).toBeNull();
     });
 
     it('por defecto el precio se carga en UF (la moneda por defecto de Chile)', () => {

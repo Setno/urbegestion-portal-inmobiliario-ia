@@ -5,6 +5,7 @@ import { useChatStore } from '../stores/useChatStore';
 import { useLeadStore } from '../../crm/stores/useLeadStore';
 import { registerLeadEvents } from '../../crm/services/leadEvents';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
+import { useMarketStore } from '../../../core/market/useMarketStore';
 import { initialProperties } from '../../catalogo/data/initialProperties';
 
 const CAJA = 'Pregúntale al Asistente IA sobre propiedades...';
@@ -34,6 +35,7 @@ describe('AiChatWidget (asistente)', () => {
     useChatStore.getState().setIsTyping(false);
     useLeadStore.setState({ leads: [] });
     usePropertyStore.setState({ properties: [...initialProperties] });
+    useMarketStore.setState({ marketId: 'cl', serviceAreas: [] });
   });
 
   afterEach(() => {
@@ -90,6 +92,23 @@ describe('AiChatWidget (asistente)', () => {
     escribir('Casas en Lo Barnechea');
     await waitFor(() => expect(ultimoMensaje()?.sender).toBe('bot'));
     expect(screen.queryByText(initialProperties[1].title)).toBeNull();
+  });
+
+  it('con zonas de trabajo acotadas no sugiere propiedades de fuera de esas zonas', async () => {
+    useMarketStore.setState({ serviceAreas: ['CL-VS'] });
+    usePropertyStore.setState({
+      properties: [
+        { ...initialProperties[0], id: 'v1', title: 'Casa en Viña', commune: 'Viña del Mar', propertyType: 'casa' as const },
+        { ...initialProperties[1], id: 's1', title: 'Casa en Lo Barnechea', commune: 'Lo Barnechea', propertyType: 'casa' as const },
+      ],
+    });
+    render(<AiChatWidget onOpenPropertyModal={vi.fn()} />);
+    abrir();
+    expect(screen.getByRole('button', { name: 'Casas en Viña del Mar' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Casas en Lo Barnechea' })).toBeNull();
+    escribir('Casas en Lo Barnechea');
+    await waitFor(() => expect(ultimoMensaje()?.sender).toBe('bot'));
+    expect(screen.queryByText('Casa en Lo Barnechea')).toBeNull();
   });
 
   it('Enter envía el mensaje y los chips rápidos también', async () => {

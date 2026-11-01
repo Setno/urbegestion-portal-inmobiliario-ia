@@ -48,6 +48,10 @@ export const en: Record<MessageKey, string> = {
   'grid.empty.text':
     'Try widening the price range, changing the {locality} or resetting all filters to see the full portfolio.',
   'grid.empty.reset': 'Reset all filters',
+  'grid.empty.none': 'There are no published properties in {scope} yet.',
+
+  // Panel: property list
+  'properties.outsideAreas': 'Outside your areas',
 
   // Panel: the brokerage's working areas
   'areas.title': 'Where your brokerage works',

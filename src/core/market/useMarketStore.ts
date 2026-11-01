@@ -42,6 +42,7 @@ export interface MarketView {
   localities: string[]; // todas las comunas (o equivalente) donde trabaja la corredora
   defaultLocality: string; // valor inicial razonable para un formulario
   scopeLabel: string; // "Chile", "Valparaíso", "Biobío y Valparaíso"…
+  restricted: boolean; // la corredora acotó sus zonas: solo se ofrece (y se muestra) lo que está dentro de ellas
 }
 
 const joinNames = (names: string[]): string =>
@@ -59,6 +60,7 @@ export function marketView(marketId: string, serviceAreas: string[]): MarketView
     localities,
     defaultLocality: localities[0] ?? '',
     scopeLabel: allSelected ? pack.name : joinNames(names),
+    restricted: !allSelected,
   };
 }
 
