@@ -91,6 +91,10 @@ function applyCssVariables(colors: ThemeColors) {
   }
 }
 
+// Copia de la marca de origen: updateBrandConfig mantiene sincronizado el objeto compartido agencyConfig,
+// así que restaurar necesita su propia copia para no devolver lo ya editado (H-042).
+const originalBrandConfig: RealEstateBrandConfig = structuredClone(defaultAgencyConfig);
+
 const brandConfigStorage = createLocalStore<Partial<RealEstateBrandConfig>>('urbe_brand_config');
 const themeColorsStorage = createLocalStore<Partial<ThemeColors>>('urbe_theme_colors');
 const layoutConfigStorage = createLocalStore<Partial<BrandLayoutConfig>>('urbe_layout_config');
@@ -170,8 +174,11 @@ export const useBrandStore = create<BrandStore>((set) => {
         applyCssVariables(defaultThemeColors);
       }
 
+      const original = structuredClone(originalBrandConfig);
+      Object.assign(defaultAgencyConfig, original);
+
       set({
-        config: { ...defaultAgencyConfig },
+        config: original,
         themeColors: { ...defaultThemeColors },
         layoutConfig: { ...defaultLayoutConfig },
       });

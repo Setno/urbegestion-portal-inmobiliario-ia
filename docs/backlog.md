@@ -35,7 +35,7 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-018 | Pruebas de `api/chat.ts` y `api/lead-webhook.ts` como parte de la suite (hoy solo se verificaron con scripts temporales que no se guardaron) | Alta | S | hecha | H-002 |
 | H-020 | Pruebas de pantallas del CRM (Kanban, filtros, ficha del lead, notas, exportación CSV) con Testing Library | Media | M | hecha (2026-11-01: 19 pruebas de la pantalla; se instaló Testing Library) | H-002; hacerla antes de rediseñar el CRM |
 | H-021 | Pruebas de pantallas de catálogo y captación (filtros, formulario de propiedades, chat, valorizador de 4 pasos, agenda) (el simulador de dividendo queda apagado, ver H-017) | Media | M | hecha (2026-11-01: 47 pruebas de pantalla en 5 archivos) | H-002 |
-| H-022 | Pruebas de la tienda de marca y de la pestaña de Identidad y Marca | Baja | S | pendiente | H-002 |
+| H-022 | Pruebas de la tienda de marca y de la pestaña de Identidad y Marca | Baja | S | hecha (2026-11-01: 7 pruebas de la tienda y 6 de la pestaña) | H-002 |
 | H-025 | Exportación completa de los datos de una corredora (propiedades, contactos, notas) en CSV/JSON | Media | M | hecha (probada a mano por el responsable, 2026-11-01) | H-008 |
 | H-026 | Pasar el repositorio a monorepo: `apps/consola` (React + Vite) y `apps/sitio` (Next.js) con paquetes compartidos | Alta | M+ (dividir) | pendiente | ADR-006 |
 | H-027 | Modelo de plantilla: datos del sitio en la base de datos y separación entre contenido y diseño | Alta | M+ (dividir) | pendiente | H-008, H-026 |
@@ -53,6 +53,7 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-039 | Corregir el filtro de comunas del catálogo: el contador del buscador compara de forma flexible y la grilla de forma exacta, así que al elegir "Lo Barnechea (La Dehesa / Los Trapenses)" el contador dice 1 propiedad y la grilla queda vacía (igual con Chicureo, Melipilla y Pirque). Prueba invertida en `Catalogo.test.tsx` | Alta | S | hecha (probada a mano por el responsable, 2026-11-01) | H-021 |
 | H-040 | Ubicaciones por mercado y zonas de trabajo de la corredora: cargar las 16 regiones de Chile con sus comunas como dato jerárquico, y que cada corredora elija dónde opera; el buscador, el formulario de propiedades, el valorizador y el chat usan esas zonas y el sitio deja de decir "Santiago" (ADR-008, propuesta; la columna nueva de zonas requiere migración aprobada) | Alta | M | hecha (probada a mano por el responsable, 2026-11-01) | H-039 |
 | H-041 | Precio con su moneda: la propiedad guarda monto y moneda en vez de `price_uf`; la UF pasa a ser una moneda del paquete Chile con su conversión (ADR-008; migración nueva con migración de datos, requiere aprobación) | Media | M+ | hecha (probada a mano por el responsable, 2026-11-01) | H-040 |
+| H-042 | Restaurar la marca original: tras guardar un cambio en la misma sesión, "Restaurar Original" devolvía lo editado porque guardar pisaba el objeto de origen; ahora la tienda guarda su propia copia del original (descubierto al escribir las pruebas de H-022) | Media | S | hecha (2026-11-01) | H-022 |
 | H-013 | Despliegue final: reactivar despliegues en `vercel.json`, cargar variables y smoke test | Alta | S | bloqueada hasta nuevo aviso | todas las fases |
 
 ## Estacionadas: seguridad y comprobaciones (revisar antes del despliegue)
