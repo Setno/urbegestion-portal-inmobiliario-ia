@@ -30,8 +30,21 @@ describe('paquete de mercado Chile', () => {
     expect(rm.zones.flatMap((z) => z.localities)).toContain('Vitacura');
   });
 
-  it('nombra el primer nivel Región y el segundo Comuna', () => {
-    expect([CHILE.areaLabel, CHILE.localityLabel]).toEqual(['Región', 'Comuna']);
+  it('define sus monedas (UF y peso), la base y la de uso por defecto', () => {
+    expect(CHILE.currencies.map((c) => c.code)).toEqual(['UF', 'CLP']);
+    expect(CHILE.baseCurrency).toBe('CLP');
+    expect(CHILE.defaultCurrency).toBe('UF');
+    expect(CHILE.currencies.map((c) => c.code)).toContain(CHILE.defaultCurrency);
+  });
+
+  it('define el prefijo y el ejemplo de teléfono, coherentes entre sí', () => {
+    expect(CHILE.phonePrefix).toBe('+56');
+    expect(CHILE.phoneExample.startsWith(CHILE.phonePrefix)).toBe(true);
+  });
+
+  it('nombra el primer nivel región y el segundo comuna, en español y en inglés', () => {
+    expect([CHILE.messages.es['market.area'], CHILE.messages.es['market.locality']]).toEqual(['región', 'comuna']);
+    expect([CHILE.messages.en['market.area'], CHILE.messages.en['market.locality']]).toEqual(['region', 'commune']);
   });
 });
 

@@ -3,6 +3,7 @@ import { MapPin } from 'lucide-react';
 import { useAuthStore } from '../../auth/useAuthStore';
 import { canEditServiceAreas } from '../../auth/permissions';
 import { useMarket, useMarketStore } from '../../market/useMarketStore';
+import { useT } from '../../i18n/i18n';
 
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
 
@@ -13,6 +14,7 @@ export const ServiceAreasSection: React.FC = () => {
   const saved = useMarketStore((s) => s.serviceAreas);
   const save = useMarketStore((s) => s.setServiceAreas);
   const { pack } = useMarket();
+  const { t } = useT();
   const [draft, setDraft] = useState<string[]>(saved);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -33,20 +35,19 @@ export const ServiceAreasSection: React.FC = () => {
     setBusy(false);
     setMessage(
       result.ok
-        ? { ok: true, text: 'Zonas guardadas. El sitio y el panel ya usan estas regiones.' }
-        : { ok: false, text: 'No se pudieron guardar las zonas. Inténtalo de nuevo.' },
+        ? { ok: true, text: t('areas.saved', { areas: t('market.areas') }) }
+        : { ok: false, text: t('areas.error') },
     );
   };
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mt-6">
       <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-1">
-        <MapPin className="w-4 h-4 text-urbe-primary" /> Dónde trabaja tu corredora
+        <MapPin className="w-4 h-4 text-urbe-primary" /> {t('areas.title')}
       </h3>
       <p className="text-xs text-slate-500 mb-4">
-        Marca las {pack.areaLabel.toLowerCase()}s donde publicas propiedades. El buscador del sitio, el formulario de
-        propiedades y la tasación ofrecerán solo las {pack.localityLabel.toLowerCase()}s de esas {pack.areaLabel.toLowerCase()}s.
-        Sin ninguna {pack.areaLabel.toLowerCase()} marcada se ofrece todo {pack.name}.
+        {t('areas.help', { areas: t('market.areas'), localities: t('market.localities') })}{' '}
+        {t('areas.none', { area: t('market.area'), market: pack.name })}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {pack.areas.map((area) => (
@@ -68,7 +69,7 @@ export const ServiceAreasSection: React.FC = () => {
           onClick={handleSave}
           className="px-4 py-2 rounded-xl bg-urbe-primary text-white text-xs font-bold disabled:opacity-50"
         >
-          Guardar zonas
+          {t('areas.save')}
         </button>
         {message && (
           <p role="status" className={`text-xs font-semibold ${message.ok ? 'text-emerald-700' : 'text-red-600'}`}>

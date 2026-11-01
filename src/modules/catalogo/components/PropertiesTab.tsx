@@ -19,6 +19,7 @@ import {
 } from '../services/publicationWorkflow';
 import type { PublicationStatus } from '../types/property';
 import { useMarket } from '../../../core/market/useMarketStore';
+import { useT, capitalize } from '../../../core/i18n/i18n';
 import { formatMoney } from '../../../core/money/money';
 import { priceOf } from '../services/propertyPrice';
 import { Property, PropertyType, OperationType } from '../types/property';
@@ -38,6 +39,7 @@ export const PropertiesTab: React.FC = () => {
   const mode = useAuthStore((s) => s.membership?.publicationMode);
   const actor = actorFor(role, mode);
   const { pack, zones, localities } = useMarket();
+  const { t } = useT();
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
@@ -454,7 +456,7 @@ export const PropertiesTab: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">{pack.localityLabel}</label>
+                  <label className="block font-bold text-slate-700 mb-1">{capitalize(t('market.locality'))}</label>
                   <select
                     value={propCommune}
                     required
@@ -462,7 +464,7 @@ export const PropertiesTab: React.FC = () => {
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                   >
                     <option value="" disabled>
-                      Selecciona la {pack.localityLabel.toLowerCase()}
+                      {t('market.selectLocality')}
                     </option>
                     {zones.map((zone) => (
                       <optgroup key={zone.groupName} label={zone.groupName}>

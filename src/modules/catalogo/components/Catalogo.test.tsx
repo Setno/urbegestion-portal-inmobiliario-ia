@@ -4,6 +4,7 @@ import { SearchFilterBar } from './SearchFilterBar';
 import { PropertyGrid } from './PropertyGrid';
 import { usePropertyStore } from '../stores/usePropertyStore';
 import { useMarketStore } from '../../../core/market/useMarketStore';
+import { useLocaleStore } from '../../../core/i18n/i18n';
 import { initialProperties } from '../data/initialProperties';
 import type { Property } from '../types/property';
 
@@ -45,6 +46,7 @@ describe('Catálogo: buscador y grilla', () => {
     usePropertyStore.setState({ properties: [...initialProperties], loading: false, currency: 'UF' });
     usePropertyStore.getState().resetFilters();
     useMarketStore.setState({ marketId: 'cl', serviceAreas: [] });
+    useLocaleStore.setState({ locale: 'es' });
   });
 
   afterEach(() => {
@@ -217,6 +219,36 @@ describe('Catálogo: buscador y grilla', () => {
       fireEvent.change(screen.getByDisplayValue(/Todas las comunas/), { target: { value: 'Viña del Mar' } });
       expect(visible('Casa frente al mar en Viña')).toBe(true);
       expect(contador()).toBe('1 propiedad');
+    });
+  });
+
+  describe('idioma', () => {
+    it('en inglés el buscador y la grilla se muestran en inglés, con el nombre de las comunas del mercado', () => {
+      useLocaleStore.setState({ locale: 'en' });
+      pantalla();
+      expect(screen.getByRole('button', { name: 'For Rent' })).toBeTruthy();
+      expect(screen.getByText('8 properties')).toBeTruthy();
+      expect(screen.getByText('Properties in Chile')).toBeTruthy();
+      expect(screen.getByDisplayValue(/All communes in Chile/)).toBeTruthy();
+      expect(screen.getByDisplayValue('Featured first')).toBeTruthy();
+      expect(screen.getByPlaceholderText(/Water rights/)).toBeTruthy();
+    });
+
+    it('en inglés el contador usa el singular cuando hay una sola propiedad', () => {
+      useLocaleStore.setState({ locale: 'en' });
+      pantalla();
+      fireEvent.change(screen.getByDisplayValue(/All communes/), { target: { value: 'Vitacura' } });
+      expect(screen.getByText('1 property')).toBeTruthy();
+    });
+
+    it('en inglés el estado vacío también se traduce', () => {
+      useLocaleStore.setState({ locale: 'en' });
+      pantalla();
+      fireEvent.change(screen.getByPlaceholderText(/Water rights/), { target: { value: 'zzzz' } });
+      expect(screen.getByText('No properties match these filters')).toBeTruthy();
+      expect(screen.getByText(/changing the commune/)).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Reset all filters' }));
+      expect(screen.getByText('8 properties')).toBeTruthy();
     });
   });
 

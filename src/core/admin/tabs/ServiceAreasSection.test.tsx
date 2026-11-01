@@ -3,6 +3,7 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 import { ServiceAreasSection } from './ServiceAreasSection';
 import { useAuthStore } from '../../auth/useAuthStore';
 import { useMarketStore } from '../../market/useMarketStore';
+import { useLocaleStore } from '../../i18n/i18n';
 
 const entrar = (role: 'admin' | 'agente') =>
   useAuthStore.setState({ membership: { tenantName: 'Corredora de prueba', role, publicationMode: 'con_aprobacion' } });
@@ -13,6 +14,7 @@ describe('ServiceAreasSection (dónde trabaja la corredora)', () => {
   beforeEach(() => {
     useAuthStore.setState({ membership: null });
     useMarketStore.setState({ marketId: 'cl', serviceAreas: [], loaded: true });
+    useLocaleStore.setState({ locale: 'es' });
   });
 
   afterEach(() => cleanup());
@@ -60,6 +62,15 @@ describe('ServiceAreasSection (dónde trabaja la corredora)', () => {
     fireEvent.click(casilla('Valparaíso'));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar zonas' }));
     await waitFor(() => expect(useMarketStore.getState().serviceAreas).toEqual([]));
+  });
+
+  it('en inglés la sección se muestra en inglés con las regiones del mercado', () => {
+    useLocaleStore.setState({ locale: 'en' });
+    entrar('admin');
+    render(<ServiceAreasSection />);
+    expect(screen.getByText('Where your brokerage works')).toBeTruthy();
+    expect(screen.getByText(/With no region ticked, all of Chile is offered/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Save areas' })).toBeTruthy();
   });
 
   it('el botón de guardar solo se activa cuando hay cambios', () => {

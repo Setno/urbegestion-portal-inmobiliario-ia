@@ -1,13 +1,14 @@
 import type { MarketPack } from '../types';
 import { CHILE_AREAS } from './locations';
+import { CHILE_MESSAGES } from './messages';
 
 export const CHILE: MarketPack = {
   id: 'cl',
   name: 'Chile',
   locale: 'es-CL',
-  areaLabel: 'Región',
-  localityLabel: 'Comuna',
+  messages: CHILE_MESSAGES,
   phonePrefix: '+56',
+  phoneExample: '+56 9 1234 5678',
   privacyLaw: 'Ley 21.719',
   baseCurrency: 'CLP',
   defaultCurrency: 'UF',

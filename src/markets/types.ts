@@ -24,9 +24,10 @@ export interface MarketPack {
   id: string; // 'cl'
   name: string;
   locale: string; // 'es-CL': idioma y formatos por defecto
-  areaLabel: string; // cómo se llama el primer nivel: "Región"
-  localityLabel: string; // y el segundo: "Comuna"
+  // Textos propios del país por idioma (cómo se llama el primer y segundo nivel de ubicación, etc.); reemplazan a los de la base.
+  messages: Record<string, Record<string, string>>;
   phonePrefix: string;
+  phoneExample: string; // cómo se ve un teléfono en los formularios
   privacyLaw: string;
   baseCurrency: string; // moneda en la que se convierten las demás ('CLP')
   defaultCurrency: string; // moneda con la que se muestran y cargan los precios por defecto ('UF')

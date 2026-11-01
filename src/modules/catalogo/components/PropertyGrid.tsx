@@ -7,6 +7,7 @@ import { priceOf } from '../services/propertyPrice';
 import { comparePrices, currentRates } from '../../../core/money/money';
 import { Property } from '../types/property';
 import { useMarket } from '../../../core/market/useMarketStore';
+import { useT } from '../../../core/i18n/i18n';
 import { ArrowUpDown, Sparkles, Building, RotateCcw } from 'lucide-react';
 
 interface PropertyGridProps {
@@ -22,6 +23,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
   // El sitio solo muestra lo publicado (el borrador y lo que espera aprobación quedan en el panel)
   const properties = allProperties.filter(isPublished);
   const { pack, scopeLabel } = useMarket();
+  const { t } = useT();
   const rates = currentRates();
   const [sortBy, setSortBy] = useState<'featured' | 'priceAsc' | 'priceDesc' | 'areaDesc'>('featured');
 
@@ -49,10 +51,10 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-urbe-primary/10 text-urbe-primary text-xs font-bold uppercase tracking-wider mb-2">
             <Sparkles className="w-3.5 h-3.5 text-urbe-accent" />
-            Catálogo Exclusivo
+            {t('grid.badge')}
           </div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Propiedades en {scopeLabel}
+            {t('grid.title', { scope: scopeLabel })}
           </h2>
           <p className="text-sm text-slate-500 mt-1 max-w-xl">
             Cartera selecta de departamentos de alto estándar, casas en condominios cerrados y parcelas agrícolas con títulos al día.
@@ -62,16 +64,16 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
         {/* Sort Controls */}
         <div className="flex items-center gap-2 self-start md:self-end">
           <ArrowUpDown className="w-4 h-4 text-slate-400" />
-          <span className="text-xs font-semibold text-slate-600">Ordenar:</span>
+          <span className="text-xs font-semibold text-slate-600">{t('grid.sort.label')}</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary cursor-pointer shadow-sm"
           >
-            <option value="featured">Destacadas primero</option>
-            <option value="priceAsc">Menor a mayor precio</option>
-            <option value="priceDesc">Mayor a menor precio</option>
-            <option value="areaDesc">Mayor superficie (m²)</option>
+            <option value="featured">{t('grid.sort.featured')}</option>
+            <option value="priceAsc">{t('grid.sort.priceAsc')}</option>
+            <option value="priceDesc">{t('grid.sort.priceDesc')}</option>
+            <option value="areaDesc">{t('grid.sort.areaDesc')}</option>
           </select>
         </div>
       </div>
@@ -90,24 +92,24 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
         </div>
       ) : loading ? (
         <div role="status" className="text-center py-16 text-sm text-slate-500">
-          Cargando propiedades…
+          {t('grid.loading')}
         </div>
       ) : (
         /* Empty State */
         <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
           <Building className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-slate-800 mb-2">
-            No se encontraron propiedades con estos filtros
+            {t('grid.empty.title')}
           </h3>
           <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-            Intenta ampliar el rango de precio, cambiar de comuna o restablecer todos los filtros para ver la cartera completa.
+            {t('grid.empty.text', { locality: t('market.locality') })}
           </p>
           <button
             onClick={resetFilters}
             className="px-5 py-2.5 rounded-xl bg-urbe-primary text-white text-xs font-bold inline-flex items-center gap-2 shadow hover:bg-urbe-primaryDark transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
-            Restablecer todos los filtros
+            {t('grid.empty.reset')}
           </button>
         </div>
       )}

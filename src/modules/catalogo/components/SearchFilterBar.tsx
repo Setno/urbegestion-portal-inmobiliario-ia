@@ -12,12 +12,14 @@ import { isPublished } from '../services/publicationWorkflow';
 import { matchesFilters } from '../services/propertyFilters';
 import { useMarket } from '../../../core/market/useMarketStore';
 import { PropertyType } from '../types/property';
+import { useT, capitalize } from '../../../core/i18n/i18n';
 
 export const SearchFilterBar: React.FC = () => {
   const { filters, setFilters, resetFilters, currency, properties: allProperties } = usePropertyStore();
   const properties = allProperties.filter(isPublished);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { pack, zones, scopeLabel } = useMarket();
+  const { t, tn } = useT();
 
   const count = properties.filter((p) => matchesFilters(p, filters, pack, currency)).length;
 
@@ -47,14 +49,14 @@ export const SearchFilterBar: React.FC = () => {
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                 }`}
               >
-                {op === 'todas' ? 'Todas' : op === 'venta' ? 'En Venta' : 'En Arriendo'}
+                {op === 'todas' ? t('search.op.all') : op === 'venta' ? t('search.op.sale') : t('search.op.rent')}
               </button>
             ))}
           </div>
 
           <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
             <span className="text-[11px] sm:text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full">
-              {count} {count === 1 ? 'propiedad' : 'propiedades'}
+              {tn('search.count', count)}
             </span>
 
             {isFiltered && (
@@ -63,7 +65,7 @@ export const SearchFilterBar: React.FC = () => {
                 className="text-[11px] sm:text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 bg-rose-50 px-3 py-1.5 rounded-full border border-rose-200 hover:bg-rose-100 transition-colors"
               >
                 <RotateCcw className="w-3 h-3" />
-                Limpiar
+                {t('search.clear')}
               </button>
             )}
           </div>
@@ -75,13 +77,13 @@ export const SearchFilterBar: React.FC = () => {
           {/* Keyword Search */}
           <div className="md:col-span-4 relative">
             <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-              Búsqueda / Palabras clave
+              {t('search.keyword.label')}
             </label>
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Ej: Derechos de agua, Quincho, Losa..."
+                placeholder={t('search.keyword.placeholder')}
                 value={filters.searchQuery}
                 onChange={(e) => setFilters({ searchQuery: e.target.value })}
                 className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white transition-all"
@@ -92,7 +94,7 @@ export const SearchFilterBar: React.FC = () => {
           {/* Commune Filter with Complete Región Metropolitana Zones */}
           <div className="md:col-span-4">
             <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-              {pack.localityLabel} / Sector
+              {t('search.locality.label', { Locality: capitalize(t('market.locality')) })}
             </label>
             <div className="relative">
               <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -101,7 +103,7 @@ export const SearchFilterBar: React.FC = () => {
                 onChange={(e) => setFilters({ commune: e.target.value })}
                 className="w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white transition-all appearance-none cursor-pointer"
               >
-                <option value="Todas las comunas">📍 Todas las comunas de {scopeLabel}</option>
+                <option value="Todas las comunas">{t('search.locality.all', { localities: t('market.localities'), scope: scopeLabel })}</option>
                 {zones.map((zone) => (
                   <optgroup key={zone.groupName} label={`--- ${zone.groupName} ---`} className="font-bold text-slate-900 bg-slate-100">
                     {zone.localities.map((comm) => (
@@ -119,7 +121,7 @@ export const SearchFilterBar: React.FC = () => {
           {/* Property Type */}
           <div className="md:col-span-2">
             <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-              Tipo de Inmueble
+              {t('search.type.label')}
             </label>
             <div className="relative">
               <Home className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -128,11 +130,11 @@ export const SearchFilterBar: React.FC = () => {
                 onChange={(e) => setFilters({ propertyType: e.target.value as PropertyType | 'todos' })}
                 className="w-full pl-8 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white transition-all appearance-none cursor-pointer"
               >
-                <option value="todos">Todos los tipos</option>
-                <option value="departamento">Departamentos</option>
-                <option value="casa">Casas</option>
-                <option value="parcela_agricola">Parcelas Agrícolas</option>
-                <option value="oficina_comercial">Oficinas / Locales</option>
+                <option value="todos">{t('search.type.all')}</option>
+                <option value="departamento">{t('search.type.apartment')}</option>
+                <option value="casa">{t('search.type.house')}</option>
+                <option value="parcela_agricola">{t('search.type.farm')}</option>
+                <option value="oficina_comercial">{t('search.type.office')}</option>
               </select>
               <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -149,7 +151,7 @@ export const SearchFilterBar: React.FC = () => {
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>{showAdvanced ? 'Ocultar' : 'Filtros'}</span>
+              <span>{showAdvanced ? t('search.filters.hide') : t('search.filters.show')}</span>
             </button>
           </div>
 
@@ -162,11 +164,11 @@ export const SearchFilterBar: React.FC = () => {
             {/* Min Price */}
             <div>
               <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                Precio Mínimo ({currency})
+                {t('search.price.min', { currency })}
               </label>
               <input
                 type="number"
-                placeholder={`Ej: ${currency === pack.baseCurrency ? '150000000' : '5000'}`}
+                placeholder={t('search.price.example', { example: currency === pack.baseCurrency ? '150000000' : '5000' })}
                 value={filters.minPrice}
                 onChange={(e) => setFilters({ minPrice: e.target.value ? Number(e.target.value) : '' })}
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white"
@@ -176,11 +178,11 @@ export const SearchFilterBar: React.FC = () => {
             {/* Max Price */}
             <div>
               <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                Precio Máximo ({currency})
+                {t('search.price.max', { currency })}
               </label>
               <input
                 type="number"
-                placeholder={`Ej: ${currency === pack.baseCurrency ? '900000000' : '25000'}`}
+                placeholder={t('search.price.example', { example: currency === pack.baseCurrency ? '900000000' : '25000' })}
                 value={filters.maxPrice}
                 onChange={(e) => setFilters({ maxPrice: e.target.value ? Number(e.target.value) : '' })}
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white"
@@ -190,19 +192,19 @@ export const SearchFilterBar: React.FC = () => {
             {/* Min Bedrooms */}
             <div>
               <label className="block text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                Dormitorios Mínimos
+                {t('search.bedrooms.label')}
               </label>
               <select
                 value={filters.minBedrooms}
                 onChange={(e) => setFilters({ minBedrooms: e.target.value ? Number(e.target.value) : '' })}
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary focus:bg-white"
               >
-                <option value="">Cualquier número</option>
-                <option value="1">1+ Dormitorios</option>
-                <option value="2">2+ Dormitorios</option>
-                <option value="3">3+ Dormitorios</option>
-                <option value="4">4+ Dormitorios</option>
-                <option value="5">5+ Dormitorios</option>
+                <option value="">{t('search.bedrooms.any')}</option>
+                <option value="1">{t('search.bedrooms.n', { count: 1 })}</option>
+                <option value="2">{t('search.bedrooms.n', { count: 2 })}</option>
+                <option value="3">{t('search.bedrooms.n', { count: 3 })}</option>
+                <option value="4">{t('search.bedrooms.n', { count: 4 })}</option>
+                <option value="5">{t('search.bedrooms.n', { count: 5 })}</option>
               </select>
             </div>
 

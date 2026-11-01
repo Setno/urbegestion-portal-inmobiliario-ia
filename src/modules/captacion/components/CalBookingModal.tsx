@@ -13,6 +13,7 @@ import {
 import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { webhookService } from '../services/webhookService';
+import { useMarket } from '../../../core/market/useMarketStore';
 import { emitLeadCreated } from '../../../core/events/appEvents';
 import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
 import { buildPrivacyNotice } from '../../../core/privacy/privacy';
@@ -28,6 +29,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
   property,
   onClose,
 }) => {
+  const { pack } = useMarket();
   const calConfig = webhookService.getWebhookConfig();
   const calendarUrl = calConfig.calComUrl || agencyConfig.aiAgent.calendarUrl || 'https://cal.com';
 
@@ -229,7 +231,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
                   <input
                     type="tel"
                     required
-                    placeholder="+56 9 1234 5678"
+                    placeholder={pack.phoneExample}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"

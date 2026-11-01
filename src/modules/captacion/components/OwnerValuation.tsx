@@ -19,6 +19,7 @@ import { emitLeadCreated } from '../../../core/events/appEvents';
 import { PrivacyNotice } from '../../../core/privacy/PrivacyNotice';
 import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 import { useMarket } from '../../../core/market/useMarketStore';
+import { useT, capitalize } from '../../../core/i18n/i18n';
 
 interface OwnerValuationProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { pack, zones } = useMarket();
+  const { t } = useT();
   const [step, setStep] = useState(1);
   const [operation, setOperation] = useState<'venta' | 'arriendo'>('venta');
   const [propertyType, setPropertyType] = useState('casa');
@@ -325,7 +327,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                 <div className="space-y-4 sm:space-y-5">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      {pack.localityLabel} *
+                      {capitalize(t('market.locality'))} *
                     </label>
                     <select
                       value={commune}
@@ -333,7 +335,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-urbe-primary font-medium"
                     >
                       <option value="" disabled>
-                        Selecciona la {pack.localityLabel.toLowerCase()}
+                        {t('market.selectLocality')}
                       </option>
                       {zones.map((zone) => (
                         <optgroup key={zone.groupName} label={zone.groupName}>
@@ -554,7 +556,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                       <input
                         type="tel"
                         required
-                        placeholder="+56 9 1234 5678"
+                        placeholder={pack.phoneExample}
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-urbe-primary"
