@@ -18,6 +18,7 @@ import { useMarket } from '../../core/market/useMarketStore';
 import { useT } from '../../core/i18n/i18n';
 import { LanguageToggle } from '../../core/ui/LanguageToggle';
 import { useCan } from '../../core/platform/useEntitlementsStore';
+import { hasAbout, hasTestimonials, instagramHandle } from '@portal/sitio-datos';
 
 interface NavbarProps {
   onOpenAdmin: () => void;
@@ -33,7 +34,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
   const canSell = useCan('valuation.owner_form');
   const { leads } = useLeadStore();
   const { toggleChat } = useChatStore();
-  const { config: agencyConfig } = useBrandStore();
+  const { config: agencyConfig, content, layoutConfig } = useBrandStore();
+  const showAbout = layoutConfig.showAboutSection && hasAbout(content);
+  const showTestimonials = layoutConfig.showTestimonialsSection && hasTestimonials(content);
+  const handle = instagramHandle(agencyConfig.contact.instagram);
 
   const newLeadsCount = leads.filter(l => l.status === 'nuevo' || l.status === 'visita_agendada').length;
 
@@ -42,8 +46,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
-          {/* Brand / Logo - Only the original UrbeGestion Image */}
+          {/* Logo de la corredora; si aún no tiene, su nombre */}
           <a href="#inicio" className="flex items-center shrink-0">
+            {agencyConfig.logoUrl ? (
             <img
               src={agencyConfig.logoUrl}
               alt={agencyConfig.brandName}
@@ -52,6 +57,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
                 (e.target as HTMLElement).style.display = 'none';
               }}
             />
+            ) : (
+              <span className="text-sm sm:text-lg font-black text-urbe-primary">{agencyConfig.brandName}</span>
+            )}
           </a>
 
           {/* Desktop Navigation */}
@@ -69,12 +77,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               {t('nav.sell')}
             </button>
             )}
+            {showAbout && (
             <a href="#sobre-mi" className="text-slate-700 hover:text-urbe-primary transition-colors">
-              Pilar Osorio
+              {agencyConfig.brokerName}
             </a>
+            )}
+            {showTestimonials && (
             <a href="#testimonios" className="text-slate-700 hover:text-urbe-primary transition-colors">
               {t('nav.testimonials')}
             </a>
+            )}
           </nav>
 
           {/* Right Action Tools */}
@@ -100,16 +112,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
             <LanguageToggle />
 
             {/* Direct Instagram Link Button */}
+            {agencyConfig.contact.instagram && (
             <a
               href={agencyConfig.contact.instagram}
               target="_blank"
               rel="noreferrer"
               className="p-2 rounded-lg bg-pink-50 text-pink-700 hover:bg-pink-100 border border-pink-200 transition-colors"
-              title="Instagram Oficial @urbegestion"
+              title={`Instagram Oficial ${handle}`.trim()}
               aria-label="Instagram Oficial"
             >
               <Instagram className="w-4 h-4" />
             </a>
+            )}
 
             {/* Admin CRM Button */}
             {ADMIN_ENABLED && (
@@ -129,6 +143,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
             )}
 
             {/* Phone Quick Call */}
+            {agencyConfig.contact.phone && (
             <a
               href={`tel:${agencyConfig.contact.phone}`}
               className="hidden md:flex p-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold items-center gap-1.5 transition-colors"
@@ -137,6 +152,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               <Phone className="w-3.5 h-3.5" />
               <span className="hidden xl:inline">{agencyConfig.contact.phoneDisplay}</span>
             </a>
+            )}
 
             {/* AI Assistant Trigger Button */}
             {canChat && (
@@ -200,21 +216,26 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               {t('nav.menu.sell')}
             </button>
             )}
-            <a 
-              href="#sobre-mi" 
+            {showAbout && (
+            <a
+              href="#sobre-mi"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1.5 text-slate-800 hover:text-urbe-primary"
             >
-              Sobre Pilar Osorio (25+ años)
+              Sobre {agencyConfig.brokerName}
             </a>
-            <a 
-              href="#testimonios" 
+            )}
+            {showTestimonials && (
+            <a
+              href="#testimonios"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1.5 text-slate-800 hover:text-urbe-primary"
             >
               {t('nav.menu.testimonials')}
             </a>
-            <a 
+            )}
+            {agencyConfig.contact.instagram && (
+            <a
               href={agencyConfig.contact.instagram}
               target="_blank"
               rel="noreferrer"
@@ -222,11 +243,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               className="py-1.5 text-pink-600 font-bold flex items-center gap-2"
             >
               <Instagram className="w-4 h-4" />
-              Instagram Oficial (@urbegestion)
+              Instagram Oficial {handle && `(${handle})`}
             </a>
+            )}
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+            {agencyConfig.contact.whatsapp && (
             <a
               href={`https://wa.me/${agencyConfig.contact.whatsapp}?text=${encodeURIComponent(agencyConfig.contact.whatsappMessage)}`}
               target="_blank"
@@ -236,6 +259,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               <Phone className="w-4 h-4" />
               {t('nav.menu.whatsapp', { phone: agencyConfig.contact.phoneDisplay })}
             </a>
+            )}
             {ADMIN_ENABLED && (
             <button
               onClick={() => { onOpenAdmin(); setMobileMenuOpen(false); }}

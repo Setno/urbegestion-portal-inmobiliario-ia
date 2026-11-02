@@ -45,6 +45,13 @@ export async function resizeImage(file: File, maxSide = MAX_SIDE): Promise<File>
   }
 }
 
+// Para logos y fotos de marca: se suben tal cual, porque reducir a JPEG le quitaría la transparencia a un logo.
+export async function uploadOriginalIfRemote(file: File): Promise<string | null> {
+  const ctx = remoteContext();
+  if (!ctx) return null;
+  return uploadPropertyImage(ctx.client, ctx.tenantId, file);
+}
+
 // Con Supabase configurado reduce y sube la foto y devuelve su URL; si no, devuelve null y quien llama usa la imagen local como hasta hoy.
 export async function uploadIfRemote(file: File): Promise<string | null> {
   const ctx = remoteContext();

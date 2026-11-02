@@ -12,6 +12,7 @@
     "@portal/dinero": "*",
     "@portal/mercados": "*",
     "@portal/plataforma": "*",
+    "@portal/sitio-datos": "*",
     "@supabase/supabase-js": "2.118.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.7",

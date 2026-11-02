@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import { CalBookingModal } from './CalBookingModal';
+import { agencyConfig } from '../../../core/config/agencyConfig';
 import { useLeadStore } from '../../crm/stores/useLeadStore';
 import { registerLeadEvents } from '../../crm/services/leadEvents';
 import { initialProperties } from '../../catalogo/data/initialProperties';
@@ -38,6 +39,16 @@ describe('CalBookingModal (agendar visita)', () => {
   it('cerrado no pinta nada', () => {
     const { container } = render(<CalBookingModal isOpen={false} property={casa} onClose={vi.fn()} />);
     expect(container.innerHTML).toBe('');
+  });
+
+  it('sin calendario propio de la corredora abre el formulario y no ofrece un calendario ajeno', () => {
+    const anterior = agencyConfig.aiAgent.calendarUrl;
+    agencyConfig.aiAgent.calendarUrl = '';
+    render(<CalBookingModal isOpen property={casa} onClose={vi.fn()} />);
+    expect(screen.queryByTitle('Cal.com Booking Scheduler')).toBeNull();
+    expect(screen.queryByRole('link', { name: /Abrir en Cal.com/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /Agendar|Confirmar|Solicitar/i })).toBeTruthy();
+    agencyConfig.aiAgent.calendarUrl = anterior;
   });
 
   it('abierto muestra la propiedad y el calendario interactivo con la nota de la visita', () => {

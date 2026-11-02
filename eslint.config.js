@@ -4,11 +4,11 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
-  { ignores: ['**/dist', 'node_modules', '_archivo', 'coverage'] },
+  { ignores: ['**/dist', '**/.next', 'node_modules', '_archivo', 'coverage'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['apps/consola/src/**/*.{ts,tsx}', 'packages/*/src/**/*.{ts,tsx}'],
+    files: ['apps/consola/src/**/*.{ts,tsx}', 'apps/sitio/src/**/*.{ts,tsx}', 'packages/*/src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
     rules: {

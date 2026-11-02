@@ -15,6 +15,9 @@ El repositorio es un monorepo (ADR-010): la consola vive en `apps/consola/`, y l
 | `packages/mercados/src/cl/` | Datos específicos de Chile (16 regiones, 346 comunas, alias y sectores) | Paquete de mercado Chile |
 | `src/core/market/` | Mercado y zonas de trabajo de la corredora (tienda y servicio) | Core |
 | `packages/dinero/` (`@portal/dinero`) | Dinero con su moneda: formato, conversión y comparación según el paquete de mercado. Las tasas vigentes (`currentRates`) dependen de la configuración de la corredora y siguen en `src/core/money/` | Core |
+| `packages/sitio-datos/` (`@portal/sitio-datos`) | Datos públicos del sitio de una corredora: tipos y lector tolerante, usados por la consola y el sitio (ADR-011) | Core |
+| `apps/sitio/` | Sitio público en Next.js: lee los datos en el servidor (`src/lib/getSite.ts`) y los muestra con una plantilla (`src/plantillas/`). Hoy es un esqueleto; la landing completa llega con H-028 | Sitio con plantillas |
+| `src/core/brand/` | Marca de la corredora: tienda y lectura y guardado en la base (`siteService.ts`). `src/core/config/demoSiteContent.ts` son los textos de ejemplo del modo local | Core |
 | `src/core/i18n/` | Textos de la interfaz por idioma (`messages.es.ts`, `messages.en.ts`), `t()` y plural | Core |
 | `src/site/` | Landing de la corredora: portada, menú, secciones (la sección de Instagram está archivada, H-014). Será la semilla de la plantilla 1 del sitio con plantillas (ADR-005); el sitio público pasará a Next.js (ADR-006) | Sitio propio con plantillas (producto base) |
 | `src/App.tsx`, `src/main.tsx` | Arranque de la aplicación | — |

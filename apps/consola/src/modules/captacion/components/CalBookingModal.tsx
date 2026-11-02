@@ -31,9 +31,11 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
   const { pack } = useMarket();
   const { t } = useT();
   const calConfig = webhookService.getWebhookConfig();
-  const calendarUrl = calConfig.calComUrl || agencyConfig.aiAgent.calendarUrl || 'https://cal.com';
+  const calendarUrl = calConfig.calComUrl || agencyConfig.aiAgent.calendarUrl;
+  const hasCalendar = Boolean(calendarUrl);
 
-  const [bookingMode, setBookingMode] = useState<'embed' | 'form'>('embed');
+  // Sin calendario propio de la corredora, la visita se pide con el formulario
+  const [bookingMode, setBookingMode] = useState<'embed' | 'form'>(hasCalendar ? 'embed' : 'form');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('11:00');
   const [name, setName] = useState('');
@@ -108,6 +110,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
         </div>
 
         {/* View Mode Switcher */}
+        {hasCalendar && (
         <div className="bg-slate-100 px-4 py-2 border-b border-slate-200 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             <button
@@ -138,6 +141,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
             <ExternalLink className="w-3 h-3" />
           </a>
         </div>
+        )}
 
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">

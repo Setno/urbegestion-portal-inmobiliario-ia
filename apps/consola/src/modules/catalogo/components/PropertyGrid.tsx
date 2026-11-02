@@ -61,7 +61,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
             {t('grid.title', { scope: scopeLabel })}
           </h2>
           <p className="text-sm text-slate-500 mt-1 max-w-xl">
-            Cartera selecta de departamentos de alto estándar, casas en condominios cerrados y parcelas agrícolas con títulos al día.
+            {t('grid.subtitle')}
           </p>
         </div>
 

@@ -159,7 +159,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
         uploadedFiles.length > 0 
           ? `Adjuntó ${uploadedFiles.length} foto(s)/archivo(s) desde su dispositivo para antecedentes.` 
           : 'Sin fotografías adjuntas al momento del registro.',
-        `Solicita tasación profesional y gestión directa con UrbeGestión.`
+        `Solicita tasación profesional y gestión directa con ${agencyConfig.brandName}.`
       ],
       source: 'captacion_propietarios',
     });

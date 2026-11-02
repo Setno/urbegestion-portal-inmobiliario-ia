@@ -11,11 +11,52 @@ import {
   Camera,
 } from 'lucide-react';
 import { useBrandStore, BRAND_COLOR_PRESETS } from '../../brand/useBrandStore';
+import { isRemoteData } from '../../data/dataSource';
+import { uploadOriginalIfRemote } from '../../../modules/catalogo/services/imageStorage';
 
+const SAVE_ERRORS: Record<string, string> = {
+  permiso: 'Tu cuenta no puede cambiar la marca de esta corredora, o su plan no lo incluye. Los cambios no se guardaron.',
+  demasiado_grande: 'Los datos son demasiado grandes para guardarlos. Revisa los textos y las imágenes pegadas como dirección.',
+  conexion: 'No se pudo guardar: revisa tu conexión e inténtalo de nuevo. Los cambios no se aplicaron.',
+  no_configurado: 'No se pudo guardar: falta configurar la conexión con la base de datos.',
+  sin_datos: 'No se pudieron leer los datos actuales de la corredora. Recarga la página e inténtalo de nuevo.',
+  enlace_invalido: 'Una de las direcciones no es válida. Revisa el logo, la foto y el enlace de Instagram.',
+  foto: 'No se pudo subir la imagen. Usa un JPG, PNG o WebP de hasta 5 MB.',
+};
+
+// Guardar reemplaza la marca completa: el formulario solo aparece con los datos reales ya leídos,
+// y se arma de nuevo con ellos si la lectura termina después de abrir la pestaña.
 export const BrandingTab: React.FC = () => {
+  const loadStatus = useBrandStore((state) => state.loadStatus);
+  const load = useBrandStore((state) => state.load);
+
+  if (loadStatus !== 'ok') {
+    return (
+      <div className="flex-1 p-6 bg-slate-50 text-center text-xs text-slate-600 space-y-3">
+        <p>
+          {loadStatus === 'idle'
+            ? 'Cargando los datos de la corredora...'
+            : 'No se pudieron leer los datos de la corredora. No se puede editar la marca hasta leerlos.'}
+        </p>
+        {loadStatus === 'error' && (
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="px-4 py-2 rounded-xl bg-urbe-primary text-white font-bold"
+          >
+            Reintentar
+          </button>
+        )}
+      </div>
+    );
+  }
+  return <BrandingForm />;
+};
+
+const BrandingForm: React.FC = () => {
 
   // Brand Customizer State
-  const { config: brandConfig, themeColors, updateBrandConfig, updateThemeColors, resetToDefault: resetBrand } = useBrandStore();
+  const { config: brandConfig, themeColors, saveBrand, resetToDefault: resetBrand } = useBrandStore();
   const [bBrandName, setBBrandName] = useState(brandConfig.brandName);
   const [bTagline, setBTagline] = useState(brandConfig.tagline);
   const [bLogoUrl, setBLogoUrl] = useState(brandConfig.logoUrl);
@@ -30,74 +71,97 @@ export const BrandingTab: React.FC = () => {
   const [bPrimaryColor, setBPrimaryColor] = useState(themeColors.primary);
   const [bAccentColor, setBAccentColor] = useState(themeColors.accent);
   const [brandSavedToast, setBrandSavedToast] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [uploads, setUploads] = useState(0);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const brokerPhotoInputRef = useRef<HTMLInputElement>(null);
 
   // Layout Modular Toggles State
-  const { layoutConfig, updateLayoutConfig } = useBrandStore();
+  const { layoutConfig } = useBrandStore();
   const [bShowSearch, setBShowSearch] = useState(layoutConfig.showSearchFilter);
   const [bShowAbout, setBShowAbout] = useState(layoutConfig.showAboutSection);
   const [bShowTestimonials, setBShowTestimonials] = useState(layoutConfig.showTestimonialsSection);
   const [bShowAiChat, setBShowAiChat] = useState(layoutConfig.showAiChat);
 
+  // Con Supabase la imagen va al almacenamiento de la corredora; sin Supabase queda como texto en el navegador, como hasta hoy.
+  const readImage = async (file: File, apply: (url: string) => void) => {
+    setSaveError(null);
+    setUploads((n) => n + 1);
+    try {
+      const uploaded = await uploadOriginalIfRemote(file);
+      if (uploaded) {
+        apply(uploaded);
+        return;
+      }
+    } catch (err) {
+      console.warn('[marca] No se pudo subir la imagen:', err);
+      setSaveError(SAVE_ERRORS.foto);
+      return;
+    } finally {
+      setUploads((n) => n - 1);
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') apply(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setBLogoUrl(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
+    if (file) void readImage(file, setBLogoUrl);
   };
 
   const handleBrokerPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setBBrokerPhotoUrl(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
+    if (file) void readImage(file, setBBrokerPhotoUrl);
   };
 
-  const handleSaveBrand = () => {
-    updateBrandConfig({
+  const handleSaveBrand = async () => {
+    setSaveError(null);
+    setIsSaving(true);
+    const result = await saveBrand({
       brandName: bBrandName,
       tagline: bTagline,
       logoUrl: bLogoUrl,
+      // El pie de página usa el logo claro: si se cambia el logo, cambia también ahí
+      logoWhiteUrl: bLogoUrl !== brandConfig.logoUrl ? bLogoUrl : brandConfig.logoWhiteUrl,
       brokerName: bBrokerName,
       brokerRole: bBrokerRole,
       brokerPhotoUrl: bBrokerPhotoUrl,
       experienceYears: Number(bExperienceYears),
       contact: {
         ...brandConfig.contact,
-        phone: bWhatsapp,
+        phone: bPhoneDisplay.replace(/[^\d+]/g, '') || bWhatsapp,
         phoneDisplay: bPhoneDisplay,
         whatsapp: bWhatsapp,
         email: bEmail,
         instagram: bInstagram,
       },
-    });
-
-    updateThemeColors({
+    }, {
       primary: bPrimaryColor,
       primaryDark: bPrimaryColor,
       accent: bAccentColor,
       accentHover: bAccentColor,
-    });
-
-    updateLayoutConfig({
+    }, {
       showSearchFilter: bShowSearch,
       showAboutSection: bShowAbout,
       showTestimonialsSection: bShowTestimonials,
       showAiChat: bShowAiChat,
     });
+    setIsSaving(false);
+
+    if (result.ok === false) {
+      setSaveError(SAVE_ERRORS[result.error]);
+      return;
+    }
+
+    // Lo guardado puede venir corregido (por ejemplo, con https:// agregado)
+    const saved = useBrandStore.getState().config;
+    setBLogoUrl(saved.logoUrl);
+    setBBrokerPhotoUrl(saved.brokerPhotoUrl);
+    setBInstagram(saved.contact.instagram);
 
     setBrandSavedToast(true);
     setTimeout(() => setBrandSavedToast(false), 3000);
@@ -145,6 +209,8 @@ export const BrandingTab: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* Volver a la marca de ejemplo solo tiene sentido sin base de datos */}
+            {!isRemoteData && (
             <button
               type="button"
               onClick={handleResetBrand}
@@ -153,10 +219,12 @@ export const BrandingTab: React.FC = () => {
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Restaurar Original</span>
             </button>
+            )}
 
             <button
               type="button"
               onClick={handleSaveBrand}
+              disabled={isSaving || uploads > 0}
               className="px-5 py-2 rounded-xl bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold shadow-md transition-colors flex items-center gap-1.5"
             >
               <Check className="w-4 h-4" />
@@ -164,6 +232,12 @@ export const BrandingTab: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {saveError && (
+          <div role="alert" className="p-3 bg-red-50 border border-red-200 text-red-800 rounded-2xl text-xs font-bold">
+            {saveError}
+          </div>
+        )}
 
         {brandSavedToast && (
           <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
@@ -199,7 +273,7 @@ export const BrandingTab: React.FC = () => {
                 value={bTagline}
                 onChange={(e) => setBTagline(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900"
-                placeholder="Más de 25 años de trayectoria..."
+                placeholder="Tu frase de presentación..."
               />
             </div>
 
@@ -256,7 +330,7 @@ export const BrandingTab: React.FC = () => {
                 value={bBrokerName}
                 onChange={(e) => setBBrokerName(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
-                placeholder="Ej: Pilar Osorio"
+                placeholder="Ej: Ana Pérez"
               />
             </div>
 
@@ -335,7 +409,7 @@ export const BrandingTab: React.FC = () => {
                 value={bPhoneDisplay}
                 onChange={(e) => setBPhoneDisplay(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900"
-                placeholder="+56 9 7909 4519"
+                placeholder="+56 9 1234 5678"
               />
             </div>
 
@@ -346,7 +420,7 @@ export const BrandingTab: React.FC = () => {
                 value={bWhatsapp}
                 onChange={(e) => setBWhatsapp(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900"
-                placeholder="56979094519"
+                placeholder="56912345678"
               />
             </div>
 
@@ -368,7 +442,7 @@ export const BrandingTab: React.FC = () => {
                 value={bInstagram}
                 onChange={(e) => setBInstagram(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900"
-                placeholder="https://instagram.com/urbegestion"
+                placeholder="https://instagram.com/tu-corredora"
               />
             </div>
           </div>
@@ -456,6 +530,7 @@ export const BrandingTab: React.FC = () => {
             <button
               type="button"
               onClick={handleSaveBrand}
+              disabled={isSaving || uploads > 0}
               className="px-6 py-2.5 rounded-xl bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold shadow-md transition-colors flex items-center gap-1.5"
             >
               <Check className="w-4 h-4" />
@@ -540,6 +615,7 @@ export const BrandingTab: React.FC = () => {
             <button
               type="button"
               onClick={handleSaveBrand}
+              disabled={isSaving || uploads > 0}
               className="px-6 py-2.5 rounded-xl bg-urbe-primary hover:bg-urbe-primaryDark text-white text-xs font-bold shadow-md transition-colors flex items-center gap-1.5"
             >
               <Check className="w-4 h-4" />

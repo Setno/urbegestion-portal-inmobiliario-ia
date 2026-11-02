@@ -247,11 +247,11 @@ describe('OwnerValuation (valorizador para propietarios)', () => {
   describe('subtítulo y zonas', () => {
     it('el subtítulo nombra el alcance de la corredora (Chile o sus regiones), no una región fija', () => {
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
-      expect(screen.getByText(/Más de 25 años de experiencia en Chile con Pilar Osorio/)).toBeTruthy();
+      expect(screen.getByText(/Experiencia en Chile con Pilar Osorio/)).toBeTruthy();
       cleanup();
       useMarketStore.setState({ serviceAreas: ['CL-BI'] });
       render(<OwnerValuation isOpen onClose={vi.fn()} />);
-      expect(screen.getByText(/experiencia en Biobío con Pilar Osorio/)).toBeTruthy();
+      expect(screen.getByText(/Experiencia en Biobío con Pilar Osorio/)).toBeTruthy();
     });
   });
 

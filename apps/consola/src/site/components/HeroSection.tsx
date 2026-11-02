@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useChatStore } from '../../modules/captacion/stores/useChatStore';
 import { useBrandStore } from '../../core/brand/useBrandStore';
+import { instagramHandle } from '@portal/sitio-datos';
 
 interface HeroSectionProps {
   onOpenValuation: () => void;
@@ -21,7 +22,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
   const { toggleChat } = useChatStore();
   const canChat = useCan('ai.chat');
   const canSell = useCan('valuation.owner_form');
-  const { config: agencyConfig } = useBrandStore();
+  const { config: agencyConfig, content } = useBrandStore();
+  const { hero } = content;
+  const handle = instagramHandle(agencyConfig.contact.instagram);
+  const stats = [
+    { value: agencyConfig.stats.yearsExperience, label: 'Años de Trayectoria', color: 'text-slate-900' },
+    { value: agencyConfig.stats.propertiesSold, label: 'Propiedades Gestionadas', color: 'text-slate-900' },
+    { value: agencyConfig.stats.happyClients, label: 'Clientes Satisfechos', color: 'text-urbe-primary' },
+    { value: agencyConfig.stats.averageDaysToSell, label: 'Promedio de Cierre', color: 'text-urbe-accent' },
+  ].filter((s) => s.value);
 
   return (
     <section id="inicio" className="relative min-h-[85vh] lg:min-h-screen flex items-center justify-center overflow-hidden pt-16 sm:pt-20">
@@ -53,16 +62,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
           {/* Main Copy (Left Column) */}
           <div className="lg:col-span-7 space-y-5 sm:space-y-7">
             
+
             {/* Top Pill Badge */}
-            <motion.div 
+            {hero.badge && (
+            <motion.div  
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[11px] sm:text-xs font-bold tracking-wide text-slate-200"
             >
               <Award className="w-4 h-4 text-urbe-accent" />
-              <span>Más de 25 años en Santiago & Región Metropolitana</span>
+              <span>{hero.badge}</span>
             </motion.div>
+            )}
 
             {/* Main Headline */}
             <motion.h1 
@@ -71,7 +83,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
               transition={{ duration: 0.7, delay: 0.15 }}
               className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.12] text-white"
             >
-              Propiedades exclusivas y agrícolas con <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-urbe-accent">asesoría experta e IA.</span>
+              {hero.headline} <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-urbe-accent">{hero.headlineHighlight}</span>
             </motion.h1>
 
             {/* Subtext */}
@@ -81,7 +93,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
               transition={{ duration: 0.7, delay: 0.3 }}
               className="text-sm sm:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed"
             >
-              {agencyConfig.tagline}. Venta, arriendo, administración y tasación profesional con atención directa de <strong>{agencyConfig.brokerName}</strong>.
+              {agencyConfig.tagline && `${agencyConfig.tagline}. `}{hero.services}
+              {agencyConfig.brokerName && agencyConfig.brokerName !== agencyConfig.brandName && (
+                <> Atención directa de <strong>{agencyConfig.brokerName}</strong>.</>
+              )}
             </motion.p>
 
             {/* Mobile & Desktop Action Buttons */}
@@ -122,22 +137,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
 
             {/* Quick Contact Badges */}
             <div className="flex flex-wrap items-center gap-3 pt-2 text-xs text-slate-300">
-              <a 
-                href={`tel:${agencyConfig.contact.phone}`} 
+              {agencyConfig.contact.phone && (
+              <a
+                href={`tel:${agencyConfig.contact.phone}`}
                 className="flex items-center gap-1.5 hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-lg border border-white/10"
               >
                 <Phone className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{agencyConfig.contact.phoneDisplay}</span>
               </a>
-              <a 
+              )}
+              {agencyConfig.contact.instagram && (
+              <a
                 href={agencyConfig.contact.instagram}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-1.5 hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 text-pink-300"
               >
                 <Instagram className="w-3.5 h-3.5" />
-                <span>@urbegestion</span>
+                <span>{handle || 'Instagram'}</span>
               </a>
+              )}
             </div>
 
           </div>
@@ -153,46 +172,43 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
               
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
+
+                  {agencyConfig.brokerPhotoUrl && (
                   <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-urbe-accent shadow-md shrink-0 bg-slate-100">
-                    <img 
+                    <img  
                       src={agencyConfig.brokerPhotoUrl} 
                       alt={agencyConfig.brokerName}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=256';
+                        (e.target as HTMLElement).style.display = 'none';
                       }}
                     />
                   </div>
+                  )}
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm sm:text-base">{agencyConfig.brokerName}</h3>
-                    <p className="text-xs text-urbe-primary font-bold">{agencyConfig.brokerRole}</p>
-                    <p className="text-[11px] text-slate-500">Ex-Colaboradora ACOP</p>
+                    {agencyConfig.brokerRole && <p className="text-xs text-urbe-primary font-bold">{agencyConfig.brokerRole}</p>}
+                    {hero.credential && <p className="text-[11px] text-slate-500">{hero.credential}</p>}
                   </div>
                 </div>
+                {hero.verifiedLabel && (
                 <span className="hidden sm:inline-block px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black border border-emerald-200">
-                  Verificada
+                  {hero.verifiedLabel}
                 </span>
+                )}
               </div>
 
               {/* Stats Grid */}
+              {stats.length > 0 && (
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <span className="text-xl sm:text-2xl font-black text-slate-900 block">{agencyConfig.stats.yearsExperience}</span>
-                  <span className="text-[11px] text-slate-500 font-medium">Años de Trayectoria</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <span className="text-xl sm:text-2xl font-black text-slate-900 block">{agencyConfig.stats.propertiesSold}</span>
-                  <span className="text-[11px] text-slate-500 font-medium">Propiedades Gestionadas</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <span className="text-xl sm:text-2xl font-black text-urbe-primary block">{agencyConfig.stats.happyClients}</span>
-                  <span className="text-[11px] text-slate-500 font-medium">Clientes Satisfechos</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <span className="text-xl sm:text-2xl font-black text-urbe-accent block">{agencyConfig.stats.averageDaysToSell}</span>
-                  <span className="text-[11px] text-slate-500 font-medium">Promedio de Cierre</span>
-                </div>
+                {stats.map((s) => (
+                  <div key={s.label} className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                    <span className={`text-xl sm:text-2xl font-black ${s.color} block`}>{s.value}</span>
+                    <span className="text-[11px] text-slate-500 font-medium">{s.label}</span>
+                  </div>
+                ))}
               </div>
+              )}
 
               {/* Direct Booking Hook */}
               {canChat && (

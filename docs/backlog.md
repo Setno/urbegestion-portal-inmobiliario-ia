@@ -37,8 +37,12 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-021 | Pruebas de pantallas de catálogo y captación (filtros, formulario de propiedades, chat, valorizador de 4 pasos, agenda) (el simulador de dividendo queda apagado, ver H-017) | Media | M | hecha (2026-11-01: 47 pruebas de pantalla en 5 archivos) | H-002 |
 | H-022 | Pruebas de la tienda de marca y de la pestaña de Identidad y Marca | Baja | S | hecha (2026-11-01: 7 pruebas de la tienda y 6 de la pestaña) | H-002 |
 | H-025 | Exportación completa de los datos de una corredora (propiedades, contactos, notas) en CSV/JSON | Media | M | hecha (probada a mano por el responsable, 2026-11-01) | H-008 |
-| H-026 | Pasar el repositorio a monorepo: `apps/consola` (React + Vite) y `apps/sitio` (Next.js) con paquetes compartidos | Alta | M+ (dividir) | en curso (etapas 0 a 3 unidas a `main` el 2026-11-02, ver `docs/monorepo-linea-base.md`; falta la etapa 4, crear `apps/sitio` vacío, al iniciar H-027) | ADR-006, ADR-010 |
-| H-027 | Modelo de plantilla: datos del sitio en la base de datos y separación entre contenido y diseño | Alta | M+ (dividir) | pendiente | H-008, H-026 |
+| H-026 | Pasar el repositorio a monorepo: `apps/consola` (React + Vite) y `apps/sitio` (Next.js) con paquetes compartidos | Alta | M+ (dividir) | hecha (etapas 0 a 3 unidas a `main` el 2026-11-02; la etapa 4 se cerró con H-027.3) | ADR-006, ADR-010 |
+| H-027 | Modelo de plantilla: datos del sitio en la base de datos y separación entre contenido y diseño | Alta | M+ | dividida en H-027.1 a H-027.4 | H-008, H-026 |
+| H-027.1 | Lo que el administrador guarda en Identidad y Marca (nombre, logo, contacto, colores y secciones activas) lo ven todos los visitantes en cualquier equipo | Alta | M | en revisión (2026-11-02; migración aplicada en desarrollo, falta la prueba manual de guardar desde el panel) | ADR-011 |
+| H-027.2 | Los textos del sitio (portada, "Sobre nosotros", testimonios y pie de página) son datos de cada corredora, y una corredora nueva no muestra datos de otra | Alta | M | en revisión (2026-11-02) | H-027.1 |
+| H-027.3 | `apps/sitio` en Next.js muestra, generada en el servidor, la marca de la corredora leída de la base (cierra la etapa 4 de H-026) | Alta | M | en revisión (2026-11-02; falta crear su proyecto en Vercel para probarlo en la web) | H-027.1 |
+| H-027.4 | Cada corredora tiene una plantilla asignada que decide cómo se ven sus datos; una plantilla desconocida usa la predeterminada | Media | S | en revisión (2026-11-02) | H-027.3 |
 | H-028 | Plantilla 1: adaptar la landing actual (`src/site/`) al sitio Next.js | Alta | M | pendiente | H-027 |
 | H-029 | Plantilla 2 y prueba de intercambio de plantilla sin perder datos | Media | M | pendiente | H-028 |
 | H-030 | Dominio propio o subdominio por corredora: resolución por dominio y guía de registros DNS | Alta | M+ (dividir) | pendiente | H-027 |
@@ -82,6 +86,37 @@ H-008 se dividió el 2026-10-31 con `story-slicer` (detalle al final de este arc
 H-025 a H-035 salen de la decisión del 2026-10-30 de incluir el sitio con plantillas en el producto base (ADR-005 y ADR-006). H-004 (CSP y HSTS) debe contemplar los dominios de Supabase y de los sitios por corredora.
 
 ---
+
+## H-027 dividida: datos del sitio y plantillas
+Detalle de la decisión en ADR-011. El orden prioriza lo que corrige un problema real: hasta ahora la marca editada quedaba solo en el navegador de quien la editaba, y una corredora nueva habría mostrado los datos de UrbeGestión.
+
+### H-027.1 Marca en la base
+**Criterios de aceptación**
+1. Dado un administrador que guarda la marca, cuando otro navegador sin sesión recarga el sitio, entonces ve el cambio.
+2. Dado un agente o un usuario de otra corredora, cuando intenta guardar, entonces la base lo rechaza.
+3. Dado Supabase sin configurar, cuando se usa el panel, entonces todo sigue funcionando en el navegador como hoy.
+4. Dado un fallo al leer o guardar, cuando ocurre, entonces el sitio no se rompe: el visitante ve los últimos datos disponibles y el administrador recibe un aviso de que no se guardó.
+5. Dado el guardado, cuando el visitante recarga, entonces los colores y las secciones activas también vienen de la base.
+
+### H-027.2 Textos como datos
+**Criterios de aceptación**
+1. Dada una corredora sin datos, cuando se abre su sitio, entonces muestra su nombre y una portada genérica, sin datos de otra corredora.
+2. Dada una corredora sin testimonios ni "Sobre nosotros", cuando se abre su sitio, entonces esas secciones y sus enlaces no aparecen.
+3. Dada una corredora sin teléfono, WhatsApp o Instagram, cuando se abre su sitio, entonces no hay botones que no llevan a ninguna parte.
+4. Dados textos cargados en la base, cuando se abre el sitio, entonces cada sección los muestra.
+
+### H-027.3 Esqueleto del sitio en Next.js
+**Criterios de aceptación**
+1. Dada una corredora, cuando se pide su página, entonces el HTML que entrega el servidor ya trae su nombre, sus textos y sus colores.
+2. Dada una configuración incompleta o una base caída, cuando se pide la página, entonces muestra "Sitio no disponible", nunca datos ajenos.
+3. Dado un cambio en la base, cuando pasa un minuto, entonces la página lo refleja sin volver a publicar.
+
+### H-027.4 Plantilla asignada
+**Criterios de aceptación**
+1. Dada una corredora, cuando se lee su sitio, entonces trae su plantilla (por defecto `clasica`).
+2. Dado un nombre de plantilla desconocido, cuando se abre el sitio, entonces usa la predeterminada y no se rompe.
+
+**Resultado H-027.1 a H-027.4 (2026-11-02):** migración `20261102120000_contenido_del_sitio.sql` aplicada en desarrollo (tabla `site_content`, `get_tenant_public_site`, `set_site_brand`), con `supabase/tests/rls_sitio.sql` en verde ("RLS OK"), más la corrección `20261102130000_marca_pago_vencido.sql` (pasado el plazo de gracia tampoco se edita la marca), y la marca y los textos de UrbeGestión cargados con `supabase/seed-dev-sitio.sql`. Nuevo paquete `@portal/sitio-datos`; la tienda de marca lee y guarda en la base cuando hay `VITE_TENANT_ID`, y `apps/sitio` (Next.js 16.4.4, instalado por ADR-006) lee en el servidor. Las afirmaciones "25 años" y "42 días" salieron de los textos comunes del chat y del valorizador (se ajustó la prueba del subtítulo del valorizador, que las fijaba). La revisión independiente encontró un bloqueante, ya corregido: guardar con la lectura fallida o pendiente habría borrado datos que el formulario no muestra; ahora el formulario solo aparece tras una lectura correcta. También se corrigió: una dirección sin `https://` se completa y una inválida se avisa; no se puede guardar mientras sube una imagen; si falla la lectura, el sitio Next.js conserva la última copia buena (comprobado con una regeneración fallida en `next start`); sin calendario propio, la visita se pide con el formulario; se quitaron textos, nombres de archivo y marcadores de UrbeGestión que quedaban. De paso: subir un logo también cambia el del pie de página. Comprobado en el navegador: la consola con la corredora de desarrollo lee la marca, los textos y los 3 testimonios desde la base, y el sitio Next.js entrega el HTML con esos datos desde el servidor. **Sin probar:** guardar desde el panel con una sesión real (la regla de la base sí está probada con `rls_sitio.sql`) y ver una corredora neutra en el navegador (cubierto con pruebas de pantalla). **Fuera de alcance, para H-028:** los enlaces de WhatsApp de la ficha y la tarjeta de propiedad no se ocultan si la corredora no cargó WhatsApp; el banner "Modo Demostración Agencia IA" sigue en la landing de la consola y no debe pasar a la plantilla. El sitio aún no tiene proyecto en Vercel (ADR-010). `supabase/seed-dev-sitio.sql` trae datos reales de UrbeGestión (teléfono, correo y testimonios con nombre), los mismos que ya estaban en el código y siguen en `agencyConfig.ts` y `demoSiteContent.ts`: conviene reemplazarlos por datos de ejemplo antes de abrir el repositorio o de H-013.
 
 ## H-001 Lint
 **Como** desarrollador **quiero** un comando de lint **para** detectar errores de estilo y de lógica antes de commitear.

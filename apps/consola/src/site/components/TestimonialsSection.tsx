@@ -1,49 +1,32 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import { useBrandStore } from '../../core/brand/useBrandStore';
 
 export const TestimonialsSection: React.FC = () => {
-  const testimonials = [
-    {
-      name: "Agustín Manterola Covarrubias",
-      role: "Ex-Presidente ACOP (Asociación de Corredores de Propiedades)",
-      photo: "https://www.urbegestion.cl/assets/images/t_agustin.jpeg",
-      quote: "Fui jefe de Pilar durante 15 años, doy fe de sus altas capacidades profesionales y de su excelente disposición para resolver problemas. Me ayudó manejando una gran cartera de arriendos y administraciones complejas. Totalmente recomendada.",
-      stars: 5,
-    },
-    {
-      name: "Carmen Luz Martín",
-      role: "Abogada Especialista en Derecho Inmobiliario",
-      initials: "CLM",
-      quote: "He sido clienta de Pilar tanto para la compra como para la venta de propiedades. Siempre recibí un servicio excelente, diligente y eficaz. Además, colaboro con Pilar apoyando los estudios de títulos de las operaciones que realiza. Es una profesional de primer nivel.",
-      stars: 5,
-    },
-    {
-      name: "Alfredo Hevia Minder",
-      role: "Propietario / Vendedor",
-      initials: "AH",
-      quote: "Increíble experiencia con UrbeGestión. Pilar logró vender mi propiedad en tiempo récord y a un excelente valor de mercado. Su asesoría en la negociación fue clave para cerrar la operación sin contratiempos.",
-      stars: 5,
-    }
-  ];
+  const { testimonials } = useBrandStore((state) => state.content);
 
   return (
     <section id="testimonios" className="py-16 sm:py-20 bg-slate-50 border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+          {testimonials.eyebrow && (
           <span className="px-3 py-1 rounded-full bg-urbe-accent/20 text-slate-900 text-xs font-bold uppercase tracking-wider inline-block mb-2">
-            Reputación Comprobada
+            {testimonials.eyebrow}
           </span>
+          )}
           <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Testimonios de Clientes y Colegas
+            {testimonials.title || 'Testimonios'}
           </h2>
+          {testimonials.subtitle && (
           <p className="text-xs sm:text-sm text-slate-500 mt-2">
-            La confianza, transparencia y rigor jurídico han guiado nuestras operaciones durante 25 años en Santiago.
+            {testimonials.subtitle}
           </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-          {testimonials.map((t, idx) => (
+          {testimonials.items.map((t, idx) => (
             <div
               key={idx}
               className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"

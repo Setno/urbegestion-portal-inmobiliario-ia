@@ -28,7 +28,7 @@ export class WebhookService {
     const isEnabled = localStorage.getItem('urbe_ghl_enabled') !== 'false';
 
     return {
-      calComUrl: localCal || env.VITE_CAL_COM_URL || agencyConfig.aiAgent.calendarUrl || 'https://cal.com/urbegestion/visita-propiedad',
+      calComUrl: localCal || env.VITE_CAL_COM_URL || agencyConfig.aiAgent.calendarUrl,
       isEnabled,
       lastDispatchedAt: localStorage.getItem('urbe_ghl_last_dispatch') || undefined,
       lastStatus: (localStorage.getItem('urbe_ghl_last_status') as WebhookConfig['lastStatus']) || null
@@ -77,7 +77,7 @@ export class WebhookService {
     const payload = {
       event: 'lead_created',
       timestamp: new Date().toISOString(),
-      source_system: 'UrbeGestion Real Estate AI Portal',
+      source_system: 'Portal Inmobiliario IA',
       contact: {
         firstName: firstName,
         lastName: lastName,
@@ -87,7 +87,7 @@ export class WebhookService {
         source: `Web Portal - ${lead.source}`,
         tags: [
           'Inmobiliaria',
-          'UrbeGestión',
+          agencyConfig.brandName,
           lead.operationInterest === 'venta_propietario' ? 'Propietario Captación' : 'Comprador/Arrendatario',
           lead.source
         ],

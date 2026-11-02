@@ -428,12 +428,12 @@ export const PropertyModal: React.FC<PropertyModalProps> = ({ property, onClose 
                   </div>
 
                   <a
-                    href={`https://wa.me/${agencyConfig.contact.whatsapp}?text=${encodeURIComponent(`Hola Pilar, simulé el dividendo para "${property.title}" (${monthlyDividendUf.toFixed(2)} UF/mes) y quiero evaluar mi crédito hipotecario.`)}`}
+                    href={`https://wa.me/${agencyConfig.contact.whatsapp}?text=${encodeURIComponent(`Hola ${agencyConfig.brokerName}, simulé el dividendo para "${property.title}" (${monthlyDividendUf.toFixed(2)} UF/mes) y quiero evaluar mi crédito hipotecario.`)}`}
                     target="_blank"
                     rel="noreferrer"
                     className="px-4 py-2 bg-urbe-accent hover:bg-urbe-accentHover text-slate-950 text-xs font-bold rounded-xl shadow transition-colors"
                   >
-                    Evaluar Crédito con UrbeGestión
+                    Evaluar Crédito con {agencyConfig.brandName}
                   </a>
                 </div>
               </div>

@@ -19,12 +19,13 @@ import { useAuthStore } from './core/auth/useAuthStore';
 import { usePropertyStore } from './modules/catalogo/stores/usePropertyStore';
 import { useMarketStore } from './core/market/useMarketStore';
 import { Property } from './modules/catalogo/types/property';
+import { hasAbout, hasTestimonials } from '@portal/sitio-datos';
 
 export const App: React.FC = () => {
   // Lo que el plan de la corredora incluye (ADR-009): sin datos de ventas todo está prendido
   const canChat = useCan('ai.chat');
   const canSell = useCan('valuation.owner_form');
-  const { themeColors, layoutConfig } = useBrandStore();
+  const { themeColors, layoutConfig, content } = useBrandStore();
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isValuationOpen, setIsValuationOpen] = useState(false);
@@ -42,6 +43,7 @@ export const App: React.FC = () => {
     void usePropertyStore.getState().load();
     void useMarketStore.getState().load();
     void useEntitlementsStore.getState().loadPublic();
+    void useBrandStore.getState().load();
   }, []);
 
   // Restaura la sesión al cargar y escucha cambios (ingreso, salida, enlace de recuperación de clave)
@@ -88,10 +90,10 @@ export const App: React.FC = () => {
         />
 
         {/* About & Trust Section */}
-        {layoutConfig.showAboutSection && <AboutSection />}
+        {layoutConfig.showAboutSection && hasAbout(content) && <AboutSection />}
 
-        {/* Real Testimonials from Former ACOP President & Clients */}
-        {layoutConfig.showTestimonialsSection && <TestimonialsSection />}
+        {/* Testimonios de la corredora */}
+        {layoutConfig.showTestimonialsSection && hasTestimonials(content) && <TestimonialsSection />}
       </main>
 
       {/* Footer */}

@@ -71,7 +71,7 @@ export const buildFullExportJson = ({ leads, properties, now = new Date() }: { l
   );
 
 export const exportFileName = (kind: string, ext: 'csv' | 'json', now = new Date()): string =>
-  `urbegestion_${kind}_${now.toISOString().slice(0, 10)}.${ext}`;
+  `corredora_${kind}_${now.toISOString().slice(0, 10)}.${ext}`;
 
 export const downloadFile = (name: string, content: string, mime: string): void => {
   const url = URL.createObjectURL(new Blob([content], { type: `${mime};charset=utf-8` }));

@@ -1,26 +1,41 @@
 import { create } from 'zustand';
 import { RealEstateBrandConfig, agencyConfig as defaultAgencyConfig } from '../config/agencyConfig';
+import { demoSiteContent } from '../config/demoSiteContent';
 import { createLocalStore } from '../storage/localStore';
+import { remoteContext } from '../data/dataSource';
+import { fetchPublicSite, saveSiteBrand, type SiteSaveResult } from './siteService';
+import {
+  DEFAULT_LAYOUT,
+  DEFAULT_TEMPLATE_ID,
+  DEFAULT_THEME,
+  NEUTRAL_CONTENT,
+  neutralBrand,
+  normalizeUrl,
+  parseSiteData,
+  serializeBrand,
+  type SiteContent,
+  type SiteData,
+  type SiteLayout,
+  type SiteTheme,
+} from '@portal/sitio-datos';
 
-export interface ThemeColors {
-  primary: string;
-  primaryDark: string;
-  accent: string;
-  accentHover: string;
-}
-
-export interface BrandLayoutConfig {
-  showSearchFilter: boolean;
-  showAboutSection: boolean;
-  showTestimonialsSection: boolean;
-  showAiChat: boolean;
-}
+export type ThemeColors = SiteTheme;
+export type BrandLayoutConfig = SiteLayout;
 
 export interface BrandStore {
   config: RealEstateBrandConfig;
   themeColors: ThemeColors;
   layoutConfig: BrandLayoutConfig;
-  
+  content: SiteContent;
+  templateId: string;
+  // Con Supabase, solo tras una lectura correcta se puede editar: guardar reemplaza la marca completa.
+  loadStatus: 'idle' | 'ok' | 'error';
+
+  // Con Supabase lee los datos públicos de la corredora; sin Supabase no hace nada.
+  load: () => Promise<void>;
+  // Guarda lo editado en el panel: con Supabase en la base (y solo si la base lo acepta), sin Supabase en el navegador.
+  saveBrand: (brand: Partial<RealEstateBrandConfig>, colors: Partial<ThemeColors>, layout: Partial<BrandLayoutConfig>) => Promise<SiteSaveResult>;
+
   // Actions
   updateBrandConfig: (partial: Partial<RealEstateBrandConfig>) => void;
   updateThemeColors: (colors: Partial<ThemeColors>) => void;
@@ -28,24 +43,13 @@ export interface BrandStore {
   resetToDefault: () => void;
 }
 
-const defaultThemeColors: ThemeColors = {
-  primary: '#164e63',
-  primaryDark: '#0f3a4b',
-  accent: '#c59b27',
-  accentHover: '#b0881e',
-};
-
-const defaultLayoutConfig: BrandLayoutConfig = {
-  showSearchFilter: true,
-  showAboutSection: true,
-  showTestimonialsSection: true,
-  showAiChat: true,
-};
+const defaultThemeColors: ThemeColors = DEFAULT_THEME;
+const defaultLayoutConfig: BrandLayoutConfig = DEFAULT_LAYOUT;
 
 // Color Presets for Real Estate Brokers
 export const BRAND_COLOR_PRESETS: { name: string; primary: string; primaryDark: string; accent: string; accentHover: string }[] = [
   {
-    name: 'Azul Océano & Oro (Clásico Urbe)',
+    name: 'Azul Océano & Oro (Clásico)',
     primary: '#164e63',
     primaryDark: '#0f3a4b',
     accent: '#c59b27',
@@ -99,7 +103,88 @@ const brandConfigStorage = createLocalStore<Partial<RealEstateBrandConfig>>('urb
 const themeColorsStorage = createLocalStore<Partial<ThemeColors>>('urbe_theme_colors');
 const layoutConfigStorage = createLocalStore<Partial<BrandLayoutConfig>>('urbe_layout_config');
 
-export const useBrandStore = create<BrandStore>((set) => {
+// Con datos remotos se recuerda lo último leído, por corredora: evita un parpadeo al abrir el sitio y sirve si falla la lectura.
+const siteCache = (tenantId: string) => createLocalStore<SiteData>(`urbe_site_${tenantId}`);
+
+// La marca pública se suma a los ajustes internos de la consola (mercado, simulador), que no viven en la base del sitio.
+function applySite(site: SiteData): Pick<BrandStore, 'config' | 'themeColors' | 'layoutConfig' | 'content' | 'templateId'> {
+  const config: RealEstateBrandConfig = { ...defaultAgencyConfig, ...site.brand };
+  // Mantiene al día a quienes leen la marca sin suscribirse (chat, integraciones)
+  Object.assign(defaultAgencyConfig, config);
+  applyCssVariables(site.theme);
+  return { config, themeColors: site.theme, layoutConfig: site.layout, content: site.content, templateId: site.templateId };
+}
+
+export const useBrandStore = create<BrandStore>((set, get) => {
+  const ctx = remoteContext();
+
+  if (ctx) {
+    // Nunca se parte con la marca de ejemplo escrita en el código: sería mostrar los datos de otra corredora.
+    const stored = siteCache(ctx.tenantId).load();
+    const initial: SiteData = (stored && parseSiteData({ ...stored, tenantName: stored.brand?.brandName })) ?? {
+      templateId: DEFAULT_TEMPLATE_ID,
+      brand: neutralBrand(''),
+      theme: DEFAULT_THEME,
+      layout: DEFAULT_LAYOUT,
+      content: NEUTRAL_CONTENT,
+    };
+    return {
+      ...applySite(initial),
+      loadStatus: 'idle',
+      load: async () => {
+        const site = await fetchPublicSite(ctx.tenantId);
+        if (!site) {
+          set({ loadStatus: 'error' });
+          return;
+        }
+        siteCache(ctx.tenantId).save(site);
+        set({ ...applySite(site), loadStatus: 'ok' });
+      },
+      saveBrand: async (brand, colors, layout) => {
+        const state = get();
+        // Sin una lectura correcta se borrarían los datos que el formulario no muestra.
+        if (state.loadStatus !== 'ok') return { ok: false, error: 'sin_datos' };
+        const merged = {
+          ...state.config,
+          ...brand,
+          contact: { ...state.config.contact, ...(brand.contact || {}) },
+          stats: { ...state.config.stats, ...(brand.stats || {}) },
+        };
+        const logoUrl = normalizeUrl(merged.logoUrl);
+        const logoWhiteUrl = normalizeUrl(merged.logoWhiteUrl);
+        const brokerPhotoUrl = normalizeUrl(merged.brokerPhotoUrl);
+        const instagram = normalizeUrl(merged.contact.instagram);
+        if (logoUrl === null || logoWhiteUrl === null || brokerPhotoUrl === null || instagram === null) {
+          return { ok: false, error: 'enlace_invalido' };
+        }
+        merged.logoUrl = logoUrl;
+        merged.logoWhiteUrl = logoWhiteUrl;
+        merged.brokerPhotoUrl = brokerPhotoUrl;
+        merged.contact.instagram = instagram;
+        // Se guarda lo mismo que después leerá el sitio: pasa por el mismo lector, que descarta enlaces peligrosos y colores raros.
+        const clean = parseSiteData({
+          tenantName: state.config.brandName,
+          templateId: state.templateId,
+          brand: serializeBrand(merged),
+          theme: { ...state.themeColors, ...colors },
+          layout: { ...state.layoutConfig, ...layout },
+        });
+        if (!clean) return { ok: false, error: 'conexion' };
+        const result = await saveSiteBrand(ctx.tenantId, clean.brand, clean.theme, clean.layout);
+        if (!result.ok) return result;
+        const site: SiteData = { ...clean, content: state.content };
+        siteCache(ctx.tenantId).save(site);
+        set({ ...applySite(site), loadStatus: 'ok' });
+        return result;
+      },
+      // Con datos remotos no hay marca "original" a la cual volver
+      updateBrandConfig: () => undefined,
+      updateThemeColors: () => undefined,
+      updateLayoutConfig: () => undefined,
+      resetToDefault: () => undefined,
+    };
+  }
+
   let initialConfig = { ...defaultAgencyConfig };
   let initialColors = { ...defaultThemeColors };
   let initialLayout = { ...defaultLayoutConfig };
@@ -116,6 +201,18 @@ export const useBrandStore = create<BrandStore>((set) => {
     config: initialConfig,
     themeColors: initialColors,
     layoutConfig: initialLayout,
+    content: demoSiteContent,
+    templateId: DEFAULT_TEMPLATE_ID,
+    loadStatus: 'ok',
+
+    load: async () => undefined,
+
+    saveBrand: async (brand, colors, layout) => {
+      get().updateBrandConfig(brand);
+      get().updateThemeColors(colors);
+      get().updateLayoutConfig(layout);
+      return { ok: true };
+    },
 
     updateBrandConfig: (partial) => {
       set((state) => {

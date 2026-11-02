@@ -253,7 +253,7 @@ describe('LeadsTab (CRM)', () => {
 
       expect(descarga).not.toBeNull();
       const { href, nombre } = descarga!;
-      expect(nombre).toBe(`leads_urbegestion_${hoy}.csv`);
+      expect(nombre).toBe(`leads_${hoy}.csv`);
       const csv = decodeURI(href!.replace('data:text/csv;charset=utf-8,', ''));
       const lineas = csv.split('\n');
       expect(lineas).toHaveLength(2);

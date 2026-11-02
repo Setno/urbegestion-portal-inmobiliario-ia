@@ -6,18 +6,20 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 
 ## Stack
 - Lenguaje / framework: TypeScript, React 18, Vite 6, Tailwind 3, Zustand, Recharts, Framer Motion.
-- Base de datos: Supabase (PostgreSQL) para usuarios, corredoras, propiedades y leads cuando hay `VITE_TENANT_ID`; sin él, los datos siguen en `localStorage` (`apps/consola/src/core/storage/localStore.ts`). Acceso a datos vía repositorios (`apps/consola/src/core/data/`). Ver docs/adr/004 y 007.
-- Monorepo con espacios de trabajo de npm (ADR-010, H-026): la consola y sus funciones viven en `apps/consola`, y los paquetes compartidos en `packages/`; los comandos se ejecutan desde la raíz.
-- Sitio público por corredora (decidido, sin implementar): Next.js, ver docs/adr/006; la consola y el widget siguen en React + Vite.
-- Hosting: Vercel (SPA + funciones en `apps/consola/api/`; carpeta raíz del proyecto: `apps/consola`, y su `vercel.json` vive ahí). Desde 2026-11-01 cada commit se despliega como *preview* (con variables de desarrollo) para probar en la web; producción no se toca sin orden explícita.
+- Base de datos: Supabase (PostgreSQL) para usuarios, corredoras, propiedades, leads y datos del sitio cuando hay `VITE_TENANT_ID`; sin él, los datos siguen en `localStorage` (`apps/consola/src/core/storage/localStore.ts`). Acceso a datos vía repositorios (`apps/consola/src/core/data/`). Ver docs/adr/004 y 007.
+- Monorepo con espacios de trabajo de npm (ADR-010, H-026): la consola y sus funciones viven en `apps/consola`, el sitio en `apps/sitio`, y los paquetes compartidos en `packages/`; los comandos se ejecutan desde la raíz.
+- Sitio público por corredora: Next.js en `apps/sitio` (ADR-006, ADR-011; hoy es un esqueleto, la landing completa llega con H-028); la consola y el widget siguen en React + Vite.
+- Hosting: Vercel (SPA + funciones en `apps/consola/api/`; carpeta raíz del proyecto: `apps/consola`, y su `vercel.json` vive ahí). El sitio tendrá su propio proyecto con carpeta raíz `apps/sitio`, que ya trae su `vercel.json` con los despliegues automáticos desactivados. Desde 2026-11-01 cada commit se despliega como *preview* (con variables de desarrollo) para probar en la web; producción no se toca sin orden explícita.
 
 ## Comandos (verificados el 2026-11-02)
 | Acción | Comando |
 | --- | --- |
 | Instalar | `npm ci` (validado con `--dry-run`) |
+| Correr el sitio en local | `npm run dev:sitio` → http://localhost:3001 (lee `.env.local` de la raíz; además de las claves de Supabase necesita `SITIO_TENANT_ID` o `VITE_TENANT_ID`) |
+| Build del sitio | `npm run build:sitio` |
 | Correr en local | `npm run dev` → http://localhost:3000 (el panel admin pide iniciar sesión con Supabase; necesita `.env.local` con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`; sin ellas el panel no aparece; con `VITE_TENANT_ID` (id de la corredora) leads y propiedades van a Supabase, sin él quedan en el navegador) |
 | Tests rápidos | `npm test` (Vitest + jsdom, ~30 s); `npm run test:watch` para desarrollo |
-| Suite completa | `npm test` (607 pruebas, incluidas las de pantalla (CRM, catálogo y captación) con Testing Library; sin cobertura medida aún) |
+| Suite completa | `npm test` (662 pruebas, incluidas las de pantalla (CRM, catálogo y captación) con Testing Library; sin cobertura medida aún) |
 | Lint | `npm run lint` (0 errores y 0 avisos; sin deuda suprimida, H-015) |
 | Tipos | `npx tsc --noEmit` |
 | Build | `npm run build` (ejecuta `tsc && vite build` en `apps/consola`; el resultado queda en `apps/consola/dist`) |
@@ -28,7 +30,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 Las rutas `api/*` no existen bajo `npm run dev`; requieren `vercel dev` o un despliegue (el chat cae al motor local y el webhook responde "sin conexión").
 
 ## Convenciones (observadas en el código)
-- Estructura, dentro de `apps/consola/`: `src/core` (config, marca, almacenamiento, consola admin), `src/modules/{captacion,crm,catalogo}` con `components/ stores/ types/ services/ data/`, `src/site` (landing). Paquetes compartidos en `packages/`: `plataforma` (contrato con ventas), `mercados` (datos de Chile) y `dinero`. Detalle en ESTRUCTURA.md.
+- Estructura, dentro de `apps/consola/`: `src/core` (config, marca, almacenamiento, consola admin), `src/modules/{captacion,crm,catalogo}` con `components/ stores/ types/ services/ data/`, `src/site` (landing). Paquetes compartidos en `packages/`: `plataforma` (contrato con ventas), `mercados` (datos de Chile), `dinero` y `sitio-datos` (datos públicos del sitio). Detalle en ESTRUCTURA.md.
 - Nombres: componentes en PascalCase, tiendas `useXStore`, tipos en `types/`, textos de interfaz en español escritos en el código (pendiente i18n, H-010).
 - Estado: tiendas Zustand que persisten vía `createLocalStore`; ningún componente debe llamar a `localStorage` directo para datos de negocio.
 - Manejo de errores: `try/catch` con `console.warn` y degradación silenciosa (por ejemplo, el chat cae al motor local si falla el LLM).

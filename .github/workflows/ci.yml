@@ -37,6 +37,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Build del sitio
+        run: npm run build:sitio
+
       - name: Auditoría de dependencias
         run: npm audit --audit-level=high
 

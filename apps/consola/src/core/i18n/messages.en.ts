@@ -37,6 +37,7 @@ export const en: Record<MessageKey, string> = {
 
   // Catalog grid
   'grid.badge': 'Exclusive Catalog',
+  'grid.subtitle': 'Browse the available properties and book your visit.',
   'grid.title': 'Properties in {scope}',
   'grid.sort.label': 'Sort:',
   'grid.sort.featured': 'Featured first',
@@ -192,7 +193,7 @@ export const en: Record<MessageKey, string> = {
   'chat.reply.schedule':
     'Great idea! At {brand} we arrange guided, private visits. To secure {broker}\'s availability, which day and time suit you best? You can also enter your details below to register the booking in our calendar.',
   'chat.reply.sell':
-    'At {brand} we have more than 25 years of experience valuing and selling urban and farm properties in {scope}, with an average time to sell of 42 days.\n\nWe invite you to use our "{section}" section to upload photos from your phone or leave your phone number so {broker} can contact you with a free market study.',
+    'At {brand} we value and sell properties in {scope}.\n\nWe invite you to use our "{section}" section to upload photos from your phone or leave your phone number so {broker} can contact you with a free market study.',
   'chat.reply.finance':
     'Financing and credit assessment are handled by your bank, so we cannot simulate it here. What we can do is show you the property, arrange a visit and accompany you through the process.\n\nLeave us your details and {broker} will contact you to help.',
   'chat.reply.matches':
@@ -206,7 +207,7 @@ export const en: Record<MessageKey, string> = {
   'val.badge': 'Professional Valuation & Listing',
   'val.title.sell': 'Sell with {brand}',
   'val.title.rent': 'List Your Property for Rent',
-  'val.subtitle': 'More than 25 years of experience in {scope} with {broker}.',
+  'val.subtitle': 'Experience in {scope} with {broker}.',
   'val.success.title': 'Request and Documents Registered Successfully!',
   'val.success.review': '{broker} will review the details and the',
   'val.files': '{count} photo(s)/file(s)',

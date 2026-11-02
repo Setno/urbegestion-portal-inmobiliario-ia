@@ -57,3 +57,7 @@ coverage/
 .pytest_cache/
 # Sistema
 Thumbs.db
+
+# Next.js (lo genera al compilar)
+next-env.d.ts
+*.tsbuildinfo

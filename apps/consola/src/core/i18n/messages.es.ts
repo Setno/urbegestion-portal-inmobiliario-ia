@@ -37,6 +37,7 @@ export const es = {
 
   // Grilla del catálogo
   'grid.badge': 'Catálogo Exclusivo',
+  'grid.subtitle': 'Conoce las propiedades disponibles y agenda tu visita.',
   'grid.title': 'Propiedades en {scope}',
   'grid.sort.label': 'Ordenar:',
   'grid.sort.featured': 'Destacadas primero',
@@ -192,7 +193,7 @@ export const es = {
   'chat.reply.schedule':
     '¡Excelente iniciativa! En {brand} coordinamos visitas guiadas y privadas. Para asegurar la disponibilidad de {broker}, ¿qué día y hora te acomoda mejor? También puedes ingresar tus datos a continuación para registrar la reserva en nuestra agenda.',
   'chat.reply.sell':
-    'En {brand} contamos con más de 25 años de experiencia valorando y comercializando inmuebles urbanos y agrícolas en {scope} con un tiempo promedio de venta de 42 días.\n\nTe invitamos a utilizar nuestra sección "{section}" para subir fotos desde tu celular o ingresar tu teléfono para que {broker} te contacte con un estudio de mercado sin costo.',
+    'En {brand} valoramos y comercializamos inmuebles en {scope}.\n\nTe invitamos a utilizar nuestra sección "{section}" para subir fotos desde tu celular o ingresar tu teléfono para que {broker} te contacte con un estudio de mercado sin costo.',
   'chat.reply.finance':
     'El financiamiento y la evaluación del crédito los realiza tu banco, así que no podemos simularlo por aquí. Lo que sí hacemos es mostrarte la propiedad, coordinar una visita y acompañarte en el proceso.\n\nDéjanos tus datos y {broker} te contactará para ayudarte.',
   'chat.reply.matches':
@@ -206,7 +207,7 @@ export const es = {
   'val.badge': 'Tasación & Captación Profesional',
   'val.title.sell': 'Vende con {brand}',
   'val.title.rent': 'Pon en Arriendo tu Propiedad',
-  'val.subtitle': 'Más de 25 años de experiencia en {scope} con {broker}.',
+  'val.subtitle': 'Experiencia en {scope} con {broker}.',
   'val.success.title': '¡Solicitud y Antecedentes Registrados con Éxito!',
   'val.success.review': '{broker} revisará los datos y las',
   'val.files': '{count} foto(s)/archivo(s)',

@@ -104,6 +104,6 @@ describe('buildFullExportJson', () => {
 
 describe('exportFileName', () => {
   it('arma el nombre con el tipo y la fecha', () => {
-    expect(exportFileName('leads', 'csv', new Date('2026-11-01T12:00:00Z'))).toBe('urbegestion_leads_2026-11-01.csv');
+    expect(exportFileName('leads', 'csv', new Date('2026-11-01T12:00:00Z'))).toBe('corredora_leads_2026-11-01.csv');
   });
 });

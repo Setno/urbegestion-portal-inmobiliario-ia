@@ -163,7 +163,7 @@ export const IntegrationsTab: React.FC = () => {
                 </label>
                 <input
                   type="url"
-                  placeholder="https://cal.com/urbegestion/visita-propiedad"
+                  placeholder="https://cal.com/tu-corredora/visita"
                   value={calComUrl}
                   onChange={(e) => setCalComUrl(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono"
