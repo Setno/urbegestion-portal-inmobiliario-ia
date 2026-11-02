@@ -4,11 +4,11 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', '_archivo', 'coverage'] },
+  { ignores: ['**/dist', 'node_modules', '_archivo', 'coverage'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['apps/consola/src/**/*.{ts,tsx}', 'packages/*/src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
     rules: {
@@ -19,7 +19,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['api/**/*.ts', 'tests/**/*.ts', 'scripts/**/*.mjs', '*.config.{js,ts}'],
+    files: ['apps/consola/api/**/*.ts', 'apps/consola/tests/**/*.ts', 'scripts/**/*.mjs', '*.config.{js,ts}', 'apps/*/*.config.{js,ts}'],
     languageOptions: { globals: globals.node },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

@@ -1,0 +1,11 @@
+{
+  "name": "@portal/mercados",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./cl": "./src/cl/index.ts",
+    "./cl/chileanLocations": "./src/cl/chileanLocations.ts"
+  }
+}
