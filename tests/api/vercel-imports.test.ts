@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { posix as path } from 'node:path';
 
-// En Vercel las funciones corren como módulos de Node, que exige la extensión en las importaciones relativas.
-// Vitest las resuelve igual sin ella, así que sin esta prueba el error solo aparece al llamar la función desplegada (H-046).
+// En Vercel las funciones corren como módulos de Node, que exige la extensión en las importaciones relativas, y solo
+// se compila lo que se importa por ruta relativa: "@portal/..." llega como .ts sin compilar y la función se cae.
+// Vitest resuelve ambos casos, así que sin esta prueba el error solo aparece al llamar la función desplegada (H-046, ADR-010).
 const archivos = import.meta.glob(['../../api/**/*.ts', '../../apps/consola/src/**/*.ts', '../../packages/*/src/**/*.ts', '!**/*.test.ts'], {
   query: '?raw',
   import: 'default',
@@ -12,12 +13,6 @@ const archivos = import.meta.glob(['../../api/**/*.ts', '../../apps/consola/src/
 const IMPORT_LOCAL = /^\s*(?:import|export)\s+(?!type\b)[^'"]*?from\s+['"]((?:\.\.?\/|@portal\/)[^'"]+)['"]/gm;
 
 const importsLocales = (texto: string): string[] => [...texto.matchAll(IMPORT_LOCAL)].map((m) => m[1]);
-
-// "@portal/plataforma/contract" es packages/plataforma/src/contract.ts (ver "exports" en su package.json).
-const archivoDePaquete = (ruta: string): string => {
-  const [, paquete, modulo] = ruta.split('/');
-  return `../../packages/${paquete}/src/${modulo}.ts`;
-};
 
 // Recorre lo que carga cada función, incluido lo que importan a su vez los archivos de src/.
 function problemasDesde(inicio: string): string[] {
@@ -30,9 +25,7 @@ function problemasDesde(inicio: string): string[] {
     vistos.add(actual);
     for (const ruta of importsLocales(archivos[actual])) {
       if (ruta.startsWith('@portal/')) {
-        const destino = archivoDePaquete(ruta);
-        if (archivos[destino] === undefined) problemas.push(`${actual} importa '${ruta}', que no existe`);
-        else pendientes.push(destino);
+        problemas.push(`${actual} importa '${ruta}' por nombre; debe usar la ruta relativa al paquete`);
         continue;
       }
       if (!ruta.endsWith('.js')) {

@@ -17,7 +17,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@portal/plataforma": "*",
     "@supabase/supabase-js": "2.118.0"
   },
   "devDependencies": {

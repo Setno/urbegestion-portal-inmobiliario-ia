@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { signPayload } from '@portal/plataforma/syncProtocol';
+import { signPayload } from '../../packages/plataforma/src/syncProtocol.js';
 import { createFakeDb } from './fakeSupabase';
 
 const db = vi.hoisted(() => ({ current: null as ReturnType<typeof import('./fakeSupabase').createFakeDb> | null }));
