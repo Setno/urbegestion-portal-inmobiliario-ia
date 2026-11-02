@@ -2,7 +2,7 @@
 // Lo usan api/platform/tenant-sync.ts y sus pruebas; vive en src para poder probarlo con Vitest.
 // Firma: HMAC-SHA256 en hexadecimal de "<marca de tiempo>.<cuerpo exacto>", con el secreto compartido
 // (PLATFORM_SYNC_SECRET, solo en el servidor). La marca de tiempo caduca a los 5 minutos para frenar repeticiones.
-import { parseEntitlements, type TenantEntitlements } from './contract';
+import { parseEntitlements, type TenantEntitlements } from './contract.js';
 
 export const SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000;
 export const MAX_BODY_BYTES = 64 * 1024;
