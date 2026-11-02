@@ -1,5 +1,7 @@
 # Integración con el proyecto de ventas (contrato v1, ADR-009)
 
+Lista de tareas para la sesión de ventas: [pendientes-proyecto-ventas.md](pendientes-proyecto-ventas.md).
+
 Esta guía es para quien programa el lado de ventas. El SaaS expone dos puntos; ninguno de los dos hace que el SaaS dependa de ventas.
 
 ## Variables de entorno (solo en el servidor del SaaS, en Vercel)
