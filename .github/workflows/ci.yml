@@ -4,7 +4,7 @@ name: ci
 on:
   pull_request:
   push:
-    branches: [main, 'chore/**']
+    branches: [main, 'chore/**', monorepo]
 
 permissions:
   contents: read
