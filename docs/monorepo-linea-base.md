@@ -7,7 +7,7 @@ Cómo está todo antes de mover nada (rama `monorepo`, medido el 2026-11-02, ya 
 | --- | --- | --- |
 | Pruebas | 606 pasan, en 58 archivos | Las mismas 606, comparadas por nombre |
 | Tipos | sin errores | Igual |
-| Lint | 157 archivos revisados, 0 errores y 0 avisos | Ningún archivo deja de revisarse |
+| Lint | 157 archivos revisados, 0 errores y 0 avisos (158 desde la etapa 1, por `vitest.config.ts`) | Ningún archivo deja de revisarse |
 | Reglas de lint activas | `src/App.tsx`: 93, con `react-hooks`; `api/chat.ts`: 91; `scripts/verificar-supabase.mjs`: 86 | Mismas cantidades |
 | CSS generado | 53.418 bytes (`index-CeaLyH-Y.css`) | Mismo tamaño; una baja indica que Tailwind perdió archivos |
 | JS generado | Local: 1.213.556 bytes (`index-D8ldTTZh.js`). En Vercel: `index-tDXwAuLy.js`; el nombre cambia porque usa otras variables | Diferencia mínima y explicada |

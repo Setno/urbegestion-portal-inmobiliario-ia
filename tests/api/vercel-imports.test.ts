@@ -3,7 +3,7 @@ import { posix as path } from 'node:path';
 
 // En Vercel las funciones corren como módulos de Node, que exige la extensión en las importaciones relativas.
 // Vitest las resuelve igual sin ella, así que sin esta prueba el error solo aparece al llamar la función desplegada (H-046).
-const archivos = import.meta.glob(['../../api/**/*.ts', '../../src/**/*.ts', '!**/*.test.ts'], {
+const archivos = import.meta.glob(['../../api/**/*.ts', '../../apps/consola/src/**/*.ts', '!**/*.test.ts'], {
   query: '?raw',
   import: 'default',
   eager: true,

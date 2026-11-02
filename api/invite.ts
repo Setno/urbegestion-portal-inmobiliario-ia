@@ -1,7 +1,7 @@
 // Invita a un agente a la corredora de quien llama (solo administradores).
 // Usa la clave de servicio de Supabase, que vive solo en el servidor (SUPABASE_SERVICE_ROLE_KEY).
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { accessMode, entitlementsFromRow, limitOf, type EntitlementsRow } from '../src/core/platform/contract.js';
+import { accessMode, entitlementsFromRow, limitOf, type EntitlementsRow } from '../apps/consola/src/core/platform/contract.js';
 
 declare const process: { env: Record<string, string | undefined> };
 

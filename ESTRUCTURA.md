@@ -1,6 +1,6 @@
 # Estructura del código (vigente desde el Paso 1)
 
-Todo el código vive en `src/`. Cada carpeta corresponde a una pieza del Blueprint.
+El repositorio es un monorepo (ADR-010): la consola vive en `apps/consola/`, y las rutas `src/...` de este documento son relativas a esa carpeta. `api/` y `tests/` siguen en la raíz hasta la etapa 3 de H-026. Cada carpeta corresponde a una pieza del Blueprint.
 
 | Carpeta | Qué contiene | Equivale en el Blueprint |
 |---|---|---|
