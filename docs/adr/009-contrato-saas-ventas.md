@@ -81,5 +81,10 @@ Una prueba automática comprueba que toda clave usada en el código exista en el
 - **Sin clientes aún:** no se construye un panel comercial propio todavía; para los primeros clientes bastan el panel del medio de cobro y una planilla en ventas. Lo único que se construye antes es el contrato.
 - Costo: hay que mantener el catálogo y el contrato al día, y probar que ambos lados lo respetan.
 
+## Implementación (2026-11-01)
+- H-043.1: catálogo y funciones en `src/core/platform/`. H-043.2: tabla `tenant_entitlements` (migración `20261101230000`), `api/platform/tenant-sync` (HMAC-SHA256 con marca de tiempo de 5 minutos, idempotente y en orden por `updatedAt`) y `api/platform/metrics` (token; función SQL `platform_metrics()` que solo ejecuta la clave de servicio). Guía para el lado de ventas: docs/integracion-ventas.md.
+- Mientras la corredora no tenga fila de derechos (o no haya Supabase), el panel usa los valores por defecto: todo prendido.
+- Pendiente (H-043.3): alta de corredora llamada desde ventas, y medir `ai_messages_30d` y `storage_mb`.
+
 ## Revisión
 Revisar cuando haya diez clientes de pago o si aparece una variable que no cabe en `features`/`limits`.

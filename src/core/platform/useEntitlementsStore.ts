@@ -11,11 +11,14 @@ import {
   type LimitKey,
   type TenantEntitlements,
 } from './contract';
+import { fetchEntitlements } from './entitlementsService';
 
 interface EntitlementsStore {
   entitlements: TenantEntitlements;
   // Aplica lo que llegó de ventas. Un mensaje más antiguo que el que ya se aplicó se ignora (ADR-009: idempotente y en orden).
   apply: (raw: unknown) => void;
+  // Lee los derechos de la base y los aplica; sin datos deja lo que haya.
+  load: () => Promise<void>;
   reset: () => void;
 }
 
@@ -27,6 +30,11 @@ export const useEntitlementsStore = create<EntitlementsStore>((set, get) => ({
     const current = get().entitlements;
     if (incoming.updatedAt && current.updatedAt && Date.parse(incoming.updatedAt) < Date.parse(current.updatedAt)) return;
     set({ entitlements: incoming });
+  },
+
+  load: async () => {
+    const raw = await fetchEntitlements();
+    if (raw) get().apply(raw);
   },
 
   reset: () => set({ entitlements: { ...DEFAULT_ENTITLEMENTS } }),

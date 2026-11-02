@@ -22,6 +22,7 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { LoginScreen, NewPasswordScreen, NoMembershipScreen } from '../auth/AuthScreens';
 import { allowedTabs, safeTab, type AdminTab } from '../auth/permissions';
 import { useT, type MessageKey } from '../i18n/i18n';
+import { useEntitlementsStore } from '../platform/useEntitlementsStore';
 import { LanguageToggle } from '../ui/LanguageToggle';
 
 interface AdminDashboardProps {
@@ -40,6 +41,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   // Con sesión y corredora, los leads se leen de la base (privados: sin sesión no se piden)
   useEffect(() => {
     if (status === 'con_sesion') void useLeadStore.getState().load();
+    if (status === 'con_sesion') void useEntitlementsStore.getState().load();
   }, [status]);
 
   const [requestedTab, setRequestedTab] = useState<AdminTab>('crm');

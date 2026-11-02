@@ -10,6 +10,7 @@ Todo el código vive en `src/`. Cada carpeta corresponde a una pieza del Bluepri
 | `src/modules/catalogo/` | Propiedades: fichas, grilla, filtros, calculadora hipotecaria, pestaña de Propiedades, tienda, tipos y datos de ejemplo | Catálogo de propiedades (Core) |
 | `src/markets/` | Interfaz `MarketPack`, registro de paquetes y ayudas de zonas (ADR-008) | Paquetes de mercado |
 | `src/core/platform/` | Contrato con el proyecto de ventas: catálogo de funciones y cupos, `can()`/`limitOf()`, estado de la suscripción (ADR-009) | Plataforma |
+| `api/platform/` | Puntos de contacto con ventas: `tenant-sync` (ventas → SaaS, firmado) y `metrics` (SaaS → ventas, solo agregados); guía en docs/integracion-ventas.md | Plataforma |
 | `src/markets/cl/` | Datos específicos de Chile (16 regiones, 346 comunas, alias y sectores) | Paquete de mercado Chile |
 | `src/core/market/` | Mercado y zonas de trabajo de la corredora (tienda y servicio) | Core |
 | `src/core/money/` | Dinero con su moneda: formato, conversión y comparación según el paquete de mercado | Core |
