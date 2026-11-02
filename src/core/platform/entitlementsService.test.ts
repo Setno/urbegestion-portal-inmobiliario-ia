@@ -26,3 +26,10 @@ describe('entitlementsService', () => {
     expect(await fetchEntitlements()).toBeNull();
   });
 });
+
+describe('fetchPublicEntitlements', () => {
+  it('sin Supabase (también en pruebas) no hay datos y el sitio muestra todo', async () => {
+    const { fetchPublicEntitlements } = await import('./entitlementsService');
+    expect(await fetchPublicEntitlements()).toBeNull();
+  });
+});

@@ -84,6 +84,7 @@ Una prueba automática comprueba que toda clave usada en el código exista en el
 ## Implementación (2026-11-01)
 - H-043.1: catálogo y funciones en `src/core/platform/`. H-043.2: tabla `tenant_entitlements` (migración `20261101230000`), `api/platform/tenant-sync` (HMAC-SHA256 con marca de tiempo de 5 minutos, idempotente y en orden por `updatedAt`) y `api/platform/metrics` (token; función SQL `platform_metrics()` que solo ejecuta la clave de servicio). Guía para el lado de ventas: docs/integracion-ventas.md.
 - Mientras la corredora no tenga fila de derechos (o no haya Supabase), el panel usa los valores por defecto: todo prendido.
+- H-033 y H-045: el panel, la invitación de agentes (servidor), el sitio público (función `get_tenant_public_entitlements`, sin plan ni cupos) y la base (disparador del cupo de publicadas) aplican el contrato. Los leads no se limitan por decisión de producto.
 - Pendiente (H-043.3): alta de corredora llamada desde ventas, y medir `ai_messages_30d` y `storage_mb`.
 
 ## Revisión

@@ -1,3 +1,4 @@
+import { useCan } from '../../core/platform/useEntitlementsStore';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -18,6 +19,8 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => {
   const { toggleChat } = useChatStore();
+  const canChat = useCan('ai.chat');
+  const canSell = useCan('valuation.owner_form');
   const { config: agencyConfig } = useBrandStore();
 
   return (
@@ -96,6 +99,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
                 <span>Ver Propiedades en Venta / Arriendo</span>
               </a>
 
+              {canChat && (
               <button
                 onClick={toggleChat}
                 className="w-full sm:w-auto px-6 py-3.5 sm:py-4 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 hover:border-white/40 active:scale-95 transition-all"
@@ -103,7 +107,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
                 <Sparkles className="w-4 h-4 text-urbe-accent animate-pulse" />
                 <span>Consultar con Asistente IA</span>
               </button>
+              )}
 
+              {canSell && (
               <button
                 onClick={onOpenValuation}
                 className="w-full sm:w-auto px-4 py-3 sm:py-4 text-slate-300 hover:text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:underline"
@@ -111,6 +117,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
                 <span>Vende tu Propiedad</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+              )}
             </motion.div>
 
             {/* Quick Contact Badges */}
@@ -188,6 +195,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
               </div>
 
               {/* Direct Booking Hook */}
+              {canChat && (
               <div className="p-3 rounded-2xl bg-gradient-to-r from-urbe-primary/10 to-cyan-900/10 border border-urbe-primary/15 flex items-center justify-between">
                 <div className="text-xs text-slate-700">
                   <p className="font-bold">¿Buscas arriendo o compra?</p>
@@ -200,6 +208,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
                   Agendar
                 </button>
               </div>
+              )}
 
             </div>
           </motion.div>

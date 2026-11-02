@@ -54,3 +54,12 @@ describe('useEntitlementsStore (derechos de la corredora)', () => {
     expect(screen.getByText('chat:false modo:read_only')).toBeTruthy();
   });
 });
+
+describe('useEntitlementsStore.loadPublic (sitio público)', () => {
+  beforeEach(() => useEntitlementsStore.getState().reset());
+
+  it('sin Supabase no cambia nada y todo sigue prendido', async () => {
+    await useEntitlementsStore.getState().loadPublic();
+    expect(canNow('ai.chat')).toBe(true);
+  });
+});

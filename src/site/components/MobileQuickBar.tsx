@@ -3,10 +3,12 @@ import { Search, Phone, MessageCircle, Sparkles } from 'lucide-react';
 import { agencyConfig } from '../../core/config/agencyConfig';
 import { useChatStore } from '../../modules/captacion/stores/useChatStore';
 import { useT } from '../../core/i18n/i18n';
+import { useCan } from '../../core/platform/useEntitlementsStore';
 
 export const MobileQuickBar: React.FC = () => {
   const { toggleChat } = useChatStore();
   const { t } = useT();
+  const canChat = useCan('ai.chat');
 
   const whatsappUrl = `https://wa.me/${agencyConfig.contact.whatsapp}?text=${encodeURIComponent(
     agencyConfig.contact.whatsappMessage
@@ -14,7 +16,7 @@ export const MobileQuickBar: React.FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200/90 py-2 px-3 lg:hidden shadow-2xl safe-area-bottom">
-      <div className="grid grid-cols-4 gap-1 max-w-md mx-auto text-center">
+      <div className={`grid ${canChat ? 'grid-cols-4' : 'grid-cols-3'} gap-1 max-w-md mx-auto text-center`}>
         
         {/* Search */}
         <a
@@ -48,6 +50,7 @@ export const MobileQuickBar: React.FC = () => {
         </a>
 
         {/* AI Concierge */}
+        {canChat && (
         <button
           onClick={toggleChat}
           className="flex flex-col items-center justify-center py-1 text-urbe-primary hover:text-cyan-900 active:scale-95 transition-all"
@@ -57,6 +60,7 @@ export const MobileQuickBar: React.FC = () => {
           </div>
           <span className="text-[10px] font-bold">{t('quickbar.chat')}</span>
         </button>
+        )}
 
       </div>
     </div>

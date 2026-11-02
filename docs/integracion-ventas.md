@@ -84,11 +84,13 @@ Los derechos quedan en `tenant_entitlements`; el panel los lee al iniciar sesió
 | `crm.export` | Se ocultan el botón de exportar del CRM y la descarga de datos |
 | `ai.llm_server` | El asistente usa el motor local aunque el servidor esté elegido |
 | `limit.agents` | El servidor (`api/invite`) no invita si el cupo está lleno, ni si la cuenta está en solo lectura o cancelada |
-| `limit.properties_published` | El panel no deja publicar ni aprobar sobre el cupo (los borradores no cuentan) |
+| `limit.properties_published` | El panel no deja publicar ni aprobar sobre el cupo, y la base también lo hace cumplir con un disparador (los borradores no cuentan) |
 | `site.enabled`, `site.custom_domain`, `widget.embed` | Reservadas: se aplican cuando existan el sitio por corredora y el widget |
-| `ai.chat`, `valuation.owner_form` | Reservadas hasta que el sitio público pueda leer los derechos (H-045) |
+| `ai.chat` | Se apagan el botón del asistente (barra, portada y barra móvil) y el widget del chat. El sitio público lee los derechos sin sesión con una función que entrega solo estado y funciones |
+| `valuation.owner_form` | Se apagan los accesos "Vende con Nosotros" / "Vende tu Propiedad" y el formulario de propietarios |
 | `publication.approval_flow` | Reservada (sin efecto por ahora) |
-| `limit.leads_per_month`, `limit.ai_messages_per_month`, `limit.storage_mb` | Reservadas: hoy no se miden (H-045 y H-043.3) |
+| `limit.leads_per_month` | Reservada a propósito: no se bloquean leads (cada lead perdido es un cliente perdido de la corredora). Ventas puede usar `leads30d` de las métricas para avisar o cobrar |
+| `limit.ai_messages_per_month`, `limit.storage_mb` | Reservadas: hoy no se miden (H-043.3) |
 
 ## Para ampliar el contrato
 Ver "Cómo se agrega una variable nueva" en el ADR-009. Agregar una clave no requiere migración ni cambia el endpoint.

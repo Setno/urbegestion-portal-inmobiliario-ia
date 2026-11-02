@@ -6,6 +6,7 @@ import { SearchFilterBar } from './modules/catalogo/components/SearchFilterBar';
 import { PropertyGrid } from './modules/catalogo/components/PropertyGrid';
 import { PropertyModal } from './modules/catalogo/components/PropertyModal';
 import { OwnerValuation } from './modules/captacion/components/OwnerValuation';
+import { useEntitlementsStore, useCan } from './core/platform/useEntitlementsStore';
 import { AboutSection } from './site/components/AboutSection';
 import { TestimonialsSection } from './site/components/TestimonialsSection';
 import { Footer } from './site/components/Footer';
@@ -20,6 +21,9 @@ import { useMarketStore } from './core/market/useMarketStore';
 import { Property } from './modules/catalogo/types/property';
 
 export const App: React.FC = () => {
+  // Lo que el plan de la corredora incluye (ADR-009): sin datos de ventas todo está prendido
+  const canChat = useCan('ai.chat');
+  const canSell = useCan('valuation.owner_form');
   const { themeColors, layoutConfig } = useBrandStore();
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -37,6 +41,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     void usePropertyStore.getState().load();
     void useMarketStore.getState().load();
+    void useEntitlementsStore.getState().loadPublic();
   }, []);
 
   // Restaura la sesión al cargar y escucha cambios (ingreso, salida, enlace de recuperación de clave)
@@ -96,7 +101,7 @@ export const App: React.FC = () => {
       <MobileQuickBar />
 
       {/* 24/7 AI Concierge Chatbot Widget */}
-      {layoutConfig.showAiChat && (
+      {layoutConfig.showAiChat && canChat && (
         <AiChatWidget onOpenPropertyModal={(prop) => setSelectedProperty(prop)} />
       )}
 
@@ -107,10 +112,9 @@ export const App: React.FC = () => {
       />
 
       {/* Property Owner Valuation / Capture Form */}
-      <OwnerValuation 
-        isOpen={isValuationOpen} 
-        onClose={() => setIsValuationOpen(false)} 
-      />
+      {canSell && (
+        <OwnerValuation isOpen={isValuationOpen} onClose={() => setIsValuationOpen(false)} />
+      )}
 
       {/* Admin Dashboard & CRM Kanban (solo si Supabase está configurado; exige iniciar sesión) */}
       {ADMIN_ENABLED && (

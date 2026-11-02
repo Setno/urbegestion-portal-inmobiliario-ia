@@ -17,6 +17,7 @@ import { useBrandStore } from '../../core/brand/useBrandStore';
 import { useMarket } from '../../core/market/useMarketStore';
 import { useT } from '../../core/i18n/i18n';
 import { LanguageToggle } from '../../core/ui/LanguageToggle';
+import { useCan } from '../../core/platform/useEntitlementsStore';
 
 interface NavbarProps {
   onOpenAdmin: () => void;
@@ -28,6 +29,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
   const { currency, setCurrency } = usePropertyStore();
   const { pack } = useMarket();
   const { t } = useT();
+  const canChat = useCan('ai.chat');
+  const canSell = useCan('valuation.owner_form');
   const { leads } = useLeadStore();
   const { toggleChat } = useChatStore();
   const { config: agencyConfig } = useBrandStore();
@@ -57,6 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               <Search className="w-3.5 h-3.5 text-urbe-accent" />
               {t('nav.properties')}
             </a>
+            {canSell && (
             <button 
               onClick={onOpenValuation}
               className="text-slate-700 hover:text-urbe-primary transition-colors flex items-center gap-1.5"
@@ -64,6 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               <UserCheck className="w-3.5 h-3.5 text-urbe-accent" />
               {t('nav.sell')}
             </button>
+            )}
             <a href="#sobre-mi" className="text-slate-700 hover:text-urbe-primary transition-colors">
               Pilar Osorio
             </a>
@@ -134,6 +139,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
             </a>
 
             {/* AI Assistant Trigger Button */}
+            {canChat && (
             <button
               onClick={toggleChat}
               className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg bg-urbe-primary hover:bg-urbe-primaryDark text-white text-[11px] sm:text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
@@ -141,6 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               <Sparkles className="w-3.5 h-3.5 text-urbe-accent" />
               <span className="hidden sm:inline">{t('nav.assistant')}</span>
             </button>
+            )}
 
             {/* Mobile Hamburger Toggle */}
             <button
@@ -184,6 +191,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               <Search className="w-4 h-4 text-urbe-accent" />
               {t('nav.menu.catalog')}
             </a>
+            {canSell && (
             <button 
               onClick={() => { onOpenValuation(); setMobileMenuOpen(false); }}
               className="py-1.5 text-left text-slate-800 hover:text-urbe-primary flex items-center gap-2"
@@ -191,6 +199,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAdmin, onOpenValuation }) 
               <UserCheck className="w-4 h-4 text-urbe-accent" />
               {t('nav.menu.sell')}
             </button>
+            )}
             <a 
               href="#sobre-mi" 
               onClick={() => setMobileMenuOpen(false)}

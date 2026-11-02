@@ -27,3 +27,18 @@ export async function fetchEntitlements(): Promise<Record<string, unknown> | nul
     return null;
   }
 }
+
+// Derechos de la corredora legibles sin sesión (solo funciones y estado, nunca el plan ni los cupos): el sitio público los
+// necesita para apagar el chat o el formulario de propietarios. Ante cualquier fallo devuelve null y todo sigue prendido.
+export async function fetchPublicEntitlements(): Promise<Record<string, unknown> | null> {
+  const ctx = remoteContext();
+  if (!ctx) return null;
+  try {
+    const { data, error } = await ctx.client.rpc('get_tenant_public_entitlements', { p_tenant: ctx.tenantId });
+    if (error || !data || typeof data !== 'object') return null;
+    return data as Record<string, unknown>;
+  } catch (err) {
+    console.warn('[platform] No se pudieron leer los derechos públicos de la corredora:', err);
+    return null;
+  }
+}

@@ -11,7 +11,7 @@ import {
   type LimitKey,
   type TenantEntitlements,
 } from './contract';
-import { fetchEntitlements } from './entitlementsService';
+import { fetchEntitlements, fetchPublicEntitlements } from './entitlementsService';
 
 interface EntitlementsStore {
   entitlements: TenantEntitlements;
@@ -19,6 +19,8 @@ interface EntitlementsStore {
   apply: (raw: unknown) => void;
   // Lee los derechos de la base y los aplica; sin datos deja lo que haya.
   load: () => Promise<void>;
+  // Para el sitio público (sin sesión): solo funciones y estado.
+  loadPublic: () => Promise<void>;
   reset: () => void;
 }
 
@@ -34,6 +36,11 @@ export const useEntitlementsStore = create<EntitlementsStore>((set, get) => ({
 
   load: async () => {
     const raw = await fetchEntitlements();
+    if (raw) get().apply(raw);
+  },
+
+  loadPublic: async () => {
+    const raw = await fetchPublicEntitlements();
     if (raw) get().apply(raw);
   },
 
