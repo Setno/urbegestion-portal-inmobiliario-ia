@@ -5,7 +5,7 @@ Cómo está todo antes de mover nada (rama `monorepo`, medido el 2026-11-02, ya 
 ## Lo que se mide en cada etapa
 | Qué | Línea base | Condición |
 | --- | --- | --- |
-| Pruebas | 606 pasan, en 58 archivos | Las mismas 606, comparadas por nombre |
+| Pruebas | 606 pasan, en 58 archivos (607 desde la etapa 3, por una prueba nueva de importaciones) | Las mismas, comparadas por nombre |
 | Tipos | sin errores | Igual |
 | Lint | 157 archivos revisados, 0 errores y 0 avisos (158 desde la etapa 1, por `vitest.config.ts`; 159 desde la etapa 2, por `currentRates.ts`) | Ningún archivo deja de revisarse |
 | Reglas de lint activas | `src/App.tsx`: 93, con `react-hooks`; `api/chat.ts`: 91; `scripts/verificar-supabase.mjs`: 86 | Mismas cantidades |

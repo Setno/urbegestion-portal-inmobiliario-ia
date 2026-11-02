@@ -1,6 +1,5 @@
 // Base de datos de mentira para probar los endpoints de plataforma sin tocar Supabase.
-// Solo implementa lo que usan tenant-sync y metrics. No es un endpoint: el guion bajo lo evita, pero va en una carpeta
-// que Vercel despliega, así que el archivo se llama "fake" y nadie lo importa fuera de las pruebas.
+// Solo implementa lo que usan tenant-sync y metrics. Vive fuera de api/ porque Vercel publica como función todo lo que hay ahí.
 type Row = Record<string, unknown>;
 
 export function createFakeDb(initial: { tenants?: Row[]; tenant_entitlements?: Row[]; rpc?: Record<string, unknown> } = {}) {

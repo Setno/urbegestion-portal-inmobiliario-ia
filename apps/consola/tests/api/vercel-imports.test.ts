@@ -10,7 +10,7 @@ const archivos = import.meta.glob(['../../api/**/*.ts', '../../src/**/*.ts', '..
   eager: true,
 }) as Record<string, string>;
 
-const IMPORT_LOCAL = /^\s*(?:import|export)\s+(?!type\b)[^'"]*?from\s+['"]((?:\.\.?\/|@portal\/)[^'"]+)['"]/gm;
+const IMPORT_LOCAL = /(?:^\s*(?:import|export)\s+(?!type\b)[^'"]*?from\s+|^\s*import\s+|\bimport\(\s*)['"]((?:\.\.?\/|@portal\/)[^'"]+)['"]/gm;
 
 const importsLocales = (texto: string): string[] => [...texto.matchAll(IMPORT_LOCAL)].map((m) => m[1]);
 
@@ -47,6 +47,17 @@ describe('importaciones de las funciones del servidor', () => {
     expect(funciones).toContain('../../api/invite.ts');
     expect(funciones).toContain('../../api/platform/metrics.ts');
     expect(funciones).toContain('../../api/platform/tenant-sync.ts');
+  });
+
+  it('reconoce todas las formas de importar y omite las que solo traen tipos', () => {
+    const texto = [
+      "import { a } from './a.js';",
+      "import './b';",
+      "export * from '../c.js';",
+      "import type { D } from './d';",
+      "const e = await import('@portal/mercados');",
+    ].join('\n');
+    expect(importsLocales(texto)).toEqual(['./a.js', './b', '../c.js', '@portal/mercados']);
   });
 
   it('todo lo que carga una función usa rutas relativas con extensión, para que arranque en Vercel', () => {

@@ -17,7 +17,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 | Instalar | `npm ci` (validado con `--dry-run`) |
 | Correr en local | `npm run dev` → http://localhost:3000 (el panel admin pide iniciar sesión con Supabase; necesita `.env.local` con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`; sin ellas el panel no aparece; con `VITE_TENANT_ID` (id de la corredora) leads y propiedades van a Supabase, sin él quedan en el navegador) |
 | Tests rápidos | `npm test` (Vitest + jsdom, ~30 s); `npm run test:watch` para desarrollo |
-| Suite completa | `npm test` (606 pruebas, incluidas las de pantalla (CRM, catálogo y captación) con Testing Library; sin cobertura medida aún) |
+| Suite completa | `npm test` (607 pruebas, incluidas las de pantalla (CRM, catálogo y captación) con Testing Library; sin cobertura medida aún) |
 | Lint | `npm run lint` (0 errores y 0 avisos; sin deuda suprimida, H-015) |
 | Tipos | `npx tsc --noEmit` |
 | Build | `npm run build` (ejecuta `tsc && vite build` en `apps/consola`; el resultado queda en `apps/consola/dist`) |
@@ -61,4 +61,5 @@ Explorar → plan (aprobado) → test que falla → implementar → verificar �
 - Los scripts de edición masiva deben ser idempotentes y no re-copiar respaldos (se pisó una copia una vez); verificar `git status` antes de commitear (un `git add` fallido dejó un commit incompleto).
 - Las rutas nuevas aún sin versionar no se pueden mover con `git mv`.
 - Una carpeta recién movida puede quedar en un estado de OneDrive que Node ve como acceso directo, y `eslint .` la omite sin avisar: pasó de 157 a 20 archivos revisados, en verde. Por eso `npm run lint` nombra cada carpeta de código; cada carpeta nueva se agrega ahí, y al mover carpetas se compara la cantidad de archivos revisados.
+- El bloqueo de despliegues automáticos vive en `apps/consola/vercel.json` y solo rige si la carpeta raíz de Vercel apunta ahí: si no coinciden al hacer push, Vercel despliega solo, y en `main` sería producción (ADR-010).
 - Las pruebas no detectan si una función de `api/` arranca en Vercel: importar sin extensión `.js`, o un paquete por nombre (`@portal/...`), funciona en Vitest y la tumba al desplegar (H-046, ADR-010). Las funciones importan los paquetes por ruta relativa; tras desplegar, llamarlas.
