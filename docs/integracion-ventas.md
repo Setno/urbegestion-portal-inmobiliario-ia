@@ -37,7 +37,7 @@ Cuerpo (JSON):
 ```
 - Se identifica la corredora con `tenantId` (la primera vez) o solo con `tenantRef` (una vez vinculada). Si `tenantRef` ya pertenece a otra corredora: `409 tenant_ref_taken`.
 - `updatedAt` es obligatorio. Un mensaje más antiguo que el ya aplicado responde `200 {"applied": false, "reason": "stale"}` y no cambia nada.
-- Las claves de `features` y `limits` que el SaaS no conoce se guardan igual; las que no se envían valen su valor por defecto (`src/core/platform/contract.ts`).
+- Las claves de `features` y `limits` que el SaaS no conoce se guardan igual; las que no se envían valen su valor por defecto (`packages/plataforma/src/contract.ts`).
 - Respuestas: `200` aplicado, `400` cuerpo inválido, `401` firma inválida o caducada, `404` corredora desconocida, `409` referencia ya usada, `413` cuerpo muy grande, `503` sin configurar.
 
 Ejemplo de firma en Node:

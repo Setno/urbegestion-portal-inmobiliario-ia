@@ -37,7 +37,7 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-021 | Pruebas de pantallas de catálogo y captación (filtros, formulario de propiedades, chat, valorizador de 4 pasos, agenda) (el simulador de dividendo queda apagado, ver H-017) | Media | M | hecha (2026-11-01: 47 pruebas de pantalla en 5 archivos) | H-002 |
 | H-022 | Pruebas de la tienda de marca y de la pestaña de Identidad y Marca | Baja | S | hecha (2026-11-01: 7 pruebas de la tienda y 6 de la pestaña) | H-002 |
 | H-025 | Exportación completa de los datos de una corredora (propiedades, contactos, notas) en CSV/JSON | Media | M | hecha (probada a mano por el responsable, 2026-11-01) | H-008 |
-| H-026 | Pasar el repositorio a monorepo: `apps/consola` (React + Vite) y `apps/sitio` (Next.js) con paquetes compartidos | Alta | M+ (dividir) | en curso (rama `monorepo`; etapas 0 y 1 hechas el 2026-11-02, ver `docs/monorepo-linea-base.md`) | ADR-006, ADR-010 |
+| H-026 | Pasar el repositorio a monorepo: `apps/consola` (React + Vite) y `apps/sitio` (Next.js) con paquetes compartidos | Alta | M+ (dividir) | en curso (rama `monorepo`; etapas 0, 1 y 2 hechas el 2026-11-02, ver `docs/monorepo-linea-base.md`) | ADR-006, ADR-010 |
 | H-027 | Modelo de plantilla: datos del sitio en la base de datos y separación entre contenido y diseño | Alta | M+ (dividir) | pendiente | H-008, H-026 |
 | H-028 | Plantilla 1: adaptar la landing actual (`src/site/`) al sitio Next.js | Alta | M | pendiente | H-027 |
 | H-029 | Plantilla 2 y prueba de intercambio de plantilla sin perder datos | Media | M | pendiente | H-028 |

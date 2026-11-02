@@ -1,6 +1,7 @@
 import type { Property, PropertyFilterState } from '../types/property';
 import { getMarketPack, type MarketPack } from '@portal/mercados';
-import { convertMoney, currentRates, type CurrencyRates } from '../../../core/money/money';
+import { convertMoney, type CurrencyRates } from '@portal/dinero';
+import { currentRates } from '../../../core/money/currentRates';
 import { priceOf } from './propertyPrice';
 
 // Una comuna elegida en el buscador puede ser más larga o más corta que la guardada en la propiedad

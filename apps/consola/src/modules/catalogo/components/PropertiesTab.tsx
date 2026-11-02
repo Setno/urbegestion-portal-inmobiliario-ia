@@ -22,7 +22,7 @@ import { useMarket } from '../../../core/market/useMarketStore';
 import { isInServiceAreas } from '../services/propertyFilters';
 import { NumberInput } from '../../../core/ui/NumberInput';
 import { useT, capitalize } from '../../../core/i18n/i18n';
-import { formatMoney } from '../../../core/money/money';
+import { formatMoney } from '@portal/dinero';
 import { priceOf } from '../services/propertyPrice';
 import { hasRoom, limitOf } from '@portal/plataforma/contract';
 import { useEntitlementsStore } from '../../../core/platform/useEntitlementsStore';

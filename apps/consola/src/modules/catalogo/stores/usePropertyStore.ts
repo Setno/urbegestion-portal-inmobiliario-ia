@@ -3,7 +3,8 @@ import { Property, PropertyFilterState } from '../types/property';
 import { initialProperties } from '../data/initialProperties';
 import { getMarketPack } from '@portal/mercados';
 import { useMarketStore } from '../../../core/market/useMarketStore';
-import { currentRates, priceLabels, type Money } from '../../../core/money/money';
+import { priceLabels, type Money } from '@portal/dinero';
+import { currentRates } from '../../../core/money/currentRates';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { getPropertyRepository } from '../services/propertyRepository';
 

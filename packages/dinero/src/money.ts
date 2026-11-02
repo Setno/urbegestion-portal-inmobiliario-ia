@@ -1,5 +1,4 @@
 import type { MarketPack } from '@portal/mercados';
-import { agencyConfig } from '../config/agencyConfig';
 
 // Dinero con su moneda. Los precios se guardan siempre así y se muestran en la moneda que elija quien mira (ADR-008).
 export interface Money {
@@ -9,9 +8,6 @@ export interface Money {
 
 // Valor de 1 unidad de cada moneda en la moneda base del mercado (la moneda base vale 1). En Chile: { UF: 38650 }.
 export type CurrencyRates = Record<string, number>;
-
-// Las tasas vigentes. Hoy la UF se ajusta desde Integraciones (agencyConfig); más adelante vendrán de cada corredora.
-export const currentRates = (): CurrencyRates => ({ UF: agencyConfig.market.ufValueClp });
 
 const rateOf = (code: string, pack: MarketPack, rates: CurrencyRates): number | undefined =>
   code === pack.baseCurrency ? 1 : rates[code];

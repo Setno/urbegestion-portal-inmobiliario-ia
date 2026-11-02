@@ -28,7 +28,8 @@ import { buildPrivacyNotice } from '../../../core/privacy/privacy';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { useMarket } from '../../../core/market/useMarketStore';
 import { useT } from '../../../core/i18n/i18n';
-import { convertMoney, currentRates, formatMoney } from '../../../core/money/money';
+import { convertMoney, formatMoney } from '@portal/dinero';
+import { currentRates } from '../../../core/money/currentRates';
 import { priceOf } from '../services/propertyPrice';
 import { CalBookingModal } from '../../captacion/components/CalBookingModal';
 

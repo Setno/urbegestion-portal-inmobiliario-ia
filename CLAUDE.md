@@ -28,7 +28,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 Las rutas `api/*` no existen bajo `npm run dev`; requieren `vercel dev` o un despliegue (el chat cae al motor local y el webhook responde "sin conexión").
 
 ## Convenciones (observadas en el código)
-- Estructura, dentro de `apps/consola/`: `src/core` (config, marca, almacenamiento, consola admin), `src/modules/{captacion,crm,catalogo}` con `components/ stores/ types/ services/ data/`, `src/markets/cl` (datos de Chile), `src/site` (landing). Detalle en ESTRUCTURA.md.
+- Estructura, dentro de `apps/consola/`: `src/core` (config, marca, almacenamiento, consola admin), `src/modules/{captacion,crm,catalogo}` con `components/ stores/ types/ services/ data/`, `src/site` (landing). Paquetes compartidos en `packages/`: `plataforma` (contrato con ventas), `mercados` (datos de Chile) y `dinero`. Detalle en ESTRUCTURA.md.
 - Nombres: componentes en PascalCase, tiendas `useXStore`, tipos en `types/`, textos de interfaz en español escritos en el código (pendiente i18n, H-010).
 - Estado: tiendas Zustand que persisten vía `createLocalStore`; ningún componente debe llamar a `localStorage` directo para datos de negocio.
 - Manejo de errores: `try/catch` con `console.warn` y degradación silenciosa (por ejemplo, el chat cae al motor local si falla el LLM).
