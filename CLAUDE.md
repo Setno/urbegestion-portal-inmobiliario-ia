@@ -7,7 +7,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 ## Stack
 - Lenguaje / framework: TypeScript, React 18, Vite 6, Tailwind 3, Zustand, Recharts, Framer Motion.
 - Base de datos: Supabase (PostgreSQL) para usuarios, corredoras, propiedades y leads cuando hay `VITE_TENANT_ID`; sin él, los datos siguen en `localStorage` (`apps/consola/src/core/storage/localStore.ts`). Acceso a datos vía repositorios (`apps/consola/src/core/data/`). Ver docs/adr/004 y 007.
-- Monorepo con espacios de trabajo de npm (ADR-010, H-026 en curso en la rama `monorepo`): la consola y sus funciones viven en `apps/consola`, y los paquetes compartidos en `packages/`; los comandos se ejecutan desde la raíz.
+- Monorepo con espacios de trabajo de npm (ADR-010, H-026): la consola y sus funciones viven en `apps/consola`, y los paquetes compartidos en `packages/`; los comandos se ejecutan desde la raíz.
 - Sitio público por corredora (decidido, sin implementar): Next.js, ver docs/adr/006; la consola y el widget siguen en React + Vite.
 - Hosting: Vercel (SPA + funciones en `apps/consola/api/`; carpeta raíz del proyecto: `apps/consola`, y su `vercel.json` vive ahí). Desde 2026-11-01 cada commit se despliega como *preview* (con variables de desarrollo) para probar en la web; producción no se toca sin orden explícita.
 
@@ -39,7 +39,7 @@ Las rutas `api/*` no existen bajo `npm run dev`; requieren `vercel dev` o un des
 - El usuario tiene conocimientos bajos de programación y es ingeniero civil y de procesos: explicar en español claro, sin jerga innecesaria, y dar pasos concretos para probar.
 - **Commits** al cerrar cada historia con suite, tipos, lint y build en verde; no se pide autorización por commit (orden del 2026-11-01).
 - **Cada commit local se sube también a GitHub** (`origin`). Nunca force push.
-- **Cada commit se despliega en Vercel como preview** (no producción), a mano; `vercel.json` mantiene desactivados los despliegues automáticos desde Git. Producción solo con orden explícita.
+- **Cada commit se despliega en Vercel como preview** (no producción), a mano; `apps/consola/vercel.json` mantiene desactivados los despliegues automáticos desde Git. Producción solo con orden explícita.
 - **No mezclar versiones antiguas con nuevas**: lo desechado va a `_archivo/` (ignorado por git, con su `LEEME.md`), no se commitea ni se sube.
 - `BLUEPRINT Inmobiliario.md` es del usuario: no se versiona sin permiso.
 
