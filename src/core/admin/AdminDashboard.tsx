@@ -7,7 +7,9 @@ import {
   BarChart3,
   Zap,
   LogOut,
-  Palette
+  Palette,
+  Building2,
+  Globe
 } from 'lucide-react';
 import { useLeadStore } from '../../modules/crm/stores/useLeadStore';
 import { getLeadRepository } from '../../modules/crm/services/leadRepository';
@@ -18,6 +20,9 @@ import { PropertiesTab } from '../../modules/catalogo/components/PropertiesTab';
 import { AnalyticsTab } from './tabs/AnalyticsTab';
 import { IntegrationsTab } from './tabs/IntegrationsTab';
 import { BrandingTab } from './tabs/BrandingTab';
+import { TenantTab } from './tabs/TenantTab';
+import { PlatformTab } from './tabs/PlatformTab';
+import { isPlatformOwner } from '../auth/platformService';
 import { useAuthStore } from '../auth/useAuthStore';
 import { LoginScreen, NewPasswordScreen, NoMembershipScreen } from '../auth/AuthScreens';
 import { allowedTabs, safeTab, type AdminTab } from '../auth/permissions';
@@ -44,11 +49,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     if (status === 'con_sesion') void useEntitlementsStore.getState().load();
   }, [status]);
 
+  // El servidor confirma si quien entró es el dueño del producto; solo entonces aparece la pestaña Plataforma.
+  const [owner, setOwner] = useState(false);
+  useEffect(() => {
+    if (status !== 'con_sesion') {
+      setOwner(false);
+      return;
+    }
+    let cancelled = false;
+    isPlatformOwner().then((v) => {
+      if (!cancelled) setOwner(v);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
+
   const [requestedTab, setRequestedTab] = useState<AdminTab>('crm');
   const role = membership?.role ?? null;
   // Un rol sin permiso para la pestaña pedida vuelve a una pestaña permitida.
-  const activeTab = safeTab(role, requestedTab);
-  const visibleTabs = allowedTabs(role);
+  const activeTab = safeTab(role, requestedTab, owner);
+  const visibleTabs = allowedTabs(role, owner);
 
   if (!isOpen) return null;
 
@@ -140,6 +161,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                   <span>{t('admin.tab.analytics')}</span>
                 </button>
               )}
+              {visibleTabs.includes('tenant') && (
+                <button onClick={() => setRequestedTab('tenant')} className={tabClass('tenant')}>
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>{t('admin.tab.tenant')}</span>
+                </button>
+              )}
               {visibleTabs.includes('settings') && (
                 <button onClick={() => setRequestedTab('settings')} className={tabClass('settings')}>
                   <Zap className="w-3.5 h-3.5 text-urbe-accent" />
@@ -152,13 +179,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                   <span>{t('admin.tab.branding')}</span>
                 </button>
               )}
+              {visibleTabs.includes('platform') && (
+                <button onClick={() => setRequestedTab('platform')} className={tabClass('platform')}>
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>{t('admin.tab.platform')}</span>
+                </button>
+              )}
             </div>
 
             {activeTab === 'crm' && <LeadsTab />}
             {activeTab === 'properties' && <PropertiesTab />}
             {activeTab === 'analytics' && <AnalyticsTab />}
+            {activeTab === 'tenant' && <TenantTab />}
             {activeTab === 'settings' && <IntegrationsTab />}
             {activeTab === 'branding' && <BrandingTab />}
+            {activeTab === 'platform' && <PlatformTab />}
           </>
         )}
 

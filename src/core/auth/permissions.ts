@@ -1,19 +1,22 @@
 export type Role = 'admin' | 'agente';
-export type AdminTab = 'crm' | 'properties' | 'analytics' | 'settings' | 'branding';
+export type AdminTab = 'crm' | 'properties' | 'analytics' | 'tenant' | 'settings' | 'branding' | 'platform';
 
-const ALL_TABS: AdminTab[] = ['crm', 'properties', 'analytics', 'settings', 'branding'];
+// Agente: su trabajo diario. Administrador: además lo de su corredora (equipo, zonas, publicación, datos), integraciones y marca.
+// Dueño del producto (lo confirma el servidor, no depende del rol): además la pestaña Plataforma.
 const TABS_BY_ROLE: Record<Role, AdminTab[]> = {
-  admin: ALL_TABS,
+  admin: ['crm', 'properties', 'analytics', 'tenant', 'settings', 'branding'],
   agente: ['crm', 'properties', 'analytics'],
 };
 
-export const allowedTabs = (role: Role | null): AdminTab[] => (role ? TABS_BY_ROLE[role] : []);
+export const allowedTabs = (role: Role | null, isPlatformOwner = false): AdminTab[] =>
+  role ? [...TABS_BY_ROLE[role], ...(isPlatformOwner ? (['platform'] as AdminTab[]) : [])] : [];
 
-export const canOpenTab = (role: Role | null, tab: AdminTab): boolean => allowedTabs(role).includes(tab);
+export const canOpenTab = (role: Role | null, tab: AdminTab, isPlatformOwner = false): boolean =>
+  allowedTabs(role, isPlatformOwner).includes(tab);
 
 // Si la pestaña pedida no está permitida para el rol, devuelve la primera permitida.
-export const safeTab = (role: Role | null, tab: AdminTab): AdminTab =>
-  canOpenTab(role, tab) ? tab : (allowedTabs(role)[0] ?? 'crm');
+export const safeTab = (role: Role | null, tab: AdminTab, isPlatformOwner = false): AdminTab =>
+  canOpenTab(role, tab, isPlatformOwner) ? tab : (allowedTabs(role, isPlatformOwner)[0] ?? 'crm');
 
 // Solo el administrador invita agentes a su corredora.
 export const canInviteAgents = (role: Role | null): boolean => role === 'admin';

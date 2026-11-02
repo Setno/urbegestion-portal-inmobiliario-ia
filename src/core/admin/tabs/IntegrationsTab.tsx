@@ -12,11 +12,6 @@ import {
 import { agencyConfig } from '../../config/agencyConfig';
 import { webhookService, WebhookStatus } from '../../../modules/captacion/services/webhookService';
 import { getAiConfig, saveAiConfig, AiProviderType } from '../../../modules/captacion/services/aiService';
-import { TeamSection } from './TeamSection';
-import { PublicationModeSection } from './PublicationModeSection';
-import { ServiceAreasSection } from './ServiceAreasSection';
-import { DataExportSection } from './DataExportSection';
-import { PlatformSection } from './PlatformSection';
 
 export const IntegrationsTab: React.FC = () => {
 
@@ -274,11 +269,6 @@ export const IntegrationsTab: React.FC = () => {
           </div>
         </div>
 
-        <TeamSection />
-        <ServiceAreasSection />
-        <PublicationModeSection />
-        <DataExportSection />
-        <PlatformSection />
       </div>
   );
 };
