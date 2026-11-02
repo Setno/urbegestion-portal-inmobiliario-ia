@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { translate, plural, capitalize, t, tn, useLocaleStore, LOCALES } from './i18n';
 import { es } from './messages.es';
 import { en } from './messages.en';
-import { CHILE } from '../../markets/cl';
+import { CHILE } from '@portal/mercados/cl';
 import { useMarketStore } from '../market/useMarketStore';
 
 const params = (text: string): string[] => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();

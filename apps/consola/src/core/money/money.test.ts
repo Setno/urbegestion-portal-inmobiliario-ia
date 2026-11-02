@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { formatMoney, convertMoney, toBase, comparePrices, priceLabels, type Money, type CurrencyRates } from './money';
-import { CHILE } from '../../markets/cl';
+import { CHILE } from '@portal/mercados/cl';
 
 const rates: CurrencyRates = { UF: 38650 }; // 1 UF = 38.650 CLP; CLP es la moneda base de Chile
 

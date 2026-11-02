@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Property, PropertyFilterState } from '../types/property';
 import { initialProperties } from '../data/initialProperties';
-import { getMarketPack } from '../../../markets';
+import { getMarketPack } from '@portal/mercados';
 import { useMarketStore } from '../../../core/market/useMarketStore';
 import { currentRates, priceLabels, type Money } from '../../../core/money/money';
 import { createLocalStore } from '../../../core/storage/localStore';

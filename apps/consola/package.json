@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@portal/mercados": "*",
     "@portal/plataforma": "*",
     "@supabase/supabase-js": "2.118.0",
     "clsx": "^2.1.1",

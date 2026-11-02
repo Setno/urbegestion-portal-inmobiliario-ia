@@ -1,4 +1,4 @@
-import type { MarketPack } from '../../markets';
+import type { MarketPack } from '@portal/mercados';
 import { agencyConfig } from '../config/agencyConfig';
 
 // Dinero con su moneda. Los precios se guardan siempre así y se muestran en la moneda que elija quien mira (ADR-008).

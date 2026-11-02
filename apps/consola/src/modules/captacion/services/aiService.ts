@@ -7,7 +7,7 @@ import { t } from '../../../core/i18n/i18n';
 import { featuredLocalities } from '../../catalogo/services/propertySummary';
 import { priceOf } from '../../catalogo/services/propertyPrice';
 import { formatMoney } from '../../../core/money/money';
-import { getMarketPack } from '../../../markets';
+import { getMarketPack } from '@portal/mercados';
 import type { LeadPrivacyNotice } from '../../crm/types/lead';
 
 export type AiProviderType = 'local_rules' | 'server';

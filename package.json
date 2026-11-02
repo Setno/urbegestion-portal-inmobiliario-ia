@@ -11,7 +11,7 @@
     "dev": "npm run dev --workspace=@portal/consola --",
     "build": "npm run build --workspace=@portal/consola",
     "preview": "npm run preview --workspace=@portal/consola --",
-    "lint": "eslint . apps/consola/src packages/plataforma/src",
+    "lint": "eslint . apps/consola/src packages/plataforma/src packages/mercados/src",
     "verificar:supabase": "node --env-file=.env.local scripts/verificar-supabase.mjs",
     "test": "vitest run",
     "test:watch": "vitest"

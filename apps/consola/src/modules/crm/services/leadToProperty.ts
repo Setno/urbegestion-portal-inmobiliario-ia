@@ -1,4 +1,4 @@
-import { getMarketPack } from '../../../markets';
+import { getMarketPack } from '@portal/mercados';
 import type { Lead } from '../types/lead';
 import type { OperationType, Property, PropertyType } from '../../catalogo/types/property';
 

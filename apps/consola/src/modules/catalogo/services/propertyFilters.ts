@@ -1,5 +1,5 @@
 import type { Property, PropertyFilterState } from '../types/property';
-import { getMarketPack, type MarketPack } from '../../../markets';
+import { getMarketPack, type MarketPack } from '@portal/mercados';
 import { convertMoney, currentRates, type CurrencyRates } from '../../../core/money/money';
 import { priceOf } from './propertyPrice';
 

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { es, type MessageKey } from './messages.es';
 import { en } from './messages.en';
-import { getMarketPack } from '../../markets';
+import { getMarketPack } from '@portal/mercados';
 import { useMarketStore } from '../market/useMarketStore';
 
 export type Locale = 'es' | 'en';

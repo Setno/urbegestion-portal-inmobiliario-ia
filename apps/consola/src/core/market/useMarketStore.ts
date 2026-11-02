@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { remoteContext } from '../data/dataSource';
 import type { SimpleResult } from '../auth/authService';
-import { getMarketPack, selectedAreas, zonesForAreas, localitiesForAreas, type LocationZone, type MarketPack } from '../../markets';
+import { getMarketPack, selectedAreas, zonesForAreas, localitiesForAreas, type LocationZone, type MarketPack } from '@portal/mercados';
 import { DEFAULT_SETTINGS, fetchPublicSettings, saveServiceAreas } from './marketService';
 
 interface MarketStore {

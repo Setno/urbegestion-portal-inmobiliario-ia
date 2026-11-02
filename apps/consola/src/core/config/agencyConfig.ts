@@ -1,4 +1,4 @@
-import { ALL_RM_COMMUNES } from '../../markets/cl/chileanLocations';
+import { ALL_RM_COMMUNES } from '@portal/mercados/cl/chileanLocations';
 
 export interface RealEstateBrandConfig {
   brandName: string;

@@ -1,6 +1,6 @@
 import { supabase } from '../auth/supabaseClient';
 import type { SimpleResult } from '../auth/authService';
-import { DEFAULT_MARKET_ID } from '../../markets';
+import { DEFAULT_MARKET_ID } from '@portal/mercados';
 
 export interface MarketSettings {
   marketId: string;

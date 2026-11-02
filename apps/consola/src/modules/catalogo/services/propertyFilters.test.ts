@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { matchesCommune, matchesFilters } from './propertyFilters';
 import { initialProperties } from '../data/initialProperties';
-import { CHILE as CHILE_PACK_FOR_TEST } from '../../../markets/cl';
+import { CHILE as CHILE_PACK_FOR_TEST } from '@portal/mercados/cl';
 import type { PropertyFilterState } from '../types/property';
 
 const sinFiltros: PropertyFilterState = {
