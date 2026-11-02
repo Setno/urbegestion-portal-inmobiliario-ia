@@ -8,7 +8,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['apps/consola/src/**/*.{ts,tsx}'],
+    files: ['apps/consola/src/**/*.{ts,tsx}', 'packages/*/src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
     rules: {

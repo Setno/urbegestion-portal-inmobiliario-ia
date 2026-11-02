@@ -1,5 +1,5 @@
 import { remoteContext } from '../data/dataSource';
-import type { EntitlementsRow } from './contract';
+import type { EntitlementsRow } from '@portal/plataforma/contract';
 
 // Pasa la fila de la base al formato del contrato que lee parseEntitlements.
 export const rowToMessage = (row: EntitlementsRow): Record<string, unknown> => ({

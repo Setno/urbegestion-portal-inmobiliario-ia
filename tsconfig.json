@@ -1,4 +1,4 @@
 {
   "extends": "./apps/consola/tsconfig.json",
-  "include": ["apps/consola/src"]
+  "include": ["apps/consola/src", "packages/*/src"]
 }

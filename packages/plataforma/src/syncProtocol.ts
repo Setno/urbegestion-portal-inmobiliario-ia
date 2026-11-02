@@ -1,5 +1,5 @@
 // Protocolo de la llamada firmada que el proyecto de ventas hace al SaaS (ADR-009).
-// Lo usan api/platform/tenant-sync.ts y sus pruebas; vive en src para poder probarlo con Vitest.
+// Lo usan api/platform/tenant-sync.ts y sus pruebas.
 // Firma: HMAC-SHA256 en hexadecimal de "<marca de tiempo>.<cuerpo exacto>", con el secreto compartido
 // (PLATFORM_SYNC_SECRET, solo en el servidor). La marca de tiempo caduca a los 5 minutos para frenar repeticiones.
 import { parseEntitlements, type TenantEntitlements } from './contract.js';

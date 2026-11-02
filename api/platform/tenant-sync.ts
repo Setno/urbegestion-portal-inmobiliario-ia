@@ -1,7 +1,7 @@
 // Ventas → SaaS (ADR-009): ventas informa el plan, el estado y los derechos de una corredora.
 // Llamada firmada (HMAC con PLATFORM_SYNC_SECRET), idempotente y en orden: un mensaje más antiguo que el ya aplicado se ignora.
 import { createClient } from '@supabase/supabase-js';
-import { MAX_BODY_BYTES, parseSyncMessage, verifySignature } from '../../apps/consola/src/core/platform/syncProtocol.js';
+import { MAX_BODY_BYTES, parseSyncMessage, verifySignature } from '@portal/plataforma/syncProtocol';
 
 declare const process: { env: Record<string, string | undefined> };
 

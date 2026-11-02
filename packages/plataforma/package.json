@@ -1,0 +1,10 @@
+{
+  "name": "@portal/plataforma",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    "./contract": "./src/contract.ts",
+    "./syncProtocol": "./src/syncProtocol.ts"
+  }
+}

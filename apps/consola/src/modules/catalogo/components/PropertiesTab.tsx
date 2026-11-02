@@ -24,7 +24,7 @@ import { NumberInput } from '../../../core/ui/NumberInput';
 import { useT, capitalize } from '../../../core/i18n/i18n';
 import { formatMoney } from '../../../core/money/money';
 import { priceOf } from '../services/propertyPrice';
-import { hasRoom, limitOf } from '../../../core/platform/contract';
+import { hasRoom, limitOf } from '@portal/plataforma/contract';
 import { useEntitlementsStore } from '../../../core/platform/useEntitlementsStore';
 import { Property, PropertyType, OperationType } from '../types/property';
 

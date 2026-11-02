@@ -10,7 +10,7 @@ import {
   type FeatureKey,
   type LimitKey,
   type TenantEntitlements,
-} from './contract';
+} from '@portal/plataforma/contract';
 import { fetchEntitlements, fetchPublicEntitlements } from './entitlementsService';
 
 interface EntitlementsStore {

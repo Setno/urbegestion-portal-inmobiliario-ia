@@ -2,7 +2,7 @@ import React from 'react';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { useT } from '../i18n/i18n';
 import { useAuthStore } from '../auth/useAuthStore';
-import { accessMode } from '../platform/contract';
+import { accessMode } from '@portal/plataforma/contract';
 import { useEntitlementsStore } from '../platform/useEntitlementsStore';
 
 // Avisa en el panel cuando la suscripción de la corredora no está al día (el estado lo informa ventas, ADR-009).

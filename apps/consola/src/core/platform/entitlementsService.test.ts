@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { fetchEntitlements, rowToMessage } from './entitlementsService';
-import { parseEntitlements, can, limitOf } from './contract';
+import { parseEntitlements, can, limitOf } from '@portal/plataforma/contract';
 
 describe('entitlementsService', () => {
   it('pasa la fila de la base al formato del contrato', () => {

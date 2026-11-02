@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import adr from '../../../../../docs/adr/009-contrato-saas-ventas.md?raw';
+import adr from '../../../docs/adr/009-contrato-saas-ventas.md?raw';
 import {
   FEATURES,
   LIMITS,
