@@ -27,7 +27,7 @@ Sin clave de acceso, llamadas por GET. `/api/lead-webhook` y `/api/chat` se midi
 
 Las importaciones relativas de lo que carga una función deben llevar extensión `.js`; lo vigila `tests/api/vercel-imports.test.ts`. Esto debe seguir igual al crear los paquetes (etapa 2).
 
-Vercel también publica como funciones los demás archivos de `api/`: `/api/platform/fakeSupabase` responde 500, y lo mismo se espera de las pruebas que viven ahí. No exponen datos, porque no atienden llamadas. La etapa 3 los saca de `api/` al moverla.
+Vercel también publica como funciones los demás archivos de `api/`: `/api/platform/fakeSupabase` responde 500, y lo mismo se espera de las pruebas que viven ahí. No exponen datos, porque no atienden llamadas. La etapa 3 los movió a `tests/api/`, así que dejaron de publicarse.
 
 ## Espacios de trabajo en OneDrive
 Probado con una carpeta temporal en el mismo disco: npm creó los enlaces entre paquetes y Node los resolvió, también 20 segundos después con OneDrive activo. Es una prueba corta, así que se mantiene la precaución de pausar OneDrive durante la etapa 1.

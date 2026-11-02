@@ -11,13 +11,10 @@
     "dev": "npm run dev --workspace=@portal/consola --",
     "build": "npm run build --workspace=@portal/consola",
     "preview": "npm run preview --workspace=@portal/consola --",
-    "lint": "eslint . apps/consola/src packages/plataforma/src packages/mercados/src packages/dinero/src",
+    "lint": "eslint . apps/consola/src apps/consola/api apps/consola/tests packages/plataforma/src packages/mercados/src packages/dinero/src",
     "verificar:supabase": "node --env-file=.env.local scripts/verificar-supabase.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "2.118.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

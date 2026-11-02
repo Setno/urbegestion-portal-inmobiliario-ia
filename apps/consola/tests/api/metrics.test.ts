@@ -4,7 +4,7 @@ import { createFakeDb } from './fakeSupabase';
 const db = vi.hoisted(() => ({ current: null as ReturnType<typeof import('./fakeSupabase').createFakeDb> | null }));
 vi.mock('@supabase/supabase-js', () => ({ createClient: () => db.current!.client }));
 
-import { GET } from './metrics';
+import { GET } from '../../api/platform/metrics';
 
 const TOKEN = 'token-de-prueba';
 const pedir = (token: string | null = TOKEN) =>

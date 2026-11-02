@@ -1,8 +1,8 @@
 // SaaS → ventas (ADR-009): ventas consulta números agregados por corredora. Nunca devuelve contenido de leads,
 // propiedades ni notas. Se autoriza con un token (PLATFORM_METRICS_TOKEN, solo en el servidor).
 import { createClient } from '@supabase/supabase-js';
-import { CONTRACT_VERSION } from '../../packages/plataforma/src/contract.js';
-import { safeEqual } from '../../packages/plataforma/src/syncProtocol.js';
+import { CONTRACT_VERSION } from '../../../../packages/plataforma/src/contract.js';
+import { safeEqual } from '../../../../packages/plataforma/src/syncProtocol.js';
 
 declare const process: { env: Record<string, string | undefined> };
 

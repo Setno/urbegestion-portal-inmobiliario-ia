@@ -19,7 +19,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['api/**/*.ts', 'tests/**/*.ts', 'scripts/**/*.mjs', '*.config.{js,ts}', 'apps/*/*.config.{js,ts}'],
+    files: ['apps/consola/api/**/*.ts', 'apps/consola/tests/**/*.ts', 'scripts/**/*.mjs', '*.config.{js,ts}', 'apps/*/*.config.{js,ts}'],
     languageOptions: { globals: globals.node },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

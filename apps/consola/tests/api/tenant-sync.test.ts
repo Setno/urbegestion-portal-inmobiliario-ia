@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { signPayload } from '../../packages/plataforma/src/syncProtocol.js';
+import { signPayload } from '../../../../packages/plataforma/src/syncProtocol.js';
 import { createFakeDb } from './fakeSupabase';
 
 const db = vi.hoisted(() => ({ current: null as ReturnType<typeof import('./fakeSupabase').createFakeDb> | null }));
 vi.mock('@supabase/supabase-js', () => ({ createClient: () => db.current!.client }));
 
-import { POST } from './tenant-sync';
+import { POST } from '../../api/platform/tenant-sync';
 
 const SECRET = 'secreto-de-prueba';
 const TENANT_A = 'a1a1a1a1-0000-4000-8000-0000000000a1';

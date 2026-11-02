@@ -4,7 +4,7 @@ import { posix as path } from 'node:path';
 // En Vercel las funciones corren como módulos de Node, que exige la extensión en las importaciones relativas, y solo
 // se compila lo que se importa por ruta relativa: "@portal/..." llega como .ts sin compilar y la función se cae.
 // Vitest resuelve ambos casos, así que sin esta prueba el error solo aparece al llamar la función desplegada (H-046, ADR-010).
-const archivos = import.meta.glob(['../../api/**/*.ts', '../../apps/consola/src/**/*.ts', '../../packages/*/src/**/*.ts', '!**/*.test.ts'], {
+const archivos = import.meta.glob(['../../api/**/*.ts', '../../src/**/*.ts', '../../../../packages/*/src/**/*.ts', '!**/*.test.ts'], {
   query: '?raw',
   import: 'default',
   eager: true,

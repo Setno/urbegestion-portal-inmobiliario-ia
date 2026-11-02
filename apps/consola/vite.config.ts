@@ -14,6 +14,6 @@ export default defineConfig({
   test: {
     name: 'consola',
     environment: 'jsdom',
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.ts'],
   },
 });

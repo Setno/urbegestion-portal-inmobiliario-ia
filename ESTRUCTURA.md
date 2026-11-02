@@ -1,6 +1,6 @@
 # Estructura del código (vigente desde el Paso 1)
 
-El repositorio es un monorepo (ADR-010): la consola vive en `apps/consola/`, y las rutas `src/...` de este documento son relativas a esa carpeta. `api/` y `tests/` siguen en la raíz hasta la etapa 3 de H-026. Cada carpeta corresponde a una pieza del Blueprint.
+El repositorio es un monorepo (ADR-010): la consola vive en `apps/consola/`, y las rutas `src/...` de este documento son relativas a esa carpeta. Los paquetes compartidos están en `packages/`. Cada carpeta corresponde a una pieza del Blueprint.
 
 | Carpeta | Qué contiene | Equivale en el Blueprint |
 |---|---|---|
@@ -11,7 +11,7 @@ El repositorio es un monorepo (ADR-010): la consola vive en `apps/consola/`, y l
 | `packages/mercados/` (`@portal/mercados`) | Interfaz `MarketPack`, registro de paquetes y ayudas de zonas (ADR-008) | Paquetes de mercado |
 | `packages/plataforma/` (`@portal/plataforma`) | Contrato con el proyecto de ventas: catálogo de funciones y cupos, `can()`/`limitOf()`, estado de la suscripción y protocolo de la llamada firmada (ADR-009). La tienda de derechos que lo usa en el panel sigue en `src/core/platform/` | Plataforma |
 | `src/core/admin/tabs/TenantTab.tsx`, `PlatformTab.tsx` | Pestañas "Mi corredora" (administrador) y "Plataforma" (dueño del producto) del panel; los permisos por pestaña están en `src/core/auth/permissions.ts` | Panel |
-| `api/platform/` | Puntos de contacto con ventas: `tenant-sync` (ventas → SaaS, firmado) y `metrics` (SaaS → ventas, solo agregados); guía en docs/integracion-ventas.md | Plataforma |
+| `api/platform/` (en `apps/consola/`) | Puntos de contacto con ventas: `tenant-sync` (ventas → SaaS, firmado) y `metrics` (SaaS → ventas, solo agregados); guía en docs/integracion-ventas.md | Plataforma |
 | `packages/mercados/src/cl/` | Datos específicos de Chile (16 regiones, 346 comunas, alias y sectores) | Paquete de mercado Chile |
 | `src/core/market/` | Mercado y zonas de trabajo de la corredora (tienda y servicio) | Core |
 | `packages/dinero/` (`@portal/dinero`) | Dinero con su moneda: formato, conversión y comparación según el paquete de mercado. Las tasas vigentes (`currentRates`) dependen de la configuración de la corredora y siguen en `src/core/money/` | Core |

@@ -7,9 +7,9 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 ## Stack
 - Lenguaje / framework: TypeScript, React 18, Vite 6, Tailwind 3, Zustand, Recharts, Framer Motion.
 - Base de datos: Supabase (PostgreSQL) para usuarios, corredoras, propiedades y leads cuando hay `VITE_TENANT_ID`; sin él, los datos siguen en `localStorage` (`apps/consola/src/core/storage/localStore.ts`). Acceso a datos vía repositorios (`apps/consola/src/core/data/`). Ver docs/adr/004 y 007.
-- Monorepo con espacios de trabajo de npm (ADR-010, H-026 en curso en la rama `monorepo`): la consola vive en `apps/consola`; los comandos se ejecutan desde la raíz.
+- Monorepo con espacios de trabajo de npm (ADR-010, H-026 en curso en la rama `monorepo`): la consola y sus funciones viven en `apps/consola`, y los paquetes compartidos en `packages/`; los comandos se ejecutan desde la raíz.
 - Sitio público por corredora (decidido, sin implementar): Next.js, ver docs/adr/006; la consola y el widget siguen en React + Vite.
-- Hosting: Vercel (SPA + funciones en `api/`). Desde 2026-11-01 cada commit se despliega como *preview* (con variables de desarrollo) para probar en la web; producción no se toca sin orden explícita.
+- Hosting: Vercel (SPA + funciones en `apps/consola/api/`; carpeta raíz del proyecto: `apps/consola`, y su `vercel.json` vive ahí). Desde 2026-11-01 cada commit se despliega como *preview* (con variables de desarrollo) para probar en la web; producción no se toca sin orden explícita.
 
 ## Comandos (verificados el 2026-11-02)
 | Acción | Comando |
@@ -60,5 +60,5 @@ Explorar → plan (aprobado) → test que falla → implementar → verificar �
 ## Lecciones aprendidas
 - Los scripts de edición masiva deben ser idempotentes y no re-copiar respaldos (se pisó una copia una vez); verificar `git status` antes de commitear (un `git add` fallido dejó un commit incompleto).
 - Las rutas nuevas aún sin versionar no se pueden mover con `git mv`.
-- Una carpeta recién movida puede quedar en un estado de OneDrive que Node ve como acceso directo, y `eslint .` la omite sin avisar: pasó de 157 a 20 archivos revisados, en verde. Por eso `npm run lint` nombra `apps/consola/src`; cada carpeta de código nueva se agrega ahí, y al mover carpetas se compara la cantidad de archivos revisados.
-- Las pruebas no detectan si una función de `api/` arranca en Vercel: importar sin extensión `.js` funciona en Vitest y la tumba al desplegar (H-046). Tras desplegar, llamar a las funciones.
+- Una carpeta recién movida puede quedar en un estado de OneDrive que Node ve como acceso directo, y `eslint .` la omite sin avisar: pasó de 157 a 20 archivos revisados, en verde. Por eso `npm run lint` nombra cada carpeta de código; cada carpeta nueva se agrega ahí, y al mover carpetas se compara la cantidad de archivos revisados.
+- Las pruebas no detectan si una función de `api/` arranca en Vercel: importar sin extensión `.js`, o un paquete por nombre (`@portal/...`), funciona en Vitest y la tumba al desplegar (H-046, ADR-010). Las funciones importan los paquetes por ruta relativa; tras desplegar, llamarlas.

@@ -11,13 +11,6 @@ export default defineConfig({
           include: ['packages/*/src/**/*.test.ts'],
         },
       },
-      {
-        test: {
-          name: 'servidor',
-          environment: 'jsdom',
-          include: ['tests/**/*.test.ts', 'api/**/*.test.ts'],
-        },
-      },
     ],
   },
 });
