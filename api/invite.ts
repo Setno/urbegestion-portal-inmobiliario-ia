@@ -1,6 +1,7 @@
 // Invita a un agente a la corredora de quien llama (solo administradores).
 // Usa la clave de servicio de Supabase, que vive solo en el servidor (SUPABASE_SERVICE_ROLE_KEY).
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { accessMode, entitlementsFromRow, limitOf, type EntitlementsRow } from '../src/core/platform/contract';
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -25,6 +26,31 @@ const isAlreadyRegistered = (e: unknown): boolean => {
   const err = e as { code?: string; status?: number; message?: string } | null;
   return err?.code === 'email_exists' || err?.status === 422 || /already.*registered/i.test(err?.message ?? '');
 };
+
+// Aplica lo que ventas dispuso (ADR-009): una cuenta en solo lectura o cancelada no invita, y el plan limita los agentes.
+// Si no hay derechos guardados o no se pueden leer, no se bloquea: un fallo aquí no debe dejar a nadie sin servicio.
+async function checkAgentRoom(client: SupabaseClient, tenantId: string): Promise<Response | null> {
+  const { data, error } = await client.from('tenant_entitlements').select('*').eq('tenant_id', tenantId).maybeSingle();
+  if (error || !data) {
+    if (error) console.warn('[api/invite] no se pudieron leer los derechos:', error.code ?? error.message);
+    return null;
+  }
+  const entitlements = entitlementsFromRow(data as EntitlementsRow);
+  const mode = accessMode(entitlements);
+  if (mode === 'read_only' || mode === 'export_only') return json({ error: 'read_only' }, 403);
+
+  const max = limitOf(entitlements, 'limit.agents');
+  if (max === null) return null;
+  const { count, error: countError } = await client
+    .from('memberships')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId);
+  if (countError) {
+    console.warn('[api/invite] no se pudo contar a los agentes:', countError.code ?? countError.message);
+    return null;
+  }
+  return (count ?? 0) >= max ? json({ error: 'limit_reached' }, 403) : null;
+}
 
 export async function POST(request: Request): Promise<Response> {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -61,6 +87,9 @@ export async function POST(request: Request): Promise<Response> {
   if (!tenantId) return json({ error: 'not_admin' }, 403);
 
   if (email.length > 254 || !EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400);
+
+  const blocked = await checkAgentRoom(client, tenantId);
+  if (blocked) return blocked;
 
   // 3. Se intenta invitar primero: si el correo es nuevo, Supabase envía el correo con el enlace.
   // Con barra final: Supabase solo respeta el destino si coincide exactamente con uno de la lista de Redirect URLs.

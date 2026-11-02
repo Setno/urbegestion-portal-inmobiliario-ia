@@ -4,6 +4,7 @@ import { PropertiesTab } from './PropertiesTab';
 import { usePropertyStore } from '../stores/usePropertyStore';
 import { useAuthStore } from '../../../core/auth/useAuthStore';
 import { useMarketStore } from '../../../core/market/useMarketStore';
+import { useEntitlementsStore } from '../../../core/platform/useEntitlementsStore';
 import { initialProperties } from '../data/initialProperties';
 import type { Property, PublicationStatus } from '../types/property';
 import type { Role } from '../../../core/auth/permissions';
@@ -43,6 +44,7 @@ describe('PropertiesTab (gestor de propiedades)', () => {
     localStorage.clear();
     useAuthStore.setState({ membership: null });
     useMarketStore.setState({ marketId: 'cl', serviceAreas: [] });
+    useEntitlementsStore.getState().reset();
     usePropertyStore.setState({ properties: [conEstado('p1', 'Casa Uno'), conEstado('p2', 'Casa Dos')] });
   });
 
@@ -326,6 +328,58 @@ describe('PropertiesTab (gestor de propiedades)', () => {
       llenarFormulario('Directa del agente', 'Calle 5');
       guardar(/Crear Propiedad/);
       expect(usePropertyStore.getState().properties.find((p) => p.title === 'Directa del agente')?.publicationStatus).toBe('publicada');
+    });
+  });
+
+  describe('cupo de propiedades publicadas del plan (H-033)', () => {
+    const limitar = (max: number | null) =>
+      useEntitlementsStore.getState().apply({ updatedAt: '2026-11-02T10:00:00Z', limits: { 'limit.properties_published': max } });
+
+    it('con el cupo lleno no se abre el formulario para publicar y se explica por qué', () => {
+      limitar(2);
+      render(<PropertiesTab />);
+      abrirNueva();
+      expect(screen.getByRole('alert').textContent).toMatch(/hasta 2 propiedades publicadas y ya las alcanzaste/);
+      expect(screen.queryByPlaceholderText(/Penthouse Dúplex con Terraza/)).toBeNull();
+    });
+
+    it('con cupo disponible se abre normal y sin aviso', () => {
+      limitar(3);
+      render(<PropertiesTab />);
+      abrirNueva();
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.getByPlaceholderText(/Penthouse Dúplex con Terraza/)).toBeTruthy();
+    });
+
+    it('los borradores no cuentan: con cupo lleno quien solo propone igual puede crear borradores', () => {
+      limitar(2);
+      entrar('agente', 'con_aprobacion');
+      render(<PropertiesTab />);
+      abrirNueva();
+      expect(screen.getByPlaceholderText(/Penthouse Dúplex con Terraza/)).toBeTruthy();
+    });
+
+    it('con el cupo lleno el administrador no puede aprobar un borrador, pero uno publicado sí cuenta como lleno', () => {
+      usePropertyStore.setState({
+        properties: [conEstado('p1', 'Casa Uno', 'publicada'), conEstado('p2', 'Casa Dos', 'borrador')],
+      });
+      limitar(1);
+      entrar('admin', 'con_aprobacion');
+      render(<PropertiesTab />);
+      fireEvent.click(within(tarjeta('Casa Dos')).getByRole('button', { name: /Aprobar y publicar/ }));
+      expect(screen.getByRole('alert').textContent).toMatch(/hasta 1 propiedades publicadas/);
+      expect(estado('p2')).toBe('borrador');
+    });
+
+    it('al subir el cupo, aprobar vuelve a funcionar', () => {
+      usePropertyStore.setState({
+        properties: [conEstado('p1', 'Casa Uno', 'publicada'), conEstado('p2', 'Casa Dos', 'borrador')],
+      });
+      limitar(2);
+      entrar('admin', 'con_aprobacion');
+      render(<PropertiesTab />);
+      fireEvent.click(within(tarjeta('Casa Dos')).getByRole('button', { name: /Aprobar y publicar/ }));
+      expect(estado('p2')).toBe('publicada');
     });
   });
 });

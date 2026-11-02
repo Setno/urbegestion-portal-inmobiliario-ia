@@ -11,6 +11,9 @@ const fake = {
   invite: vi.fn(),
   deleteUser: vi.fn(),
   selects: [] as Array<{ data: unknown; error: unknown }>,
+  // Derechos de la corredora (tenant_entitlements) y cantidad de miembros: se definen aparte para no mover la cola de arriba
+  entitlements: { data: null, error: null } as { data: unknown; error: unknown },
+  memberCount: 0,
   insert: vi.fn(),
   queries: [] as Array<{ table: string; ops: Array<[string, unknown[]]> }>,
 };
@@ -31,7 +34,10 @@ vi.mock('@supabase/supabase-js', () => ({
           return builder;
         };
       }
-      builder.maybeSingle = () => Promise.resolve(fake.selects.shift() ?? { data: null, error: null });
+      builder.maybeSingle = () =>
+        Promise.resolve(table === 'tenant_entitlements' ? fake.entitlements : (fake.selects.shift() ?? { data: null, error: null }));
+      // Consulta de conteo (select con count): se espera con await
+      builder.then = (resolve: (v: unknown) => unknown) => resolve({ count: fake.memberCount, error: null });
       builder.insert = fake.insert;
       return builder;
     },
@@ -55,6 +61,8 @@ describe('api/invite', () => {
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', CLAVE_SERVICIO);
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     fake.queries = [];
+    fake.entitlements = { data: null, error: null };
+    fake.memberCount = 0;
     fake.getUser.mockReset().mockResolvedValue({ data: { user: { id: 'u-admin' } }, error: null });
     fake.listUsers.mockReset().mockResolvedValue({ data: { users: [] }, error: null });
     fake.invite.mockReset().mockResolvedValue({ data: { user: { id: 'u-nuevo' } }, error: null });
@@ -226,5 +234,64 @@ describe('api/invite', () => {
     expect(res.status).toBe(502);
     expect(fake.insert).not.toHaveBeenCalled();
     expect(fake.listUsers).not.toHaveBeenCalled();
+  });
+
+  describe('plan de la corredora (ADR-009)', () => {
+    const derechos = (extra: object) => ({
+      data: {
+        plan_code: 'completo',
+        status: 'active',
+        trial_ends_at: null,
+        grace_ends_at: null,
+        features: {},
+        limits: {},
+        contract_version: 1,
+        source_updated_at: '2026-11-02T10:00:00Z',
+        ...extra,
+      },
+      error: null,
+    });
+
+    it('con el cupo de agentes lleno responde 403 y no invita', async () => {
+      fake.entitlements = derechos({ limits: { 'limit.agents': 3 } });
+      fake.memberCount = 3;
+      const res = await POST(pedido({ email: 'ana@correo.cl' }));
+      expect(res.status).toBe(403);
+      expect(await res.json()).toEqual({ error: 'limit_reached' });
+      expect(fake.invite).not.toHaveBeenCalled();
+    });
+
+    it('con cupo disponible invita con normalidad', async () => {
+      fake.entitlements = derechos({ limits: { 'limit.agents': 3 } });
+      fake.memberCount = 2;
+      const res = await POST(pedido({ email: 'ana@correo.cl' }));
+      expect(res.status).toBe(200);
+      expect(fake.invite).toHaveBeenCalledTimes(1);
+    });
+
+    it('sin límite (o sin derechos guardados) no se bloquea nada', async () => {
+      fake.entitlements = derechos({ limits: { 'limit.agents': null } });
+      fake.memberCount = 500;
+      expect((await POST(pedido({ email: 'ana@correo.cl' }))).status).toBe(200);
+      fake.selects = [{ data: { tenant_id: 'tenant-1' }, error: null }];
+      fake.entitlements = { data: null, error: null };
+      expect((await POST(pedido({ email: 'bea@correo.cl' }))).status).toBe(200);
+    });
+
+    it('una cuenta suspendida o cancelada no invita', async () => {
+      for (const status of ['suspended', 'cancelled']) {
+        fake.selects = [{ data: { tenant_id: 'tenant-1' }, error: null }];
+        fake.entitlements = derechos({ status });
+        const res = await POST(pedido({ email: 'ana@correo.cl' }));
+        expect(res.status).toBe(403);
+        expect(await res.json()).toEqual({ error: 'read_only' });
+      }
+      expect(fake.invite).not.toHaveBeenCalled();
+    });
+
+    it('si no se pueden leer los derechos no se bloquea al cliente', async () => {
+      fake.entitlements = { data: null, error: { code: 'XX000', message: 'caído' } };
+      expect((await POST(pedido({ email: 'ana@correo.cl' }))).status).toBe(200);
+    });
   });
 });

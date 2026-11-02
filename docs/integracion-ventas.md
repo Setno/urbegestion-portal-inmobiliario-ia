@@ -67,7 +67,28 @@ Ventas consulta (el SaaS nunca empuja). Encabezado `Authorization: Bearer <PLATF
 `ai_messages_30d` y `storage_mb` del ADR-009 todavía no se miden (no hay dónde contarlos); se agregan a esta respuesta cuando existan, sin cambiar la versión.
 
 ## Qué hace el SaaS con lo que recibe
-Los derechos quedan en `tenant_entitlements`; el panel los lee al iniciar sesión y el código los consulta con `can()`, `limitOf()`, `hasRoom()` y `accessMode()`. Hoy nada bloquea todavía: aplicar los cupos y los estados en pantalla es H-033.
+Los derechos quedan en `tenant_entitlements`; el panel los lee al iniciar sesión y el código los consulta con `can()`, `limitOf()`, `hasRoom()` y `accessMode()`.
+
+**Estado de la suscripción (`status`)**
+| Estado | Qué ocurre |
+| --- | --- |
+| `trial`, `active` | Todo funciona |
+| `past_due` | Todo funciona, con un aviso en el panel (con la fecha de `graceEndsAt` si viene); pasado ese plazo se trata como suspendida |
+| `suspended` | Panel en solo lectura (se ve todo, no se cambia nada); la descarga de datos sigue activa; el sitio público sigue visible y sigue recibiendo leads |
+| `cancelled` | Solo queda la descarga de datos; los agentes ven un aviso |
+
+**Funciones y cupos: dónde se aplican hoy**
+| Clave | Aplicación |
+| --- | --- |
+| `branding.edit` | Se oculta la pestaña Identidad & Marca |
+| `crm.export` | Se ocultan el botón de exportar del CRM y la descarga de datos |
+| `ai.llm_server` | El asistente usa el motor local aunque el servidor esté elegido |
+| `limit.agents` | El servidor (`api/invite`) no invita si el cupo está lleno, ni si la cuenta está en solo lectura o cancelada |
+| `limit.properties_published` | El panel no deja publicar ni aprobar sobre el cupo (los borradores no cuentan) |
+| `site.enabled`, `site.custom_domain`, `widget.embed` | Reservadas: se aplican cuando existan el sitio por corredora y el widget |
+| `ai.chat`, `valuation.owner_form` | Reservadas hasta que el sitio público pueda leer los derechos (H-045) |
+| `publication.approval_flow` | Reservada (sin efecto por ahora) |
+| `limit.leads_per_month`, `limit.ai_messages_per_month`, `limit.storage_mb` | Reservadas: hoy no se miden (H-045 y H-043.3) |
 
 ## Para ampliar el contrato
 Ver "Cómo se agrega una variable nueva" en el ADR-009. Agregar una clave no requiere migración ni cambia el endpoint.

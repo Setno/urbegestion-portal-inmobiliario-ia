@@ -19,10 +19,12 @@ import { useLeadStore } from '../stores/useLeadStore';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
 import { Lead, LeadStatus } from '../types/lead';
 import { buildPropertyFromLead } from '../services/leadToProperty';
+import { useCan } from '../../../core/platform/useEntitlementsStore';
 
 export const LeadsTab: React.FC = () => {
   const { leads, updateLeadStatus, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
   const { properties, addProperty } = usePropertyStore();
+  const canExportCsv = useCan('crm.export');
 
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [newNote, setNewNote] = useState('');
@@ -156,6 +158,7 @@ export const LeadsTab: React.FC = () => {
             </div>
 
             {/* CSV Export Button */}
+            {canExportCsv && (
             <button
               type="button"
               onClick={handleExportLeadsCsv}
@@ -165,6 +168,7 @@ export const LeadsTab: React.FC = () => {
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
               <span className="hidden sm:inline">Exportar Excel</span>
             </button>
+            )}
           </div>
         </div>
 

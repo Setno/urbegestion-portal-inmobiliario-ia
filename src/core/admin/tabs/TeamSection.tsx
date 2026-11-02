@@ -11,6 +11,8 @@ const ERROR_TEXT: Record<InviteError, MessageKey> = {
   otra_corredora: 'team.err.otra_corredora',
   sin_permiso: 'team.err.sin_permiso',
   no_configurado: 'team.err.no_configurado',
+  limite_alcanzado: 'team.err.limite_alcanzado',
+  solo_lectura: 'team.err.solo_lectura',
   conexion: 'team.err.conexion',
 };
 

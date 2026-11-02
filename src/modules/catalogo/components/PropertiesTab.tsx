@@ -24,6 +24,8 @@ import { NumberInput } from '../../../core/ui/NumberInput';
 import { useT, capitalize } from '../../../core/i18n/i18n';
 import { formatMoney } from '../../../core/money/money';
 import { priceOf } from '../services/propertyPrice';
+import { hasRoom, limitOf } from '../../../core/platform/contract';
+import { useEntitlementsStore } from '../../../core/platform/useEntitlementsStore';
 import { Property, PropertyType, OperationType } from '../types/property';
 
 const STATUS_STYLE: Record<PublicationStatus, string> = {
@@ -43,6 +45,8 @@ export const PropertiesTab: React.FC = () => {
   const view = useMarket();
   const { pack, zones, localities } = view;
   const { t } = useT();
+  const entitlements = useEntitlementsStore((s) => s.entitlements);
+  const [planMessage, setPlanMessage] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
@@ -139,7 +143,20 @@ export const PropertiesTab: React.FC = () => {
     setPropImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // El plan limita cuántas propiedades pueden estar publicadas a la vez (limit.properties_published).
+  const roomToPublish = (): boolean => {
+    const published = properties.filter((p) => (p.publicationStatus ?? 'publicada') === 'publicada').length;
+    if (hasRoom(entitlements, 'limit.properties_published', published)) {
+      setPlanMessage(null);
+      return true;
+    }
+    setPlanMessage(t('plan.limit.properties', { max: limitOf(entitlements, 'limit.properties_published') ?? 0 }));
+    return false;
+  };
+
   const handleOpenNewProperty = () => {
+    // Quien propone solo crea borradores, que no cuentan; quien publica necesita cupo.
+    if (actor !== 'proponente' && !roomToPublish()) return;
     setEditingPropId(null);
     setPropTitle('');
     setPropOperation('venta');
@@ -258,6 +275,12 @@ export const PropertiesTab: React.FC = () => {
           </button>
         </div>
 
+        {planMessage && (
+          <p role="alert" className="mb-4 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold">
+            {planMessage}
+          </p>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {properties.map((p) => (
             <div key={p.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between group">
@@ -318,7 +341,9 @@ export const PropertiesTab: React.FC = () => {
                     key={action}
                     onClick={() => {
                       if (action === 'enviar') submitForReview(p.id);
-                      else if (action === 'aprobar') approveProperty(p.id);
+                      else if (action === 'aprobar') {
+                        if (roomToPublish()) approveProperty(p.id);
+                      }
                       else setRejectingId(p.id);
                     }}
                     className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold shadow-sm ${

@@ -360,4 +360,14 @@ export const en: Record<MessageKey, string> = {
   'export.contacts': 'Contacts (Excel)',
   'export.notes': 'Notes (Excel)',
   'export.full': 'Full copy (JSON)',
+
+  // Plans and entitlements of the brokerage (H-033)
+  'access.notice': 'Your subscription has a pending payment. Settle it to avoid your account being suspended.',
+  'access.notice.until': 'Your subscription has a pending payment. Everything keeps working until {date}; settle it to avoid your account being suspended.',
+  'access.read_only': 'Your account is read-only: you can view your information but not make changes. Contact support to reactivate it.',
+  'access.export_only': 'Your subscription was cancelled. You can only download a copy of your data.',
+  'access.export_only.agent': 'Your brokerage subscription was cancelled. Ask the administrator to download a copy of the data.',
+  'plan.limit.properties': 'Your plan allows up to {max} published properties and you have reached it. Unpublish one or ask to upgrade your plan.',
+  'team.err.limite_alcanzado': 'Your plan has reached its maximum number of agents. Ask to upgrade your plan to invite more.',
+  'team.err.solo_lectura': 'Your account is read-only: agents cannot be invited.',
 };

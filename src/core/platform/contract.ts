@@ -138,3 +138,27 @@ export function accessMode(entitlements: TenantEntitlements, now: Date = new Dat
       return 'export_only';
   }
 }
+
+export interface EntitlementsRow {
+  plan_code: string | null;
+  status: string;
+  trial_ends_at: string | null;
+  grace_ends_at: string | null;
+  features: unknown;
+  limits: unknown;
+  contract_version: number;
+  source_updated_at: string;
+}
+
+// Pasa la fila de la tabla tenant_entitlements al formato que lee parseEntitlements.
+export const entitlementsFromRow = (row: EntitlementsRow): TenantEntitlements =>
+  parseEntitlements({
+    contractVersion: row.contract_version,
+    planCode: row.plan_code,
+    status: row.status,
+    trialEndsAt: row.trial_ends_at,
+    graceEndsAt: row.grace_ends_at,
+    features: row.features,
+    limits: row.limits,
+    updatedAt: row.source_updated_at,
+  });

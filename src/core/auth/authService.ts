@@ -15,7 +15,15 @@ export type AuthError = 'credenciales' | 'conexion' | 'no_configurado' | 'clave_
 export type SignInResult = { ok: true; email: string } | { ok: false; error: AuthError };
 export type SimpleResult = { ok: true } | { ok: false; error: AuthError };
 export type AuthEvent = 'SIGNED_IN' | 'SIGNED_OUT' | 'PASSWORD_RECOVERY';
-export type InviteError = 'correo_invalido' | 'ya_miembro' | 'otra_corredora' | 'sin_permiso' | 'no_configurado' | 'conexion';
+export type InviteError =
+  | 'correo_invalido'
+  | 'ya_miembro'
+  | 'otra_corredora'
+  | 'sin_permiso'
+  | 'no_configurado'
+  | 'limite_alcanzado'
+  | 'solo_lectura'
+  | 'conexion';
 export type InviteResult = { ok: true; status: 'invitado' | 'agregado' } | { ok: false; error: InviteError };
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -133,6 +141,8 @@ const INVITE_ERRORS: Record<string, InviteError> = {
   not_admin: 'sin_permiso',
   unauthorized: 'sin_permiso',
   invite_not_configured: 'no_configurado',
+  limit_reached: 'limite_alcanzado',
+  read_only: 'solo_lectura',
 };
 
 // Pide al servidor (api/invite) invitar a un agente a la corredora del administrador con sesión.

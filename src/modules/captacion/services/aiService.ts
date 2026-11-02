@@ -1,3 +1,4 @@
+import { canNow } from '../../../core/platform/useEntitlementsStore';
 import { Property } from '../../catalogo/types/property';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { emitLeadCreated } from '../../../core/events/appEvents';
@@ -25,7 +26,9 @@ export interface AiResponseResult {
 export function getAiConfig(): AiModelConfig {
   const env = import.meta.env;
   const savedProvider = localStorage.getItem('urbe_ai_provider') as AiProviderType;
-  return { provider: savedProvider || (env.VITE_AI_PROVIDER === 'server' ? 'server' : 'local_rules') };
+  const provider = savedProvider || (env.VITE_AI_PROVIDER === 'server' ? 'server' : 'local_rules');
+  // Si el plan no incluye el modelo de lenguaje en el servidor, el asistente usa el motor local (ADR-009)
+  return { provider: provider === 'server' && !canNow('ai.llm_server') ? 'local_rules' : provider };
 }
 
 export function saveAiConfig(config: Partial<AiModelConfig>): void {

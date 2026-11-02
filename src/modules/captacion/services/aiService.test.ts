@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { processAiChatMessage } from './aiService';
+import { processAiChatMessage, getAiConfig } from './aiService';
+import { useEntitlementsStore } from '../../../core/platform/useEntitlementsStore';
 import { initialProperties } from '../../catalogo/data/initialProperties';
 import { agencyConfig } from '../../../core/config/agencyConfig';
 import { useLocaleStore } from '../../../core/i18n/i18n';
@@ -192,5 +193,23 @@ describe('motor local: una persona escribe en un idioma y lee en otro', () => {
     const r = await preguntar('I want to book a visit');
     expect(r.actionRequired).toBe('select_date');
     expect(r.text).toContain('¡Excelente iniciativa!');
+  });
+});
+
+describe('getAiConfig: el plan decide si el asistente puede usar el modelo del servidor', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useEntitlementsStore.getState().reset();
+  });
+
+  it('con el plan que lo incluye (o sin ventas conectadas) respeta la elección guardada', () => {
+    localStorage.setItem('urbe_ai_provider', 'server');
+    expect(getAiConfig().provider).toBe('server');
+  });
+
+  it('si el plan no incluye el modelo del servidor, usa el motor local aunque esté elegido', () => {
+    localStorage.setItem('urbe_ai_provider', 'server');
+    useEntitlementsStore.getState().apply({ updatedAt: '2026-11-02T10:00:00Z', features: { 'ai.llm_server': false } });
+    expect(getAiConfig().provider).toBe('local_rules');
   });
 });

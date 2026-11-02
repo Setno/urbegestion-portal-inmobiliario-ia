@@ -360,6 +360,16 @@ export const es = {
   'export.contacts': 'Contactos (Excel)',
   'export.notes': 'Notas (Excel)',
   'export.full': 'Copia completa (JSON)',
+
+  // Planes y derechos de la corredora (H-033)
+  'access.notice': 'Tu suscripción tiene un pago pendiente. Regulariza para evitar la suspensión de tu cuenta.',
+  'access.notice.until': 'Tu suscripción tiene un pago pendiente. Todo sigue funcionando hasta el {date}; regulariza para evitar la suspensión de tu cuenta.',
+  'access.read_only': 'Tu cuenta está en modo solo lectura: puedes ver tu información, pero no hacer cambios. Contacta a soporte para reactivarla.',
+  'access.export_only': 'Tu suscripción fue cancelada. Solo puedes descargar una copia de tus datos.',
+  'access.export_only.agent': 'La suscripción de tu corredora fue cancelada. Pide al administrador que descargue una copia de los datos.',
+  'plan.limit.properties': 'Tu plan permite hasta {max} propiedades publicadas y ya las alcanzaste. Despublica una o pide ampliar tu plan.',
+  'team.err.limite_alcanzado': 'Tu plan ya alcanzó el máximo de agentes. Pide ampliar tu plan para invitar a más.',
+  'team.err.solo_lectura': 'Tu cuenta está en modo solo lectura: no se pueden invitar agentes.',
 } as const;
 
 export type MessageKey = keyof typeof es;

@@ -1,15 +1,5 @@
 import { remoteContext } from '../data/dataSource';
-
-interface EntitlementsRow {
-  plan_code: string | null;
-  status: string;
-  trial_ends_at: string | null;
-  grace_ends_at: string | null;
-  features: unknown;
-  limits: unknown;
-  contract_version: number;
-  source_updated_at: string;
-}
+import type { EntitlementsRow } from './contract';
 
 // Pasa la fila de la base al formato del contrato que lee parseEntitlements.
 export const rowToMessage = (row: EntitlementsRow): Record<string, unknown> => ({

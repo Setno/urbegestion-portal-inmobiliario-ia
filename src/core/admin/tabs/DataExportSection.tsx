@@ -8,6 +8,7 @@ import {
   buildFullExportJson, downloadFile, exportFileName, leadsToCsv, notesToCsv, propertiesToCsv,
 } from '../../export/dataExport';
 import { useT } from '../../i18n/i18n';
+import { useCan } from '../../platform/useEntitlementsStore';
 
 const CSV = 'text/csv';
 
@@ -17,8 +18,9 @@ export const DataExportSection: React.FC = () => {
   const leads = useLeadStore((s) => s.leads);
   const properties = usePropertyStore((s) => s.properties);
   const { t } = useT();
+  const planAllows = useCan('crm.export');
 
-  if (!canExportData(role)) return null;
+  if (!canExportData(role) || !planAllows) return null;
 
   const buttons: Array<{ label: string; run: () => void }> = [
     { label: t('export.properties'), run: () => downloadFile(exportFileName('propiedades', 'csv'), propertiesToCsv(properties), CSV) },

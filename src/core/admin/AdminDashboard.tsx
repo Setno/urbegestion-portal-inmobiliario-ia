@@ -27,7 +27,8 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { LoginScreen, NewPasswordScreen, NoMembershipScreen } from '../auth/AuthScreens';
 import { allowedTabs, safeTab, type AdminTab } from '../auth/permissions';
 import { useT, type MessageKey } from '../i18n/i18n';
-import { useEntitlementsStore } from '../platform/useEntitlementsStore';
+import { useEntitlementsStore, useAccessMode, useCan } from '../platform/useEntitlementsStore';
+import { AccessBanner } from './AccessBanner';
 import { LanguageToggle } from '../ui/LanguageToggle';
 
 interface AdminDashboardProps {
@@ -67,9 +68,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   const [requestedTab, setRequestedTab] = useState<AdminTab>('crm');
   const role = membership?.role ?? null;
-  // Un rol sin permiso para la pestaña pedida vuelve a una pestaña permitida.
-  const activeTab = safeTab(role, requestedTab, owner);
-  const visibleTabs = allowedTabs(role, owner);
+  // Lo que ventas dispuso (ADR-009): el estado de la suscripción y las funciones del plan
+  const mode = useAccessMode();
+  const canBrand = useCan('branding.edit');
+  const visibleTabs = allowedTabs(role, owner).filter((tab) => {
+    if (tab === 'branding' && !canBrand) return false;
+    // Cuenta cancelada: solo queda la descarga de datos (en Mi corredora) y, para el dueño, Plataforma
+    if (mode === 'export_only') return tab === 'tenant' || tab === 'platform';
+    return true;
+  });
+  // Una pestaña sin permiso (por rol, plan o estado) vuelve a la primera permitida.
+  const activeTab: AdminTab = visibleTabs.includes(requestedTab) ? requestedTab : (visibleTabs[0] ?? safeTab(role, 'crm', owner));
 
   if (!isOpen) return null;
 
@@ -187,13 +196,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
               )}
             </div>
 
-            {activeTab === 'crm' && <LeadsTab />}
-            {activeTab === 'properties' && <PropertiesTab />}
-            {activeTab === 'analytics' && <AnalyticsTab />}
-            {activeTab === 'tenant' && <TenantTab />}
-            {activeTab === 'settings' && <IntegrationsTab />}
-            {activeTab === 'branding' && <BrandingTab />}
-            {activeTab === 'platform' && <PlatformTab />}
+            <AccessBanner />
+
+            {/* En solo lectura se ven los datos pero ningún botón ni campo cambia nada. "Mi corredora" lo resuelve por dentro
+                para dejar activa la descarga de datos. */}
+            {activeTab === 'tenant' && visibleTabs.includes('tenant') && <TenantTab />}
+            {activeTab !== 'tenant' && visibleTabs.length > 0 && (
+              <fieldset disabled={mode === 'read_only'} className="flex-1 flex flex-col min-h-0 min-w-0 border-0 p-0 m-0">
+                {activeTab === 'crm' && <LeadsTab />}
+                {activeTab === 'properties' && <PropertiesTab />}
+                {activeTab === 'analytics' && <AnalyticsTab />}
+                {activeTab === 'settings' && <IntegrationsTab />}
+                {activeTab === 'branding' && <BrandingTab />}
+                {activeTab === 'platform' && <PlatformTab />}
+              </fieldset>
+            )}
           </>
         )}
 
