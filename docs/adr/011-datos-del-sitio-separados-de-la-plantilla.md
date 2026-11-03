@@ -26,7 +26,7 @@ ADR-005 exige que el contenido viva en la base y que la plantilla solo decida c�
 - **Next.js 16 con React 18:** se mantiene una sola versión de React en el monorepo. Next.js 16 avisa que dejará de admitir React 18 en su versión 17: hay que subir todo a React 19 antes de actualizar a esa versión.
 
 ## Consecuencias
-- El sitio público tarda hasta un minuto en reflejar un cambio en `apps/sitio`; en la consola se ve al recargar.
+- El sitio público puede tardar un par de minutos en reflejar un cambio en `apps/sitio` (se regenera cada 60 segundos y sirve la copia anterior mientras tanto); en la consola se ve al recargar.
 - Los datos de UrbeGestión en la base de desarrollo salen de `supabase/seed-dev-sitio.sql`; producción necesitará su propia carga antes de H-013.
 - Las afirmaciones comerciales ("25 años", "42 días") ya no están en los textos comunes de la interfaz: solo existen en los datos de cada corredora.
 - Mientras no exista H-032, los textos de `content` se cargan directamente en la base.

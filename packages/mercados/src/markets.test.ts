@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getMarketPack, selectedAreas, zonesForAreas, localitiesForAreas, DEFAULT_MARKET_ID } from './index';
+import { getMarketPack, selectedAreas, zonesForAreas, localitiesForAreas, DEFAULT_MARKET_ID, matchesCommune } from './index';
 import { CHILE } from './cl';
 
 describe('paquete de mercado Chile', () => {
@@ -81,5 +81,12 @@ describe('zonas de trabajo de la corredora', () => {
   it('ids que no existen se ignoran, y si ninguno existe vale todo el país', () => {
     expect(localitiesForAreas(CHILE, ['CL-VS', 'XX'])).toHaveLength(38);
     expect(localitiesForAreas(CHILE, ['XX'])).toHaveLength(346);
+  });
+});
+
+describe('matchesCommune', () => {
+  it('acepta nombres más largos o más cortos que el guardado', () => {
+    expect(matchesCommune('Lo Barnechea', 'Lo Barnechea (La Dehesa / Los Trapenses)', CHILE)).toBe(true);
+    expect(matchesCommune('Providencia', 'Ñuñoa', CHILE)).toBe(false);
   });
 });

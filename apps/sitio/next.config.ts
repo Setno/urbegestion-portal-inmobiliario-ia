@@ -11,8 +11,8 @@ try {
 }
 
 const config: NextConfig = {
-  // El paquete compartido se publica como TypeScript sin compilar.
-  transpilePackages: ['@portal/sitio-datos'],
+  // Los paquetes compartidos se publican como TypeScript sin compilar.
+  transpilePackages: ['@portal/sitio-datos', '@portal/mercados', '@portal/dinero'],
   turbopack: { root: repoRoot },
   outputFileTracingRoot: repoRoot,
 };

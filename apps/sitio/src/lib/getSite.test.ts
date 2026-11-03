@@ -49,4 +49,9 @@ describe('getSite', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('sin red')));
     await expect(getSite(env)).rejects.toThrow('sin red');
   });
+
+  it('una respuesta correcta con contenido raro tampoco reemplaza la copia buena', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ message: 'pasarela' }) }));
+    await expect(getSite(env)).rejects.toThrow('inesperada');
+  });
 });

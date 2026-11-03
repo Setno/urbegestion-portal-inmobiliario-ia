@@ -1,13 +1,26 @@
-* {
-  box-sizing: border-box;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-body {
-  margin: 0;
-  background: #f8f9fa;
-  color: #0f172a;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  line-height: 1.5;
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Tailwind no puede aplicar transparencia a un color que llega como variable: los tonos suaves se definen aquí. */
+.fondo-primario-suave {
+  background: color-mix(in srgb, var(--color-urbe-primary) 10%, transparent);
+}
+
+.fondo-acento-suave {
+  background: color-mix(in srgb, var(--color-urbe-accent) 20%, transparent);
 }
 
 .sitio-no-disponible {
@@ -15,66 +28,4 @@ body {
   margin: 20vh auto 0;
   padding: 0 1rem;
   text-align: center;
-}
-
-.clasica {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.clasica-cabecera {
-  padding: 1rem;
-  background: #fff;
-  border-bottom: 3px solid var(--color-acento);
-  color: var(--color-primario);
-  font-size: 1.125rem;
-}
-
-.clasica-cabecera img {
-  display: block;
-  width: auto;
-  max-width: 100%;
-}
-
-.clasica-portada {
-  flex: 1;
-  padding: 3rem 1rem;
-  background: var(--color-primario);
-  color: #fff;
-}
-
-.clasica-portada > * {
-  max-width: 48rem;
-  margin-inline: auto;
-}
-
-.clasica-marca {
-  color: var(--color-acento);
-  font-weight: 700;
-}
-
-.clasica-portada h1 {
-  margin-block: 0.5rem 1rem;
-  font-size: clamp(1.75rem, 6vw, 3rem);
-  line-height: 1.15;
-}
-
-.clasica-portada em {
-  color: var(--color-acento);
-  font-style: normal;
-}
-
-.clasica-pie {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-  padding: 1rem;
-  background: #fff;
-}
-
-.clasica-pie a {
-  color: var(--color-primario);
-  font-weight: 700;
 }

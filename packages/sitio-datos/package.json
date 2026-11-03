@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/siteData.ts"
+    ".": "./src/siteData.ts",
+    "./propiedades": "./src/propiedades.ts"
+  },
+  "dependencies": {
+    "@portal/mercados": "*"
   }
 }

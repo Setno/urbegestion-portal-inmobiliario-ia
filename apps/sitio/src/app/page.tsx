@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
+import { getCatalogo } from '../lib/getCatalogo';
 import { getSite } from '../lib/getSite';
 import { resolvePlantilla } from '../plantillas';
 
-// La página se regenera cada minuto: un cambio de la corredora aparece sin volver a publicar el sitio.
+// La página se regenera sola: un cambio de la corredora aparece en un par de minutos, sin volver a publicar el sitio.
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,6 +22,7 @@ export default async function Page() {
       </main>
     );
   }
+  const catalogo = await getCatalogo();
   const Plantilla = resolvePlantilla(site.templateId);
-  return <Plantilla site={site} />;
+  return <Plantilla site={site} catalogo={catalogo} />;
 }

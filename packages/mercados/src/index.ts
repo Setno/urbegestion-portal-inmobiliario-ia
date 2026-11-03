@@ -23,3 +23,12 @@ export const zonesForAreas = (pack: MarketPack, areaIds: string[]): LocationZone
 
 export const localitiesForAreas = (pack: MarketPack, areaIds: string[]): string[] =>
   zonesForAreas(pack, areaIds).flatMap((z) => z.localities);
+
+// Una comuna elegida en el buscador puede ser más larga o más corta que la guardada en la propiedad
+// (por ejemplo "Lo Barnechea (La Dehesa / Los Trapenses)" frente a "Lo Barnechea"); los sectores con varios
+// nombres los define el paquete de mercado.
+export const matchesCommune = (propertyCommune: string, selected: string, pack: MarketPack = getMarketPack()): boolean => {
+  const sel = selected.toLowerCase();
+  const prop = propertyCommune.toLowerCase();
+  return prop.includes(sel) || sel.includes(prop) || pack.sectorKeywords.some((s) => sel.includes(s) && prop.includes(s));
+};

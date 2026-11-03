@@ -16,7 +16,7 @@ export function siteEnv(env: Record<string, string | undefined> = process.env): 
 }
 
 // Cuántos segundos puede servirse una copia antes de volver a pedir los datos a la base.
-const REVALIDATE_SECONDS = 60;
+export const REVALIDATE_SECONDS = 60;
 
 // Devuelve null si falta configuración o la corredora no existe: la página muestra un aviso, nunca datos ajenos.
 // Si falla la lectura lanza un error, para que Next conserve la última copia buena en vez de publicar el aviso.
@@ -29,5 +29,9 @@ export async function getSite(env: SiteEnv | null = siteEnv()): Promise<SiteData
     next: { revalidate: REVALIDATE_SECONDS },
   });
   if (!response.ok) throw new Error(`La base respondió ${response.status} al leer la corredora`);
-  return parseSiteData(await response.json());
+  const data: unknown = await response.json();
+  const site = parseSiteData(data);
+  // La base responde null si la corredora no existe; otro contenido no debe reemplazar la copia buena.
+  if (!site && data !== null) throw new Error('Respuesta inesperada de la base al leer la corredora');
+  return site;
 }
