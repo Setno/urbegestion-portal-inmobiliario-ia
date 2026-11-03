@@ -1,6 +1,6 @@
 # Portal Inmobiliario IA (landing-ventas)
 
-Plataforma web para corredores de propiedades: sitio con catálogo, asistente de IA y consola de gestión de leads (CRM). Hoy es un prototipo de frontend para una corredora (UrbeGestión) que evoluciona hacia una plataforma SaaS multi-tenant (Captación, CRM, Gestión). PRD: docs/prd.md · Estado: docs/estado.md · Backlog: docs/backlog.md · Visión: `BLUEPRINT Inmobiliario.md` · Decisiones: DECISIONES.md y docs/adr/ · Mapa del código: ESTRUCTURA.md
+Plataforma web para corredores de propiedades: sitio con catálogo, asistente de IA y consola de gestión de leads (CRM). Hoy es un prototipo de frontend para una corredora (UrbeGestión) que evoluciona hacia una plataforma SaaS multi-tenant (Captación, CRM, Gestión). PRD: docs/prd.md · Avance: docs/avance.md · Estado: docs/estado.md · Backlog: docs/backlog.md · Visión: `BLUEPRINT Inmobiliario.md` · Decisiones: DECISIONES.md y docs/adr/ · Mapa del código: ESTRUCTURA.md
 
 Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 
@@ -44,6 +44,7 @@ Las rutas `api/*` no existen bajo `npm run dev`; requieren `vercel dev` o un des
 - **Cada commit se despliega en Vercel como preview** (no producción), a mano; `apps/consola/vercel.json` mantiene desactivados los despliegues automáticos desde Git. Producción solo con orden explícita.
 - **No mezclar versiones antiguas con nuevas**: lo desechado va a `_archivo/` (ignorado por git, con su `LEEME.md`), no se commitea ni se sube.
 - `BLUEPRINT Inmobiliario.md` es del usuario: no se versiona sin permiso.
+- **Avance:** al cerrar cada historia se actualiza `docs/avance.md` y se informa al usuario el porcentaje hacia el MVP.
 
 ## Definición de terminado
 Criterios de aceptación con tests que pasan; suite, lint, tipos y build en verde (hoy: lint, tipos, tests y build); revisión del subagente sin bloqueantes; sin secretos ni datos reales; PR o rama con evidencia.
