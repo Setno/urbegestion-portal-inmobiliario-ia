@@ -12,16 +12,16 @@ interface CabeceraProps {
 export function Cabecera({ brand, mostrarSobreNosotros, mostrarTestimonios }: CabeceraProps) {
   const { contact } = brand;
   const enlaces: EnlaceMenu[] = [
-    { href: '#propiedades', texto: 'Propiedades' },
-    ...(mostrarSobreNosotros ? [{ href: '#sobre-nosotros', texto: brand.brokerName }] : []),
-    ...(mostrarTestimonios ? [{ href: '#testimonios', texto: 'Testimonios' }] : []),
+    { href: '/#propiedades', texto: 'Propiedades' },
+    ...(mostrarSobreNosotros ? [{ href: '/#sobre-nosotros', texto: brand.brokerName }] : []),
+    ...(mostrarTestimonios ? [{ href: '/#testimonios', texto: 'Testimonios' }] : []),
   ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 glass-nav border-b border-slate-200/90">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          <a href="#inicio" className="flex items-center flex-1 min-w-0 mr-2">
+          <a href="/#inicio" className="flex items-center flex-1 min-w-0 mr-2">
             {brand.logoUrl ? (
               <img src={brand.logoUrl} alt={brand.brandName} className="h-10 sm:h-12 w-auto max-w-full object-contain drop-shadow-sm" />
             ) : (

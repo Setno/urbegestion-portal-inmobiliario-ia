@@ -16,6 +16,9 @@ export interface PublicProperty {
   builtAreaM2: number;
   totalAreaM2: number;
   parkingSpots: number;
+  storageUnits: number;
+  expensesMonthlyClp: number;
+  mapQuery: string;
   featured: boolean;
   images: string[];
   description: string;
@@ -47,6 +50,9 @@ export const PUBLIC_PROPERTY_COLUMNS = [
   'built_area_m2',
   'total_area_m2',
   'parking_spots',
+  'storage_units',
+  'expenses_monthly_clp',
+  'map_query',
   'featured',
   'images',
   'description',
@@ -82,6 +88,9 @@ function parseProperty(raw: unknown): PublicProperty | null {
     builtAreaM2: countOf(r.built_area_m2),
     totalAreaM2: countOf(r.total_area_m2),
     parkingSpots: countOf(r.parking_spots),
+    storageUnits: countOf(r.storage_units),
+    expensesMonthlyClp: countOf(r.expenses_monthly_clp),
+    mapQuery: textOf(r.map_query),
     featured: r.featured === true,
     images: textsOf(r.images).map(safeUrl).filter(Boolean),
     description: textOf(r.description),

@@ -46,7 +46,7 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-028 | Plantilla 1: adaptar la landing actual (`src/site/`) al sitio Next.js | Alta | M+ | dividida en H-028.1 a H-028.4 | H-027 |
 | H-028.1 | Secciones de la plantilla clásica en Next.js: cabecera, portada, sobre nosotros, testimonios, pie y barra móvil, con los colores de cada corredora | Alta | M | en revisión (2026-11-02) | H-027 |
 | H-028.2 | Catálogo público en el sitio: propiedades publicadas pintadas desde el servidor, con buscador sin precio | Alta | M | en revisión (2026-11-02) | H-028.1 |
-| H-028.3 | Ficha de la propiedad y formulario de contacto o visita que crea un lead en el CRM; filtro por precio y selector de moneda cuando la tasa de la UF venga de la corredora | Alta | M+ | pendiente | H-028.2 |
+| H-028.3 | Ficha pública de la propiedad en su propia dirección y formulario de visita que crea un lead en el CRM | Alta | M+ | en revisión (2026-11-03) | H-028.2 |
 | H-028.4 | Asistente de IA y valorizador en el sitio, según lo que incluya el plan de la corredora | Media | M | pendiente | H-028.3 |
 | H-029 | Plantilla 2 y prueba de intercambio de plantilla sin perder datos | Media | M | pendiente | H-028 |
 | H-030 | Dominio propio o subdominio por corredora: resolución por dominio y guía de registros DNS | Alta | M+ (dividir) | pendiente | H-027 |
@@ -73,6 +73,10 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-048 | Propiedades vendidas o arrendadas en el sitio: el estado `vendida`, `arrendada` o `reservada` no se considera, así que una publicada sale como disponible; decidir cómo se muestra, en el sitio y en la consola, antes de que el panel permita cambiarlo | Media | S | pendiente | H-028.2 |
 | H-049 | Portada propia de cada corredora: el video y la foto de la portada son los mismos para todas y vienen de servidores ajenos (aclarar licencia); alojarlos en almacenamiento propio, dejar elegirlos y no descargar el video en celular | Media | M | pendiente | H-032 |
 | H-050 | Afinar la comparación de comunas: `matchesCommune` compara por contenido, así que una corredora acotada a una zona con Pinto también muestra María Pinto, de otra región, y una comuna vacía siempre coincide; dejar una sola función de zonas en `@portal/mercados` para la consola y el sitio | Media | S | pendiente | H-028.2 |
+| H-051 | Filtro por precio y selector de moneda en el sitio; requiere que la tasa de la UF venga de cada corredora y no de la configuración escrita en el código | Media | M | pendiente | H-028.3 |
+| H-052 | Proteger el envío de leads del sitio antes de abrirlo al público: límite por dirección IP o verificación contra robots en el formulario, y cerrar el insert directo en `leads` con la clave pública (hoy permite cualquier corredora y cualquier columna) dejándolo pasar por una función de la base; identificadores con formato válido pero inventados aún generan una página por dirección. Revisar antes de H-013, junto con H-005 | Alta | M | pendiente | H-028.3 |
+| H-053 | Exportación CSV de leads a prueba de texto escrito por visitantes: comillas en cada celda, neutralizar `= + - @` al inicio para que Excel no lo tome como fórmula y no cortar el archivo con `#`; mostrar "Sin correo" en el CRM | Media | S | pendiente | H-028.3 |
+| H-054 | Avisar a la corredora cuando entra un lead nuevo: el panel solo los lee al iniciar sesión, así que una solicitud de visita puede quedar horas sin verse si no hay webhook configurado | Alta | M | pendiente | H-028.3 |
 | H-013 | Despliegue final: reactivar despliegues en `vercel.json`, cargar variables y smoke test | Alta | S | bloqueada hasta nuevo aviso | todas las fases |
 
 ## Estacionadas: seguridad y comprobaciones (revisar antes del despliegue)
@@ -141,6 +145,15 @@ Detalle de la decisión en ADR-011. El orden prioriza lo que corrige un problema
 3. Dada una falla de la base, cuando se regenera la página, entonces se conserva la última copia buena y no se publica un catálogo vacío.
 
 **Resultado H-028.1 y H-028.2 (2026-11-02):** plantilla en `apps/sitio/src/plantillas/clasica/`, catálogo en `packages/sitio-datos/src/propiedades.ts` y `apps/sitio/src/lib/getCatalogo.ts`; `matchesCommune` pasó a `@portal/mercados`. Vista en el navegador con los datos de desarrollo, en computador y celular. Sin migraciones. Fuera de esta tajada: ficha, formularios, filtro por precio, selector de moneda, chat y valorizador (H-028.3 y H-028.4).
+
+### H-028.3 Ficha y formulario de visita
+**Criterios de aceptación**
+1. Dada una propiedad publicada de la corredora y dentro de sus zonas, cuando se abre su dirección, entonces la página llega pintada con sus datos, fotos y mapa.
+2. Dada una propiedad de otra corredora, no publicada o fuera de zona, o una dirección inválida, cuando se abre, entonces se muestra "no disponible" y no sus datos.
+3. Dado el formulario con datos válidos, cuando se envía, entonces se crea un lead de esa corredora y esa propiedad; con fecha queda como visita agendada y sin fecha como nuevo.
+4. Dados datos inválidos o una falla de la base, cuando se envía, entonces la persona ve qué pasó y conserva lo escrito, sin crear nada ni registrar datos personales.
+
+**Resultado H-028.3 (2026-11-03):** ruta `apps/sitio/src/app/propiedades/[id]`, envío en `apps/sitio/src/lib/solicitudVisita.ts`; el aviso de privacidad pasó a `@portal/sitio-datos/privacidad`. Probada de punta a punta en el navegador con la base de desarrollo: las filas de prueba quedaron correctas y se borraron. Sin migraciones. El lead también avisa al webhook si el proyecto del sitio tiene `GHL_WEBHOOK_URL`; esa parte solo está cubierta con pruebas automáticas. Fuera de esta tajada: el filtro por precio y el selector de moneda (H-051).
 
 ## H-001 Lint
 **Como** desarrollador **quiero** un comando de lint **para** detectar errores de estilo y de lógica antes de commitear.

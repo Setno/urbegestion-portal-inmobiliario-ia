@@ -21,7 +21,7 @@
 - Paso 1 (commit 3344273): panel por pestañas, capa de datos y estructura por módulos.
 
 ## Siguiente paso
-H-028 (la landing como plantilla clásica en Next.js): H-028.1 y H-028.2 hechas en código el 2026-11-02, en la rama `h-028-plantilla-clasica`, que parte de `h-027-datos-del-sitio`; ninguna de las dos está unida a `main`. Sigue H-028.3 (ficha y formulario que crea leads). Falta crear el proyecto de Vercel del sitio y confirmar con el responsable la prueba de guardar la marca desde el panel: la base muestra un cambio de marca y colores del 2026-11-02, posterior al preview de H-027.
+H-028 (la landing como plantilla clásica en Next.js): H-028.1 a H-028.3 hechas en código entre el 2026-11-02 y el 2026-11-03, en la rama `h-028-plantilla-clasica`, que parte de `h-027-datos-del-sitio`; ninguna de las dos está unida a `main`. Sigue H-028.4 (asistente y valorizador). Falta crear el proyecto de Vercel del sitio y confirmar con el responsable la prueba de guardar la marca desde el panel: la base muestra un cambio de marca y colores del 2026-11-02, posterior al preview de H-027.
 
 H-026 (monorepo) quedó terminada: la consola, sus funciones y sus pruebas viven en `apps/consola`, el sitio en `apps/sitio`, hay cuatro paquetes en `packages/` (`plataforma`, `mercados`, `dinero` y `sitio-datos`), y la carpeta raíz del proyecto de la consola en Vercel es `apps/consola`. Abierto: Semgrep está en rojo en el CI, al parecer desde antes del monorepo (revisar antes de H-013), `npm audit` muestra 11 avisos moderados de `minimatch`, y `vercel dev` no se ha probado con la estructura nueva.
 

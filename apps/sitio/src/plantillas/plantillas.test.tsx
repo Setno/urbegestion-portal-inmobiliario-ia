@@ -28,6 +28,9 @@ const propiedad: PublicProperty = {
   builtAreaM2: 120,
   totalAreaM2: 300,
   parkingSpots: 1,
+  storageUnits: 0,
+  expensesMonthlyClp: 0,
+  mapQuery: '',
   featured: true,
   images: ['https://a.cl/casa.jpg'],
   description: 'Luminosa',
@@ -155,6 +158,7 @@ describe('plantilla clásica', () => {
     expect(html).toContain('18.500 UF');
     expect(html).toContain('https://a.cl/casa.jpg');
     expect(html).toContain('Viña del Mar');
+    expect(html).toContain('href="/propiedades/p1"');
     expect(html).toContain('2 Baños');
     expect(pintar(site(), [{ ...propiedad, bathrooms: 1 }])).toContain('1 Baño<');
   });

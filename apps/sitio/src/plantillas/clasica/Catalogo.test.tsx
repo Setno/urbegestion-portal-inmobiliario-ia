@@ -18,6 +18,9 @@ const propiedad = (id: string, extra: Partial<PublicProperty> = {}): PublicPrope
   builtAreaM2: 80,
   totalAreaM2: 0,
   parkingSpots: 0,
+  storageUnits: 0,
+  expensesMonthlyClp: 0,
+  mapQuery: '',
   featured: false,
   images: [],
   description: '',
@@ -63,6 +66,13 @@ describe('catálogo del sitio', () => {
     expect(screen.getByText('Ninguna propiedad coincide con tu búsqueda.')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
     expect(screen.getByText('Propiedad A')).toBeTruthy();
+  });
+
+  it('la operación y el tipo siguen disponibles para lectores de pantalla', () => {
+    render(<Catalogo propiedades={[lista[0]]} marketId="cl" conBuscador={false} contacto={{ whatsapp: '', whatsappMessage: '' }} />);
+    for (const texto of ['En Venta', 'Casa']) {
+      expect(screen.getByText(texto).closest('[aria-hidden="true"]')).toBeNull();
+    }
   });
 
   it('la corredora puede apagar el buscador', () => {

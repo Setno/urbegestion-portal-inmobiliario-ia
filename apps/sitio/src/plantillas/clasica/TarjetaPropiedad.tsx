@@ -1,4 +1,5 @@
-import { Bath, Bed, Building, Car, MapPin, Maximize2, MessageCircle, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { Bath, Bed, Building, Car, Eye, MapPin, Maximize2, MessageCircle, Sparkles } from 'lucide-react';
 import { formatMoney } from '@portal/dinero';
 import { getMarketPack } from '@portal/mercados';
 import type { PublicProperty } from '@portal/sitio-datos/propiedades';
@@ -19,6 +20,8 @@ const TIPOS: Record<string, string> = {
 
 export const etiquetaTipo = (tipo: string): string => TIPOS[tipo] ?? 'Inmueble';
 
+export const textoBanos = (n: number): string => (n === 1 ? '1 Baño' : `${n} Baños`);
+
 interface TarjetaProps {
   propiedad: PublicProperty;
   marketId: string;
@@ -29,9 +32,10 @@ export function TarjetaPropiedad({ propiedad: p, marketId, contacto }: TarjetaPr
   const superficie = p.builtAreaM2 || p.totalAreaM2;
   const lugar = p.commune ? ` (${p.commune})` : '';
   const consulta = enlaceWhatsapp(contacto.whatsapp, `Hola, vi la propiedad "${p.title}"${lugar} y quiero más información.`);
+  const ficha = `/propiedades/${p.id}`;
   const datos = [
     ...(p.bedrooms > 0 ? [{ Icono: Bed, texto: `${p.bedrooms} Dorm.` }] : []),
-    ...(p.bathrooms > 0 ? [{ Icono: Bath, texto: p.bathrooms === 1 ? '1 Baño' : `${p.bathrooms} Baños` }] : []),
+    ...(p.bathrooms > 0 ? [{ Icono: Bath, texto: textoBanos(p.bathrooms) }] : []),
     ...(superficie > 0 ? [{ Icono: Maximize2, texto: `${superficie} m²` }] : []),
     ...(p.parkingSpots > 0 ? [{ Icono: Car, texto: `${p.parkingSpots} Estac.` }] : []),
   ];
@@ -40,16 +44,19 @@ export function TarjetaPropiedad({ propiedad: p, marketId, contacto }: TarjetaPr
     <article className="group bg-white rounded-2xl overflow-hidden border border-slate-200/90 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-between">
       <div>
         <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-          {p.images[0] ? (
-            <img src={p.images[0]} alt={p.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Building className="w-12 h-12 text-slate-300" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-70" />
+          {/* Atajo para quien usa el mouse: el enlace accesible es el título. Las etiquetas quedan fuera para que los lectores de pantalla las lean. */}
+          <Link href={ficha} tabIndex={-1} aria-hidden="true" className="absolute inset-0">
+            {p.images[0] ? (
+              <img src={p.images[0]} alt="" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Building className="w-12 h-12 text-slate-300" />
+              </div>
+            )}
+          </Link>
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-70" />
 
-          <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">
+          <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10 pointer-events-none">
             <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-md ${p.operation === 'venta' ? 'bg-urbe-primary text-white' : 'bg-emerald-600 text-white'}`}>
               {p.operation === 'venta' ? 'En Venta' : 'En Arriendo'}
             </span>
@@ -61,10 +68,10 @@ export function TarjetaPropiedad({ propiedad: p, marketId, contacto }: TarjetaPr
             )}
           </div>
 
-          <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-md text-[11px] font-bold bg-white/90 text-slate-800 shadow-sm">{etiquetaTipo(p.propertyType)}</span>
+          <span className="absolute top-3 right-3 z-10 pointer-events-none px-2.5 py-1 rounded-md text-[11px] font-bold bg-white/90 text-slate-800 shadow-sm">{etiquetaTipo(p.propertyType)}</span>
 
           {p.commune && (
-            <span className="absolute bottom-3 left-3 z-10 flex items-center gap-1 text-white text-xs font-medium drop-shadow-md">
+            <span className="absolute bottom-3 left-3 z-10 pointer-events-none flex items-center gap-1 text-white text-xs font-medium drop-shadow-md">
               <MapPin className="w-3.5 h-3.5 text-urbe-accent" />
               {p.commune}
             </span>
@@ -75,7 +82,9 @@ export function TarjetaPropiedad({ propiedad: p, marketId, contacto }: TarjetaPr
           <span className="text-2xl font-black text-slate-900 block leading-tight tracking-tight mb-2">
             {formatMoney({ amount: p.priceAmount, currency: p.priceCurrency }, getMarketPack(marketId))}
           </span>
-          <h3 className="text-base font-bold text-slate-800 line-clamp-1 mb-2">{p.title}</h3>
+          <h3 className="text-base font-bold text-slate-800 line-clamp-1 mb-2">
+            <Link href={ficha} className="hover:text-urbe-primary transition-colors">{p.title}</Link>
+          </h3>
           {p.address && <p className="text-xs text-slate-500 line-clamp-1 mb-4">{p.address}</p>}
 
           {datos.length > 0 && (
@@ -91,8 +100,16 @@ export function TarjetaPropiedad({ propiedad: p, marketId, contacto }: TarjetaPr
         </div>
       </div>
 
-      {consulta && (
-        <div className="px-5 pb-5 pt-1">
+      <div className="px-5 pb-5 pt-1 space-y-2">
+        <Link
+          href={ficha}
+          aria-label={`Ver ficha: ${p.title}`}
+          className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+        >
+          <Eye className="w-3.5 h-3.5 text-slate-600" />
+          <span>Ver ficha</span>
+        </Link>
+        {consulta && (
           <a
             href={consulta}
             aria-label={`Consultar por WhatsApp: ${p.title}`}
@@ -103,8 +120,8 @@ export function TarjetaPropiedad({ propiedad: p, marketId, contacto }: TarjetaPr
             <MessageCircle className="w-3.5 h-3.5 text-urbe-accent" />
             <span>Consultar por WhatsApp</span>
           </a>
-        </div>
-      )}
+        )}
+      </div>
     </article>
   );
 }

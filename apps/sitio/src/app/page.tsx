@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getCatalogo } from '../lib/getCatalogo';
 import { getSite } from '../lib/getSite';
 import { resolvePlantilla } from '../plantillas';
+import { SitioNoDisponible } from './SitioNoDisponible';
 
 // La página se regenera sola: un cambio de la corredora aparece en un par de minutos, sin volver a publicar el sitio.
 export const revalidate = 60;
@@ -14,14 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Page() {
   const site = await getSite();
-  if (!site) {
-    return (
-      <main className="sitio-no-disponible">
-        <h1>Sitio no disponible</h1>
-        <p>Vuelve a intentarlo en unos minutos.</p>
-      </main>
-    );
-  }
+  if (!site) return <SitioNoDisponible />;
   const catalogo = await getCatalogo();
   const Plantilla = resolvePlantilla(site.templateId);
   return <Plantilla site={site} catalogo={catalogo} />;

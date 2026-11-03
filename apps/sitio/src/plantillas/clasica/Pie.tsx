@@ -22,7 +22,7 @@ export function Pie({ brand, footer, mostrarSobreNosotros, mostrarTestimonios }:
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 pb-12 border-b border-slate-800/80">
           <div className="space-y-4">
-            <a href="#inicio" className="block">
+            <a href="/#inicio" className="block">
               {brand.logoWhiteUrl ? (
                 <img src={brand.logoWhiteUrl} alt={brand.brandName} loading="lazy" className="h-10 sm:h-12 w-auto object-contain" />
               ) : (
@@ -48,10 +48,10 @@ export function Pie({ brand, footer, mostrarSobreNosotros, mostrarTestimonios }:
           <div className="space-y-3 text-xs">
             <h2 className={tituloColumna}>Navegación</h2>
             <ul className="space-y-2 text-slate-400">
-              <li><a href="#inicio" className="hover:text-urbe-accent transition-colors">Inicio</a></li>
-              <li><a href="#propiedades" className="hover:text-urbe-accent transition-colors">Catálogo de Propiedades</a></li>
-              {mostrarSobreNosotros && <li><a href="#sobre-nosotros" className="hover:text-urbe-accent transition-colors">Sobre {brand.brokerName}</a></li>}
-              {mostrarTestimonios && <li><a href="#testimonios" className="hover:text-urbe-accent transition-colors">Testimonios de Clientes</a></li>}
+              <li><a href="/#inicio" className="hover:text-urbe-accent transition-colors">Inicio</a></li>
+              <li><a href="/#propiedades" className="hover:text-urbe-accent transition-colors">Catálogo de Propiedades</a></li>
+              {mostrarSobreNosotros && <li><a href="/#sobre-nosotros" className="hover:text-urbe-accent transition-colors">Sobre {brand.brokerName}</a></li>}
+              {mostrarTestimonios && <li><a href="/#testimonios" className="hover:text-urbe-accent transition-colors">Testimonios de Clientes</a></li>}
             </ul>
           </div>
 
@@ -101,7 +101,7 @@ export function Pie({ brand, footer, mostrarSobreNosotros, mostrarTestimonios }:
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <p>© {new Date().getFullYear()} {brand.brandName}. Todos los derechos reservados.{footer.legalLine && ` ${footer.legalLine}`}</p>
-          <a href="#inicio" className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
+          <a href="/#inicio" className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
             <span>Volver arriba</span>
             <ArrowUp className="w-4 h-4" />
           </a>

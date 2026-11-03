@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/siteData.ts",
-    "./propiedades": "./src/propiedades.ts"
+    "./propiedades": "./src/propiedades.ts",
+    "./privacidad": "./src/privacidad.ts"
   },
   "dependencies": {
     "@portal/mercados": "*"
