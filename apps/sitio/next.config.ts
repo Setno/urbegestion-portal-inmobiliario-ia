@@ -13,6 +13,8 @@ try {
 const config: NextConfig = {
   // Los paquetes compartidos se publican como TypeScript sin compilar.
   transpilePackages: ['@portal/sitio-datos', '@portal/mercados', '@portal/dinero'],
+  // La revisión de tipos del build no incluye los archivos de prueba: en Vercel vitest no está instalado.
+  typescript: { tsconfigPath: 'tsconfig.build.json' },
   turbopack: { root: repoRoot },
   outputFileTracingRoot: repoRoot,
 };
