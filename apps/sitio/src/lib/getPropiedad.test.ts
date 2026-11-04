@@ -37,6 +37,7 @@ describe('getPropiedad', () => {
     expect(consulta.get('id')).toBe(`eq.${ID}`);
     expect(consulta.get('tenant_id')).toBe('eq.tenant-1');
     expect(consulta.get('publication_status')).toBe('eq.publicada');
+    expect(consulta.get('status')).toBe('in.(disponible,reservada)');
     expect(resultado?.propiedad.title).toBe('Casa con vista');
     expect(resultado?.marketId).toBe('cl');
   });

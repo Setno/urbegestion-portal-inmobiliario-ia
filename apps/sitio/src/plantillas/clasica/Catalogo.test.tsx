@@ -25,6 +25,7 @@ const propiedad = (id: string, extra: Partial<PublicProperty> = {}): PublicPrope
   images: [],
   description: '',
   features: [],
+  reservada: false,
   ...extra,
 });
 
@@ -35,6 +36,11 @@ const lista = [
 
 describe('catálogo del sitio', () => {
   afterEach(cleanup);
+
+  it('una propiedad reservada lleva la etiqueta "Reservada" (H-048)', () => {
+    render(<Catalogo propiedades={[propiedad('R', { reservada: true }), propiedad('L')]} marketId="cl" conBuscador={false} contacto={{ whatsapp: '', whatsappMessage: '' }} />);
+    expect(screen.getAllByText('Reservada')).toHaveLength(1);
+  });
 
   it('muestra primero las destacadas', () => {
     render(<Catalogo propiedades={lista} marketId="cl" conBuscador contacto={{ whatsapp: '', whatsappMessage: '' }} />);

@@ -60,6 +60,7 @@ export function TarjetaPropiedad({ propiedad: p, marketId, contacto }: TarjetaPr
             <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-md ${p.operation === 'venta' ? 'bg-urbe-primary text-white' : 'bg-emerald-600 text-white'}`}>
               {p.operation === 'venta' ? 'En Venta' : 'En Arriendo'}
             </span>
+            {p.reservada && <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500 text-slate-950 shadow-md">Reservada</span>}
             {p.featured && (
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-urbe-accent text-slate-950 flex items-center gap-1 shadow-md">
                 <Sparkles className="w-3 h-3" />

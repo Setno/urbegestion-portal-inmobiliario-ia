@@ -16,9 +16,9 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-008.5 | El administrador invita a un agente por correo a su corredora | Media (Should) | M | hecha | H-008.3 |
 | H-008.6 | Recuperar contraseña por correo | Baja (Should) | S | hecha | H-008.2 |
 | H-008.7 | Alta de una corredora nueva con su primer administrador (onboarding de tenant) | Baja (Could) | M | hecha | H-008.3 |
-| H-009.1 | Capa de datos con repositorios: las tiendas de leads y propiedades pasan por un repositorio (local o Supabase); sin Supabase configurado todo sigue como hoy | Alta (Must) | S | en revisión | H-008 |
-| H-009.2 | Propiedades en Supabase: catálogo público leído de la base, panel de propiedades guarda por corredora | Alta (Must) | M | en revisión | H-009.1 |
-| H-009.3 | Leads en Supabase: el sitio crea leads en la corredora, el panel los ve y gestiona solo si es de esa corredora | Alta (Must) | M | en revisión | H-009.1 |
+| H-009.1 | Capa de datos con repositorios: las tiendas de leads y propiedades pasan por un repositorio (local o Supabase); sin Supabase configurado todo sigue como hoy | Alta (Must) | S | hecha (unida a main el 2026-10-31; estado corregido el 2026-11-03) | H-008 |
+| H-009.2 | Propiedades en Supabase: catálogo público leído de la base, panel de propiedades guarda por corredora | Alta (Must) | M | hecha (unida a main el 2026-10-31; estado corregido el 2026-11-03) | H-009.1 |
+| H-009.3 | Leads en Supabase: el sitio crea leads en la corredora, el panel los ve y gestiona solo si es de esa corredora | Alta (Must) | M | hecha (unida a main el 2026-10-31; estado corregido el 2026-11-03) | H-009.1 |
 | H-009.4 | Evento `lead.created` entre Captación y CRM (Captación deja de importar el almacén de CRM) | Media (Should) | S | hecha | H-009.3 |
 | H-009.5 | Imágenes de propiedades en Supabase Storage (hoy se guardan como texto base64) | Media (Should) | M | hecha | H-009.2 |
 | H-010 | Extraer textos de interfaz a archivos de traducción (es-419 e inglés) | Media | M+ | dividida en H-010.1 a H-010.4 | — |
@@ -39,19 +39,19 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-025 | Exportación completa de los datos de una corredora (propiedades, contactos, notas) en CSV/JSON | Media | M | hecha (probada a mano por el responsable, 2026-11-01) | H-008 |
 | H-026 | Pasar el repositorio a monorepo: `apps/consola` (React + Vite) y `apps/sitio` (Next.js) con paquetes compartidos | Alta | M+ (dividir) | hecha (etapas 0 a 3 unidas a `main` el 2026-11-02; la etapa 4 se cerró con H-027.3) | ADR-006, ADR-010 |
 | H-027 | Modelo de plantilla: datos del sitio en la base de datos y separación entre contenido y diseño | Alta | M+ | dividida en H-027.1 a H-027.4 | H-008, H-026 |
-| H-027.1 | Lo que el administrador guarda en Identidad y Marca (nombre, logo, contacto, colores y secciones activas) lo ven todos los visitantes en cualquier equipo | Alta | M | en revisión (2026-11-02; migración aplicada en desarrollo, falta la prueba manual de guardar desde el panel) | ADR-011 |
-| H-027.2 | Los textos del sitio (portada, "Sobre nosotros", testimonios y pie de página) son datos de cada corredora, y una corredora nueva no muestra datos de otra | Alta | M | en revisión (2026-11-02) | H-027.1 |
-| H-027.3 | `apps/sitio` en Next.js muestra, generada en el servidor, la marca de la corredora leída de la base (cierra la etapa 4 de H-026) | Alta | M | en revisión (2026-11-02; falta crear su proyecto en Vercel para probarlo en la web) | H-027.1 |
-| H-027.4 | Cada corredora tiene una plantilla asignada que decide cómo se ven sus datos; una plantilla desconocida usa la predeterminada | Media | S | en revisión (2026-11-02) | H-027.3 |
+| H-027.1 | Lo que el administrador guarda en Identidad y Marca (nombre, logo, contacto, colores y secciones activas) lo ven todos los visitantes en cualquier equipo | Alta | M | hecha en código y unida a main (2026-11-03); falta la prueba a mano de guardar la marca desde el panel con una sesión real | ADR-011 |
+| H-027.2 | Los textos del sitio (portada, "Sobre nosotros", testimonios y pie de página) son datos de cada corredora, y una corredora nueva no muestra datos de otra | Alta | M | hecha (unida a main el 2026-11-03) | H-027.1 |
+| H-027.3 | `apps/sitio` en Next.js muestra, generada en el servidor, la marca de la corredora leída de la base (cierra la etapa 4 de H-026) | Alta | M | hecha (unida a main el 2026-11-03; proyecto `portal-inmobiliario-sitio` creado en Vercel) | H-027.1 |
+| H-027.4 | Cada corredora tiene una plantilla asignada que decide cómo se ven sus datos; una plantilla desconocida usa la predeterminada | Media | S | hecha (unida a main el 2026-11-03) | H-027.3 |
 | H-028 | Plantilla 1: adaptar la landing actual (`src/site/`) al sitio Next.js | Alta | M+ | dividida en H-028.1 a H-028.4 | H-027 |
-| H-028.1 | Secciones de la plantilla clásica en Next.js: cabecera, portada, sobre nosotros, testimonios, pie y barra móvil, con los colores de cada corredora | Alta | M | en revisión (2026-11-02) | H-027 |
-| H-028.2 | Catálogo público en el sitio: propiedades publicadas pintadas desde el servidor, con buscador sin precio | Alta | M | en revisión (2026-11-02) | H-028.1 |
-| H-028.3 | Ficha pública de la propiedad en su propia dirección y formulario de visita que crea un lead en el CRM | Alta | M+ | en revisión (2026-11-03) | H-028.2 |
+| H-028.1 | Secciones de la plantilla clásica en Next.js: cabecera, portada, sobre nosotros, testimonios, pie y barra móvil, con los colores de cada corredora | Alta | M | hecha (unida a main el 2026-11-03) | H-027 |
+| H-028.2 | Catálogo público en el sitio: propiedades publicadas pintadas desde el servidor, con buscador sin precio | Alta | M | hecha (unida a main el 2026-11-03) | H-028.1 |
+| H-028.3 | Ficha pública de la propiedad en su propia dirección y formulario de visita que crea un lead en el CRM | Alta | M+ | hecha (unida a main el 2026-11-03) | H-028.2 |
 | H-028.4 | Asistente de IA y valorizador en el sitio, según lo que incluya el plan de la corredora | Media | M | pendiente | H-028.3 |
 | H-029 | Plantilla 2 y prueba de intercambio de plantilla sin perder datos | Media | M | pendiente | H-028 |
-| H-030 | Dominio propio o subdominio por corredora: resolución por dominio y guía de registros DNS | Alta | M+ (dividir) | pendiente | H-027 |
-| H-031 | SEO del sitio: fichas indexables, mapa del sitio y metadatos | Media | S | pendiente | H-028 |
-| H-032 | Editor de datos del sitio para la corredora (logo, colores, textos, fotos; sin cambiar la estructura) | Alta | M+ (dividir) | pendiente | H-027, H-008 |
+| H-030 | Dominio propio o subdominio por corredora: resolución por dominio y guía de registros DNS | Alta | M+ (dividir) | hecha en código (2026-11-03; migración aplicada en desarrollo, prueba RLS en verde, ADR-012); falta el dominio de la plataforma | H-027 |
+| H-031 | SEO del sitio: fichas indexables, mapa del sitio y metadatos | Media | S | hecha en código (2026-11-03) | H-028 |
+| H-032 | Editor de datos del sitio para la corredora (logo, colores, textos, fotos; sin cambiar la estructura) | Alta | M+ (dividir) | hecha en código (2026-11-03): textos del sitio; logo, colores y foto del corredor ya se editaban (H-027.1). Migración aplicada en desarrollo | H-027, H-008 |
 | H-033 | Aplicar planes y límites en el SaaS con `can()` y `limit()` según el contrato (ADR-009); los planes y precios se definen en ventas | Media | M | hecha en el panel (2026-11-01: 20 pruebas nuevas): avisos y modos por estado (pago pendiente, solo lectura, cancelada), funciones `branding.edit`, `crm.export` y `ai.llm_server`, cupo de agentes en el servidor y de propiedades publicadas en el panel. Lo que falta está en H-045 | H-043 |
 | H-034 | Widget embebible y API pública para el plan Solo herramientas | Media | M+ (dividir) | pendiente | H-008, H-033 |
 | H-035 | Editor de estructura del sitio (mover, agregar y quitar secciones) | Baja | M+ | fuera del MVP | H-032 |
@@ -70,13 +70,14 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-045 | Derechos también en el sitio público y en la base: función pública de solo lectura (`get_tenant_public_entitlements`, sin plan ni cupos) para apagar el chat y el formulario de propietarios, y disparador que hace cumplir `limit.properties_published` aunque se evite el panel. Los leads no se limitan (un lead perdido es un cliente perdido); su uso se mide con las métricas | Media | M | hecha (2026-11-01: migración `20261101240000` aplicada en desarrollo con prueba SQL en verde; 6 pruebas nuevas) | H-033 |
 | H-046 | Corregir las funciones `api/invite`, `api/platform/metrics` y `api/platform/tenant-sync`, que se caían al cargar en Vercel (`ERR_MODULE_NOT_FOUND`: importaban archivos de `src/` sin extensión). Afectaba la invitación de agentes (desde H-033) y la conexión con ventas (desde H-043.2). Encontrado al medir la línea base de H-026 | Alta | S | hecha (2026-11-02: con una prueba que impide que vuelva; responsable aprobó tras la prueba manual del preview, que incluía invitar a un agente) | — |
 | H-047 | Limitar en la base lo que un visitante puede leer de una propiedad: la política pública filtra filas y no columnas, así que con la clave pública se pueden pedir columnas internas de las propiedades publicadas de cualquier corredora (quién creó y aprobó, coordenadas; comprobado como visitante el 2026-11-02). Migración nueva con vista o permisos por columna; exige cambiar el `select('*')` del repositorio de la consola. Revisar antes de H-013 | Alta | M | pendiente | H-028.2 |
-| H-048 | Propiedades vendidas o arrendadas en el sitio: el estado `vendida`, `arrendada` o `reservada` no se considera, así que una publicada sale como disponible; decidir cómo se muestra, en el sitio y en la consola, antes de que el panel permita cambiarlo | Media | S | pendiente | H-028.2 |
+| H-048 | Propiedades vendidas o arrendadas en el sitio: el estado `vendida`, `arrendada` o `reservada` no se considera, así que una publicada sale como disponible; decidir cómo se muestra, en el sitio y en la consola, antes de que el panel permita cambiarlo | Media | S | hecha en código (2026-11-03): vendidas y arrendadas fuera del sitio, reservadas con etiqueta, selector en el panel | H-028.2 |
 | H-049 | Portada propia de cada corredora: el video y la foto de la portada son los mismos para todas y vienen de servidores ajenos (aclarar licencia); alojarlos en almacenamiento propio, dejar elegirlos y no descargar el video en celular | Media | M | pendiente | H-032 |
 | H-050 | Afinar la comparación de comunas: `matchesCommune` compara por contenido, así que una corredora acotada a una zona con Pinto también muestra María Pinto, de otra región, y una comuna vacía siempre coincide; dejar una sola función de zonas en `@portal/mercados` para la consola y el sitio | Media | S | pendiente | H-028.2 |
 | H-051 | Filtro por precio y selector de moneda en el sitio; requiere que la tasa de la UF venga de cada corredora y no de la configuración escrita en el código | Media | M | pendiente | H-028.3 |
 | H-052 | Proteger el envío de leads del sitio antes de abrirlo al público: límite por dirección IP o verificación contra robots en el formulario, y cerrar el insert directo en `leads` con la clave pública (hoy permite cualquier corredora y cualquier columna) dejándolo pasar por una función de la base; identificadores con formato válido pero inventados aún generan una página por dirección. Revisar antes de H-013, junto con H-005 | Alta | M | pendiente | H-028.3 |
 | H-053 | Exportación CSV de leads a prueba de texto escrito por visitantes: comillas en cada celda, neutralizar `= + - @` al inicio para que Excel no lo tome como fórmula y no cortar el archivo con `#`; mostrar "Sin correo" en el CRM | Media | S | pendiente | H-028.3 |
 | H-054 | Avisar a la corredora cuando entra un lead nuevo: el panel solo los lee al iniciar sesión, así que una solicitud de visita puede quedar horas sin verse si no hay webhook configurado | Alta | M | pendiente | H-028.3 |
+| H-055 | Dominios propios a prueba de abusos y sitio apagado también en la API: hoy cualquier administrador con `site.custom_domain` puede registrar un dominio ajeno y ocuparlo (el primero que lo guarda se lo queda; no se muestra mientras el dueño de la plataforma no lo agregue en Vercel). Dejarlo "pendiente" hasta verificarlo (registro TXT) y activarlo desde el panel del dueño. Además, `get_tenant_public_site` y el insert de leads con la clave pública no consultan `site_is_public`: con el id de una corredora suspendida se pueden leer sus datos públicos y crearle leads directo contra la API (revisar junto con H-052) | Media | M | pendiente | H-030 |
 | H-013 | Despliegue final: reactivar despliegues en `vercel.json`, cargar variables y smoke test | Alta | S | bloqueada hasta nuevo aviso | todas las fases |
 
 ## Estacionadas: seguridad y comprobaciones (revisar antes del despliegue)
@@ -154,6 +155,35 @@ Detalle de la decisión en ADR-011. El orden prioriza lo que corrige un problema
 4. Dados datos inválidos o una falla de la base, cuando se envía, entonces la persona ve qué pasó y conserva lo escrito, sin crear nada ni registrar datos personales.
 
 **Resultado H-028.3 (2026-11-03):** ruta `apps/sitio/src/app/propiedades/[id]`, envío en `apps/sitio/src/lib/solicitudVisita.ts`; el aviso de privacidad pasó a `@portal/sitio-datos/privacidad`. Probada de punta a punta en el navegador con la base de desarrollo: las filas de prueba quedaron correctas y se borraron. Sin migraciones. El lead también avisa al webhook si el proyecto del sitio tiene `GHL_WEBHOOK_URL`; esa parte solo está cubierta con pruebas automáticas. Fuera de esta tajada: el filtro por precio y el selector de moneda (H-051).
+
+## H-030, H-031, H-032 y H-048: sitio listo para varias corredoras
+
+### H-048 Vendidas, arrendadas y reservadas
+**Criterios de aceptación**
+1. Dada una propiedad publicada y vendida o arrendada, cuando se abre el sitio o su ficha, entonces no aparece ("no disponible").
+2. Dada una reservada, entonces sigue en el catálogo y en su ficha con la etiqueta "Reservada".
+3. Dado el gestor de propiedades, cuando el administrador (o quien publica directo) cambia el estado comercial, entonces se guarda y la tarjeta avisa si ya no se muestra en el sitio; el agente que solo propone no lo cambia.
+
+### H-030 Dirección del sitio por corredora (ADR-012)
+**Criterios de aceptación**
+1. Dado un subdominio o dominio propio registrado, cuando alguien lo visita, entonces ve el sitio de esa corredora; un subdominio desconocido muestra "Sitio no disponible", nunca otra corredora.
+2. Dada una corredora suspendida, cancelada o sin `site.enabled`, entonces su sitio no se muestra; un pago vencido no lo apaga.
+3. Dado el panel, cuando el administrador guarda su subdominio y dominio, entonces se guardan en minúsculas y sin `www.`; una dirección repetida, reservada o mal escrita se explica; sin `site.custom_domain` el dominio propio queda bloqueado; con dominio escrito ve los registros DNS.
+4. Dada una solicitud de visita, entonces el lead se crea en la corredora de la dirección a la que llegó.
+
+### H-031 SEO
+**Criterios de aceptación**
+1. Cada página trae título, descripción, dirección canónica y vista previa para redes; cada ficha, sus datos estructurados (schema.org) con precio y disponibilidad.
+2. `/sitemap.xml` lista la portada y las fichas publicadas; `/robots.txt` apunta al mapa.
+3. Los previews, `localhost` y lo no disponible piden no ser indexados.
+
+### H-032 Editor de textos del sitio
+**Criterios de aceptación**
+1. Dado el administrador, cuando edita la portada, "Sobre nosotros", los testimonios o el pie y guarda, entonces el sitio los muestra; la marca y los colores no cambian.
+2. Puede agregar y quitar testimonios (con foto subida o por dirección) y puntos destacados; un testimonio sin nombre o comentario no se publica.
+3. Un agente, otra corredora o un plan sin `branding.edit` no puede guardar; textos demasiado grandes se rechazan.
+
+**Resultado (2026-11-03):** migraciones `20261103120000_direccion_del_sitio.sql`, `20261103130000_textos_del_sitio.sql` y `20261103140000_direccion_del_sitio_correcciones.sql` aplicadas en desarrollo, con `supabase/tests/rls_direccion_y_textos.sql` en verde ("RLS OK"). El sitio atiende cada dirección en `apps/sitio/src/app/[sitio]` (reescrita por `src/proxy.ts`; resolución en `src/lib/direccion.ts`, SEO en `src/lib/seo.ts`). Panel: "Dirección de tu sitio" en Mi corredora y "Textos del sitio" en Identidad y Marca. Probado en el navegador, en modo desarrollo y con `next start`: `urbe.localhost:3001` muestra la corredora de desarrollo, un subdominio desconocido no muestra nada, la etiqueta "Reservada" aparece, una vendida da "no disponible", el mapa del sitio y `robots.txt` responden, y una solicitud de visita creó el lead en la corredora correcta (la fila de prueba se borró). En la base de desarrollo quedó el subdominio `urbe` para la corredora de desarrollo. **Sin probar:** guardar la dirección y los textos desde el panel con una sesión real (las reglas de la base sí están probadas con SQL); un dominio propio real (falta comprar el dominio de la plataforma). **Revisión independiente:** encontró un bloqueante, ya corregido con la tercera migración: un dominio propio bloqueado por el plan (o borrado con el DNS aún apuntando) mostraba la corredora por defecto y le mandaba sus leads. Ahora la corredora por defecto solo se usa en `localhost` y en los previews, un dominio registrado nunca cae en ella y la portada de la plataforma no muestra ninguna corredora. También se corrigió: tras bajar de plan se puede cambiar el subdominio conservando el dominio guardado; no se aceptan dominios de Vercel ni de la plataforma; cada sitio tiene una sola dirección canónica (dominio propio, si no el subdominio) en metadatos, datos estructurados, mapa del sitio y `robots.txt`; marcar vendida o arrendada pide confirmación. Queda para H-055: verificar que un dominio sea de quien lo registra, y aplicar el sitio apagado también a la lectura pública y a los leads por la API. **Para después:** el aviso de "Reservada" no detiene el formulario de visita (a propósito: puede haber interés de respaldo).
 
 ## H-001 Lint
 **Como** desarrollador **quiero** un comando de lint **para** detectar errores de estilo y de lógica antes de commitear.

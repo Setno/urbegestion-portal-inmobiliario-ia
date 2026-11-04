@@ -1,5 +1,5 @@
 import { buildPrivacyNotice } from '@portal/sitio-datos/privacidad';
-import { getSite, siteEnv, type SiteEnv } from './getSite';
+import { getSite, type SiteEnv } from './getSite';
 import { getPropiedad } from './getPropiedad';
 import { HORARIOS, type DatosVisita, type ErrorVisita, type ResultadoVisita } from './visita';
 
@@ -94,7 +94,7 @@ async function avisarWebhook(webhookUrl: string, env: SiteEnv, fila: Record<stri
 export async function enviarSolicitudVisita(
   propiedadId: string,
   recibidos: DatosVisita,
-  env: SiteEnv | null = siteEnv(),
+  env: SiteEnv | null,
   ahora: Date = new Date(),
   webhookUrl: string | undefined = process.env.GHL_WEBHOOK_URL,
 ): Promise<ResultadoVisita> {

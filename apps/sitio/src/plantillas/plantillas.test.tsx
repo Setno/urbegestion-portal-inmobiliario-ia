@@ -35,6 +35,7 @@ const propiedad: PublicProperty = {
   images: ['https://a.cl/casa.jpg'],
   description: 'Luminosa',
   features: [],
+  reservada: false,
 };
 
 const pintar = (data: SiteData = site(), propiedades: PublicProperty[] = []) =>

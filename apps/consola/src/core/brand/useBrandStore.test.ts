@@ -74,4 +74,14 @@ describe('useBrandStore (marca de la corredora)', () => {
       for (const color of [p.primary, p.primaryDark, p.accent, p.accentHover]) expect(color).toMatch(/^#[0-9a-f]{6}$/i);
     }
   });
+
+  it('sin base, guardar los textos los recuerda en el navegador y restaurar vuelve a los de ejemplo (H-032)', async () => {
+    const original = useBrandStore.getState().content;
+    await useBrandStore.getState().saveContent({ ...original, hero: { ...original.hero, badge: 'Local' } });
+    expect(useBrandStore.getState().content.hero.badge).toBe('Local');
+    expect(JSON.parse(localStorage.getItem('urbe_site_content') ?? '{}').hero.badge).toBe('Local');
+    useBrandStore.getState().resetToDefault();
+    expect(useBrandStore.getState().content).toEqual(original);
+    expect(localStorage.getItem('urbe_site_content')).toBeNull();
+  });
 });

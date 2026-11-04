@@ -23,6 +23,8 @@ export interface PublicProperty {
   images: string[];
   description: string;
   features: string[];
+  // Sigue a la vista, pero ya tiene un interesado (H-048).
+  reservada: boolean;
 }
 
 export interface PublicSettings {
@@ -57,7 +59,12 @@ export const PUBLIC_PROPERTY_COLUMNS = [
   'images',
   'description',
   'features',
+  'status',
 ].join(',');
+
+// Lo vendido o arrendado sale del sitio; lo reservado sigue a la vista con su etiqueta (H-048). Filtro para la base.
+export const ESTADOS_VISIBLES = 'in.(disponible,reservada)';
+const ESTADOS_FUERA = new Set(['vendida', 'arrendada']);
 
 const textOf = (value: unknown): string => (typeof value === 'string' ? value : '');
 const countOf = (value: unknown): number => {
@@ -74,6 +81,7 @@ function parseProperty(raw: unknown): PublicProperty | null {
   const operation = r.operation;
   if (!textOf(r.id) || !textOf(r.title) || !Number.isFinite(price)) return null;
   if (operation !== 'venta' && operation !== 'arriendo') return null;
+  if (ESTADOS_FUERA.has(textOf(r.status))) return null;
   return {
     id: textOf(r.id),
     title: textOf(r.title),
@@ -95,6 +103,7 @@ function parseProperty(raw: unknown): PublicProperty | null {
     images: textsOf(r.images).map(safeUrl).filter(Boolean),
     description: textOf(r.description),
     features: textsOf(r.features),
+    reservada: r.status === 'reservada',
   };
 }
 

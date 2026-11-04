@@ -3,7 +3,7 @@ import { RealEstateBrandConfig, agencyConfig as defaultAgencyConfig } from '../c
 import { demoSiteContent } from '../config/demoSiteContent';
 import { createLocalStore } from '../storage/localStore';
 import { remoteContext } from '../data/dataSource';
-import { fetchPublicSite, saveSiteBrand, type SiteSaveResult } from './siteService';
+import { fetchPublicSite, saveSiteBrand, saveSiteContent, type SiteSaveResult } from './siteService';
 import {
   DEFAULT_LAYOUT,
   DEFAULT_TEMPLATE_ID,
@@ -35,6 +35,8 @@ export interface BrandStore {
   load: () => Promise<void>;
   // Guarda lo editado en el panel: con Supabase en la base (y solo si la base lo acepta), sin Supabase en el navegador.
   saveBrand: (brand: Partial<RealEstateBrandConfig>, colors: Partial<ThemeColors>, layout: Partial<BrandLayoutConfig>) => Promise<SiteSaveResult>;
+  // Guarda solo los textos del sitio (H-032), con las mismas reglas que la marca.
+  saveContent: (content: SiteContent) => Promise<SiteSaveResult>;
 
   // Actions
   updateBrandConfig: (partial: Partial<RealEstateBrandConfig>) => void;
@@ -102,6 +104,10 @@ const originalBrandConfig: RealEstateBrandConfig = structuredClone(defaultAgency
 const brandConfigStorage = createLocalStore<Partial<RealEstateBrandConfig>>('urbe_brand_config');
 const themeColorsStorage = createLocalStore<Partial<ThemeColors>>('urbe_theme_colors');
 const layoutConfigStorage = createLocalStore<Partial<BrandLayoutConfig>>('urbe_layout_config');
+const siteContentStorage = createLocalStore<SiteContent>('urbe_site_content');
+
+// Los textos se guardan tal como los leerá el sitio: pasan por el mismo lector, que descarta enlaces peligrosos.
+const cleanContent = (content: SiteContent): SiteContent => parseSiteData({ tenantName: '-', content })?.content ?? NEUTRAL_CONTENT;
 
 // Con datos remotos se recuerda lo último leído, por corredora: evita un parpadeo al abrir el sitio y sirve si falla la lectura.
 const siteCache = (tenantId: string) => createLocalStore<SiteData>(`urbe_site_${tenantId}`);
@@ -177,6 +183,22 @@ export const useBrandStore = create<BrandStore>((set, get) => {
         set({ ...applySite(site), loadStatus: 'ok' });
         return result;
       },
+      saveContent: async (content) => {
+        const state = get();
+        if (state.loadStatus !== 'ok') return { ok: false, error: 'sin_datos' };
+        const clean = cleanContent(content);
+        const result = await saveSiteContent(ctx.tenantId, clean);
+        if (!result.ok) return result;
+        siteCache(ctx.tenantId).save({
+          templateId: state.templateId,
+          brand: serializeBrand(state.config),
+          theme: state.themeColors,
+          layout: state.layoutConfig,
+          content: clean,
+        });
+        set({ content: clean });
+        return result;
+      },
       // Con datos remotos no hay marca "original" a la cual volver
       updateBrandConfig: () => undefined,
       updateThemeColors: () => undefined,
@@ -188,11 +210,13 @@ export const useBrandStore = create<BrandStore>((set, get) => {
   let initialConfig = { ...defaultAgencyConfig };
   let initialColors = { ...defaultThemeColors };
   let initialLayout = { ...defaultLayoutConfig };
+  let storedContent: SiteContent | null = null;
 
   if (typeof window !== 'undefined') {
     initialConfig = { ...defaultAgencyConfig, ...brandConfigStorage.load() };
     initialColors = { ...defaultThemeColors, ...themeColorsStorage.load() };
     initialLayout = { ...defaultLayoutConfig, ...layoutConfigStorage.load() };
+    storedContent = siteContentStorage.load();
 
     applyCssVariables(initialColors);
   }
@@ -201,7 +225,7 @@ export const useBrandStore = create<BrandStore>((set, get) => {
     config: initialConfig,
     themeColors: initialColors,
     layoutConfig: initialLayout,
-    content: demoSiteContent,
+    content: storedContent ? cleanContent(storedContent) : demoSiteContent,
     templateId: DEFAULT_TEMPLATE_ID,
     loadStatus: 'ok',
 
@@ -211,6 +235,13 @@ export const useBrandStore = create<BrandStore>((set, get) => {
       get().updateBrandConfig(brand);
       get().updateThemeColors(colors);
       get().updateLayoutConfig(layout);
+      return { ok: true };
+    },
+
+    saveContent: async (content) => {
+      const clean = cleanContent(content);
+      siteContentStorage.save(clean);
+      set({ content: clean });
       return { ok: true };
     },
 
@@ -268,6 +299,7 @@ export const useBrandStore = create<BrandStore>((set, get) => {
         brandConfigStorage.clear();
         themeColorsStorage.clear();
         layoutConfigStorage.clear();
+        siteContentStorage.clear();
         applyCssVariables(defaultThemeColors);
       }
 
@@ -278,6 +310,7 @@ export const useBrandStore = create<BrandStore>((set, get) => {
         config: original,
         themeColors: { ...defaultThemeColors },
         layoutConfig: { ...defaultLayoutConfig },
+        content: demoSiteContent,
       });
     },
   };

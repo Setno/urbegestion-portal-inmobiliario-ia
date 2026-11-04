@@ -54,6 +54,11 @@ describe('PropertyCard', () => {
     expect(screen.getByRole('button', { name: /Book a Visit/ })).toBeTruthy();
   });
 
+  it('una propiedad reservada lo dice en la tarjeta (H-048)', () => {
+    render(<PropertyCard property={{ ...casa, status: 'reservada' }} onOpenDetails={vi.fn()} onOpenBooking={vi.fn()} />);
+    expect(screen.getByText('Reservada')).toBeTruthy();
+  });
+
   it('Ver Ficha y Agendar Cita avisan con la propiedad', () => {
     const detalles = vi.fn();
     const cita = vi.fn();

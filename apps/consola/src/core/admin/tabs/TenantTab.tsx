@@ -5,6 +5,7 @@ import { TeamSection } from './TeamSection';
 import { ServiceAreasSection } from './ServiceAreasSection';
 import { PublicationModeSection } from './PublicationModeSection';
 import { DataExportSection } from './DataExportSection';
+import { SiteAddressSection } from './SiteAddressSection';
 
 // Lo que el administrador decide sobre su corredora. Cada sección decide por sí misma si se muestra según el rol.
 export const TenantTab: React.FC = () => {
@@ -21,6 +22,7 @@ export const TenantTab: React.FC = () => {
           <TeamSection />
           <ServiceAreasSection />
           <PublicationModeSection />
+          <SiteAddressSection />
         </fieldset>
       )}
       <DataExportSection />

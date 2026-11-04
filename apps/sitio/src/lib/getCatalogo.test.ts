@@ -36,8 +36,9 @@ describe('getCatalogo', () => {
     const consulta = new URL(direccion).searchParams;
     expect(consulta.get('tenant_id')).toBe('eq.tenant-1');
     expect(consulta.get('publication_status')).toBe('eq.publicada');
+    expect(consulta.get('status')).toBe('in.(disponible,reservada)');
     expect(consulta.get('select')?.split(',').sort()).toEqual(
-      ['address', 'bathrooms', 'bedrooms', 'built_area_m2', 'commune', 'description', 'expenses_monthly_clp', 'featured', 'features', 'id', 'images', 'map_query', 'operation', 'parking_spots', 'price_amount', 'price_currency', 'property_type', 'storage_units', 'title', 'total_area_m2'],
+      ['address', 'bathrooms', 'bedrooms', 'built_area_m2', 'commune', 'description', 'expenses_monthly_clp', 'featured', 'features', 'id', 'images', 'map_query', 'operation', 'parking_spots', 'price_amount', 'price_currency', 'property_type', 'status', 'storage_units', 'title', 'total_area_m2'],
     );
     expect(consulta.get('select')).toBe(PUBLIC_PROPERTY_COLUMNS);
     expect(catalogo.propiedades.map((p) => p.id)).toEqual(['a']);

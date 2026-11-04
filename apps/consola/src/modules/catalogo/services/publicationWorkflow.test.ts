@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   isPublished,
+  isOnOffer,
+  SALE_STATUS_LABEL,
   statusForNew,
   statusAfterEdit,
   availableActions,
@@ -19,6 +21,21 @@ describe('publicationWorkflow', () => {
       expect(isPublished(prop('borrador'))).toBe(false);
       expect(isPublished(prop('en_revision'))).toBe(false);
       expect(isPublished(prop('rechazada'))).toBe(false);
+    });
+  });
+
+  describe('isOnOffer (H-048)', () => {
+    it('lo vendido o arrendado sale del sitio; lo reservado sigue a la vista', () => {
+      const conEstado = (status: Property['status']) => ({ status }) as Property;
+      expect(isOnOffer(conEstado('disponible'))).toBe(true);
+      expect(isOnOffer(conEstado('reservada'))).toBe(true);
+      expect(isOnOffer(conEstado('vendida'))).toBe(false);
+      expect(isOnOffer(conEstado('arrendada'))).toBe(false);
+      expect(isOnOffer({} as Property)).toBe(true);
+    });
+
+    it('cada estado comercial tiene su nombre en pantalla', () => {
+      expect(SALE_STATUS_LABEL).toEqual({ disponible: 'Disponible', reservada: 'Reservada', vendida: 'Vendida', arrendada: 'Arrendada' });
     });
   });
 

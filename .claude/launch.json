@@ -11,6 +11,14 @@
       "name": "sitio",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:sitio"],
+      "env": { "NODE_OPTIONS": "--use-system-ca" },
+      "port": 3001
+    },
+    {
+      "name": "sitio-prod",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start", "--workspace=@portal/sitio"],
+      "env": { "NODE_OPTIONS": "--use-system-ca", "SITIO_DOMINIO_BASE": "localhost" },
       "port": 3001
     },
     {

@@ -1,0 +1,45 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { DEFAULT_LAYOUT, DEFAULT_THEME, NEUTRAL_CONTENT, neutralBrand, type SiteData } from '@portal/sitio-datos';
+import { getCatalogo } from '../../lib/getCatalogo';
+import { getSite } from '../../lib/getSite';
+import { resolverVisita } from '../../lib/direccion';
+import Page, { generateMetadata } from './page';
+
+vi.mock('../../lib/getSite', () => ({ getSite: vi.fn() }));
+vi.mock('../../lib/getCatalogo', () => ({ getCatalogo: vi.fn() }));
+vi.mock('../../lib/direccion', () => ({ resolverVisita: vi.fn() }));
+
+const site: SiteData = { templateId: 'clasica', brand: neutralBrand('Casa Sur'), theme: DEFAULT_THEME, layout: DEFAULT_LAYOUT, content: NEUTRAL_CONTENT };
+const env = { url: 'https://proyecto.supabase.co', key: 'k', tenantId: 't1', canonico: 'casasur.cl' };
+const params = Promise.resolve({ sitio: 'casasur.miportal.cl' });
+
+describe('portada del sitio', () => {
+  beforeEach(() => {
+    vi.mocked(resolverVisita).mockResolvedValue(env);
+    vi.mocked(getSite).mockResolvedValue(site);
+    vi.mocked(getCatalogo).mockResolvedValue({ propiedades: [], marketId: 'cl' });
+  });
+
+  it('muestra la corredora que corresponde a la dirección de la visita (H-030)', async () => {
+    const html = renderToStaticMarkup(await Page({ params }));
+    expect(resolverVisita).toHaveBeenCalledWith('casasur.miportal.cl');
+    expect(getCatalogo).toHaveBeenCalledWith(env);
+    expect(html).toContain('Casa Sur');
+    expect(html).toContain('RealEstateAgent');
+  });
+
+  it('una dirección sin corredora avisa que el sitio no está disponible', async () => {
+    vi.mocked(resolverVisita).mockResolvedValue(null);
+    vi.mocked(getSite).mockResolvedValue(null);
+    expect(renderToStaticMarkup(await Page({ params }))).toContain('Sitio no disponible');
+    expect((await generateMetadata({ params })).robots).toEqual({ index: false });
+  });
+
+  it('el título sale de la corredora y la dirección canónica es la preferida, no la de la visita (H-031)', async () => {
+    const meta = await generateMetadata({ params });
+    expect(meta.title).toBe('Casa Sur');
+    // Se entró por el subdominio, pero la corredora tiene dominio propio: Google conoce una sola dirección
+    expect(meta.metadataBase?.toString()).toBe('https://casasur.cl/');
+  });
+});

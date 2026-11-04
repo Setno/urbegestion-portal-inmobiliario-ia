@@ -12,12 +12,14 @@ import { uploadIfRemote } from '../services/imageStorage';
 import { useAuthStore } from '../../../core/auth/useAuthStore';
 import {
   PUBLICATION_LABEL,
+  SALE_STATUS_LABEL,
   actorFor,
+  isOnOffer,
   availableActions,
   statusAfterEdit,
   statusForNew,
 } from '../services/publicationWorkflow';
-import type { PublicationStatus } from '../types/property';
+import type { PropertyStatus, PublicationStatus } from '../types/property';
 import { useMarket } from '../../../core/market/useMarketStore';
 import { isInServiceAreas } from '../services/propertyFilters';
 import { NumberInput } from '../../../core/ui/NumberInput';
@@ -320,6 +322,26 @@ export const PropertiesTab: React.FC = () => {
                       {t('properties.outsideAreas')}
                     </span>
                   )}
+                  <div className="flex items-center gap-2">
+                    {/* El agente que propone no lo cambia: la base devolvería la propiedad a revisión (H-048). */}
+                    <select
+                      value={p.status ?? 'disponible'}
+                      onChange={(e) => {
+                        const status = e.target.value as PropertyStatus;
+                        // Vendida o arrendada saca la propiedad del sitio al tiro: se confirma antes
+                        if (!isOnOffer({ status }) && !window.confirm(`¿Marcar "${p.title}" como ${SALE_STATUS_LABEL[status].toLowerCase()}? Dejará de mostrarse en el sitio.`)) return;
+                        updateProperty(p.id, { status });
+                      }}
+                      disabled={actor === 'proponente'}
+                      aria-label={`Estado comercial de ${p.title}`}
+                      className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 disabled:opacity-60"
+                    >
+                      {(Object.keys(SALE_STATUS_LABEL) as PropertyStatus[]).map((s) => (
+                        <option key={s} value={s}>{SALE_STATUS_LABEL[s]}</option>
+                      ))}
+                    </select>
+                    {!isOnOffer(p) && <span className="text-[10px] font-semibold text-slate-500">No se muestra en el sitio</span>}
+                  </div>
                   {p.publicationStatus === 'rechazada' && p.rejectionReason && (
                     <p className="text-[11px] text-rose-600 font-semibold">Motivo del rechazo: {p.rejectionReason}</p>
                   )}

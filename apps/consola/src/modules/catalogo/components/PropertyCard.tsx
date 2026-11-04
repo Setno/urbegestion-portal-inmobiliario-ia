@@ -97,6 +97,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               {operationLabel}
             </span>
 
+            {property.status === 'reservada' && (
+              <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500 text-slate-950 shadow-md">
+                {t('card.reserved')}
+              </span>
+            )}
+
             {property.featured && (
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-urbe-accent text-slate-950 flex items-center gap-1 shadow-md">
                 <Sparkles className="w-3 h-3" />

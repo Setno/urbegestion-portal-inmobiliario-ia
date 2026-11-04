@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DEFAULT_LAYOUT, DEFAULT_THEME, NEUTRAL_CONTENT, neutralBrand, type SiteData } from '@portal/sitio-datos';
 
-const { fetchPublicSite, saveSiteBrand } = vi.hoisted(() => ({
+const { fetchPublicSite, saveSiteBrand, saveSiteContent } = vi.hoisted(() => ({
   fetchPublicSite: vi.fn(),
   saveSiteBrand: vi.fn(),
+  saveSiteContent: vi.fn(),
 }));
 vi.mock('../data/dataSource', () => ({ remoteContext: () => ({ client: {}, tenantId: 'tenant-1' }) }));
-vi.mock('./siteService', () => ({ fetchPublicSite, saveSiteBrand }));
+vi.mock('./siteService', () => ({ fetchPublicSite, saveSiteBrand, saveSiteContent }));
 
 import { useBrandStore } from './useBrandStore';
 import { agencyConfig } from '../config/agencyConfig';
@@ -126,5 +127,37 @@ describe('useBrandStore (con Supabase)', () => {
     expect(result).toEqual({ ok: false, error: 'permiso' });
     expect(useBrandStore.getState().config.brandName).toBe('Casa Sur');
     expect(useBrandStore.getState().themeColors.primary).toBe('#112233');
+  });
+
+  it('guardar los textos envía solo los textos, limpios, y no toca la marca (H-032)', async () => {
+    saveSiteContent.mockResolvedValue({ ok: true });
+    const textos = {
+      ...casaSur.content,
+      hero: { ...casaSur.content.hero, badge: 'Nuevo' },
+      testimonials: { ...casaSur.content.testimonials, items: [{ name: 'Ana', role: '', photo: 'javascript:alert(1)', initials: '', quote: 'Excelente', stars: 9 }] },
+    };
+    expect(await useBrandStore.getState().saveContent(textos)).toEqual({ ok: true });
+    const [tenant, enviado] = saveSiteContent.mock.calls[0];
+    expect(tenant).toBe('tenant-1');
+    expect(enviado.hero.badge).toBe('Nuevo');
+    expect(enviado.testimonials.items[0]).toEqual({ name: 'Ana', role: '', photo: '', initials: 'A', quote: 'Excelente', stars: 5 });
+    expect(saveSiteBrand).not.toHaveBeenCalled();
+    expect(useBrandStore.getState().content.hero.badge).toBe('Nuevo');
+    expect(useBrandStore.getState().config.brandName).toBe('Casa Sur');
+    expect(JSON.parse(localStorage.getItem(CACHE_KEY) ?? '{}').content.hero.badge).toBe('Nuevo');
+  });
+
+  it('si la base rechaza los textos, no cambian y se informa (H-032)', async () => {
+    saveSiteContent.mockResolvedValue({ ok: false, error: 'permiso' });
+    const result = await useBrandStore.getState().saveContent({ ...casaSur.content, hero: { ...casaSur.content.hero, badge: 'No' } });
+    expect(result).toEqual({ ok: false, error: 'permiso' });
+    expect(useBrandStore.getState().content.hero.badge).toBe('Desde 2010');
+  });
+
+  it('sin una lectura correcta no se guardan los textos (H-032)', async () => {
+    fetchPublicSite.mockResolvedValue(null);
+    await useBrandStore.getState().load();
+    expect(await useBrandStore.getState().saveContent(casaSur.content)).toEqual({ ok: false, error: 'sin_datos' });
+    expect(saveSiteContent).not.toHaveBeenCalled();
   });
 });

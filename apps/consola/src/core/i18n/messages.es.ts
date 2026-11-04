@@ -77,6 +77,7 @@ export const es = {
   'type.office': 'Oficina',
   'type.other': 'Inmueble',
   'card.exclusive': 'Exclusiva',
+  'card.reserved': 'Reservada',
   'card.bedrooms': '{count} Dorm.',
   'card.bathrooms': '{count} Baños',
   'card.parking': '{count} Estac.',

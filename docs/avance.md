@@ -1,21 +1,21 @@
 # Avance hacia el MVP
 
-Actualizado: 2026-11-03. Se actualiza al cerrar cada historia.
+Actualizado: 2026-11-03 (tras H-030, H-031, H-032 y H-048). Se actualiza al cerrar cada historia.
 
-## Indicador: 55 %
+## Indicador: 62 %
 
-`██████░░░░` 86.0 de 156 puntos. Faltan 70.0 puntos, unos 35 días de trabajo como estimación gruesa.
+`██████░░░░` 96.6 de 156 puntos. Faltan 59.4 puntos, unos 30 días de trabajo como estimación gruesa.
 
 | Bloque | Avance | Puntos |
 | --- | --- | --- |
 | Base técnica: calidad, monorepo y datos en la nube | `██████████` 100 % | 29.0 de 29 |
 | Cuentas, corredoras, roles y planes | `█████████░` 92 % | 22.0 de 24 |
 | Catálogo, publicación y mercado Chile | `██████████` 100 % | 23.0 de 23 |
-| Sitio propio de cada corredora | `████░░░░░░` 35 % | 12.0 de 34 |
+| Sitio propio de cada corredora | `███████░░░` 66 % | 22.6 de 34 |
 | Captación y CRM que pide el Blueprint | `░░░░░░░░░░` 0 % | 0.0 de 32 |
 | Seguridad y salida a producción | `░░░░░░░░░░` 0 % | 0.0 de 14 |
 
-Si se cuenta solo lo que hoy está anotado en el backlog, el avance sería 67 %. Ese número es engañoso: deja fuera las funciones de CRM del Blueprint que aún no tienen historia.
+Si se cuenta solo lo que hoy está anotado en el backlog, el avance sería 75 %. Ese número es engañoso: deja fuera las funciones de CRM del Blueprint que aún no tienen historia.
 
 ## Cómo se calcula
 
@@ -29,7 +29,7 @@ Si se cuenta solo lo que hoy está anotado en el backlog, el avance sería 67 %.
 
 **Cuentas, corredoras, roles y planes:** H-043.3.
 
-**Sitio propio de cada corredora:** H-027.1, H-027.2, H-027.3, H-027.4, H-028.1, H-028.2, H-028.3, H-028.4, H-029, H-030, H-031, H-032, H-048, H-049, H-050, H-051.
+**Sitio propio de cada corredora:** H-028.4, H-029, H-049, H-050, H-051. Al 80 % (hechas en código, falta unirlas a `main` o la prueba a mano desde el panel): H-027.1, H-030, H-031, H-032 y H-048.
 
 **Captación y CRM que pide el Blueprint:** H-034, H-053, H-054, WhatsApp: la conversación entrante queda como lead (M+, sin historia aún), Consultas de portales por correo (M+, sin historia aún), Atribución: campaña y fuente en cada lead (S, sin historia aún), Contactos con línea de tiempo (M, sin historia aún), Pipelines por tipo de cliente (M+, sin historia aún), Tareas y recordatorios (M, sin historia aún), Agenda de visitas (M+, sin historia aún), Asignación de leads (M, sin historia aún), Reportes básicos (M, sin historia aún).
 
