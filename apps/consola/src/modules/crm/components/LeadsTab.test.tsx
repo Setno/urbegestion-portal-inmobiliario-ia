@@ -302,6 +302,17 @@ describe('LeadsTab (CRM)', () => {
     });
   });
 
+  describe('origen del lead', () => {
+    it('la ficha del lead nombra el origen en palabras, no con el código de la base', () => {
+      useLeadStore.setState({ leads: [lead({ id: 'o', fullName: 'Origen Uno', source: 'ficha_propiedad' })] });
+      render(<LeadsTab />);
+      abrirTabla();
+      fireEvent.click(screen.getByRole('button', { name: 'Ver Ficha' }));
+      expect(screen.getByText('Ficha de propiedad', { selector: 'span.uppercase' })).toBeTruthy();
+      expect(screen.queryByText('FICHA_PROPIEDAD')).toBeNull();
+    });
+  });
+
   describe('lead sin correo (H-053)', () => {
     it('muestra "Sin correo" en vez de un correo de relleno o un hueco', () => {
       useLeadStore.setState({

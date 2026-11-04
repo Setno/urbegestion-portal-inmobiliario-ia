@@ -22,6 +22,7 @@ import { buildPropertyFromLead } from '../services/leadToProperty';
 import { useCan } from '../../../core/platform/useEntitlementsStore';
 import { downloadFile, exportFileName, leadsToCsv } from '../../../core/export/dataExport';
 import { displayEmail } from '../services/leadEmail';
+import { sourceLabel } from '../services/leadSource';
 
 export const LeadsTab: React.FC = () => {
   const { leads, updateLeadStatus, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
@@ -465,7 +466,7 @@ export const LeadsTab: React.FC = () => {
             <div className="flex justify-between items-start border-b border-slate-100 pb-3">
               <div>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-urbe-primary/10 text-urbe-primary">
-                  {selectedLead.source.toUpperCase()}
+                  {sourceLabel(selectedLead.source)}
                 </span>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 mt-1">{selectedLead.fullName}</h3>
                 <p className="text-[11px] text-slate-500">Registrado el {selectedLead.createdAt}</p>
