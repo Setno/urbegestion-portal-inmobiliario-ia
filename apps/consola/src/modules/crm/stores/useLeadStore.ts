@@ -4,6 +4,8 @@ import { webhookService } from '../../captacion/services/webhookService';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { getLeadRepository } from '../services/leadRepository';
 import { isValidDate, localToday } from '../services/leadTasks';
+import { statusLabel } from '../services/leadTimeline';
+import { useTimelineStore } from './useTimelineStore';
 
 interface LeadStore {
   leads: Lead[];
@@ -141,9 +143,18 @@ export const useLeadStore = create<LeadStore>((set, get) => {
     },
 
     updateLeadStatus: (id, status) => {
+      const before = get().leads.find((l) => l.id === id);
+      const changed = Boolean(before && before.status !== status);
       const updated = get().leads.map((l) => (l.id === id ? { ...l, status } : l));
       set({ leads: updated });
-      warnOnFail(getLeadRepository().update(id, { status }, updated), 'cambiar el estado del lead');
+      const repo = getLeadRepository();
+      const saved = repo.update(id, { status }, updated);
+      warnOnFail(saved, 'cambiar el estado del lead');
+      if (!changed) return;
+      const record = () => useTimelineStore.getState().add(id, 'estado', `Pasó a ${statusLabel(status)}`, true);
+      // Con la base, el historial anota el cambio solo si quedó guardado; en el navegador se anota de inmediato.
+      if (repo.mode === 'remote') saved.then(record, () => undefined);
+      else record();
     },
 
     addNoteToLead: (id, note) => {
@@ -197,6 +208,7 @@ export const useLeadStore = create<LeadStore>((set, get) => {
       const updated = get().leads.filter((l) => l.id !== id);
       set({ leads: updated });
       warnOnFail(getLeadRepository().remove(id, updated), 'borrar el lead');
+      useTimelineStore.getState().removeForLead(id);
     },
 
     linkProperty: (id, propertyId) => {

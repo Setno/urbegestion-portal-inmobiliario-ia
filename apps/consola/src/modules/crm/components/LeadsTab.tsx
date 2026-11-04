@@ -24,6 +24,7 @@ import { downloadFile, exportFileName, leadsToCsv } from '../../../core/export/d
 import { displayEmail } from '../services/leadEmail';
 import { sourceLabel } from '../services/leadSource';
 import { ActionBadge, NextActionEditor, TodayPanel } from './NextAction';
+import { Timeline } from './Timeline';
 
 export const LeadsTab: React.FC = () => {
   const { leads, updateLeadStatus, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
@@ -573,6 +574,8 @@ export const LeadsTab: React.FC = () => {
             )}
 
             <NextActionEditor leadId={selectedLead.id} />
+
+            <Timeline leadId={selectedLead.id} />
 
             {/* Notes Log */}
             <div>
