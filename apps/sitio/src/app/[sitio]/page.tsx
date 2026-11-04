@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { getCatalogo } from '../../lib/getCatalogo';
+import { getFunciones } from '../../lib/getFunciones';
 import { getSite } from '../../lib/getSite';
 import { resolverVisita } from '../../lib/direccion';
 import { datosDeLaCorredora, metadatosPortada } from '../../lib/seo';
 import { resolvePlantilla } from '../../plantillas';
 import { SitioNoDisponible } from '../SitioNoDisponible';
+import { solicitarTasacion } from './acciones';
 
 // `sitio` es la dirección con que llegó la visita: la pone proxy.ts, nunca el visitante (H-030).
 interface Props {
@@ -35,12 +37,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const { direccion, env, site } = await cargar(params);
   if (!site) return <SitioNoDisponible />;
-  const catalogo = await getCatalogo(env);
+  const [catalogo, funciones] = await Promise.all([getCatalogo(env), getFunciones(env)]);
   const Plantilla = resolvePlantilla(site.templateId);
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: datosDeLaCorredora(site, direccion.canonico) }} />
-      <Plantilla site={site} catalogo={catalogo} />
+      <Plantilla site={site} catalogo={catalogo} enviarTasacion={funciones.valorizador ? solicitarTasacion : undefined} />
     </>
   );
 }

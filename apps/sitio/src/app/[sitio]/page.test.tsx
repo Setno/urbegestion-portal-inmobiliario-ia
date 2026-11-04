@@ -2,12 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DEFAULT_LAYOUT, DEFAULT_THEME, NEUTRAL_CONTENT, neutralBrand, type SiteData } from '@portal/sitio-datos';
 import { getCatalogo } from '../../lib/getCatalogo';
+import { getFunciones } from '../../lib/getFunciones';
 import { getSite } from '../../lib/getSite';
 import { resolverVisita } from '../../lib/direccion';
 import Page, { generateMetadata } from './page';
 
 vi.mock('../../lib/getSite', () => ({ getSite: vi.fn() }));
 vi.mock('../../lib/getCatalogo', () => ({ getCatalogo: vi.fn() }));
+vi.mock('../../lib/getFunciones', () => ({ getFunciones: vi.fn() }));
 vi.mock('../../lib/direccion', () => ({ resolverVisita: vi.fn() }));
 
 const site: SiteData = { templateId: 'clasica', brand: neutralBrand('Casa Sur'), theme: DEFAULT_THEME, layout: DEFAULT_LAYOUT, content: NEUTRAL_CONTENT };
@@ -19,6 +21,7 @@ describe('portada del sitio', () => {
     vi.mocked(resolverVisita).mockResolvedValue(env);
     vi.mocked(getSite).mockResolvedValue(site);
     vi.mocked(getCatalogo).mockResolvedValue({ propiedades: [], marketId: 'cl' });
+    vi.mocked(getFunciones).mockResolvedValue({ chat: false, valorizador: false });
   });
 
   it('muestra la corredora que corresponde a la dirección de la visita (H-030)', async () => {
@@ -27,6 +30,17 @@ describe('portada del sitio', () => {
     expect(getCatalogo).toHaveBeenCalledWith(env);
     expect(html).toContain('Casa Sur');
     expect(html).toContain('RealEstateAgent');
+  });
+
+  it('la sección para propietarios aparece solo si el plan de la corredora incluye el valorizador', async () => {
+    vi.mocked(getFunciones).mockResolvedValue({ chat: false, valorizador: true });
+    const con = renderToStaticMarkup(await Page({ params }));
+    expect(getFunciones).toHaveBeenCalledWith(env);
+    expect(con).toContain('id="vende"');
+    vi.mocked(getFunciones).mockResolvedValue({ chat: true, valorizador: false });
+    const sin = renderToStaticMarkup(await Page({ params }));
+    expect(sin).not.toContain('id="vende"');
+    expect(sin).not.toContain('Vende con nosotros');
   });
 
   it('una dirección sin corredora avisa que el sitio no está disponible', async () => {

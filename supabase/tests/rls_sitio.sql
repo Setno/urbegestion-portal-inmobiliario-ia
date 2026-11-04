@@ -187,4 +187,41 @@ begin
 end $$;
 reset role;
 
+-- 10. Herramientas del plan en el sitio (H-028.4b): get_site_features lo puede llamar cualquiera, sin ver el plan ---
+update public.tenant_entitlements set features = '{}', status = 'active' where tenant_id = 'a1a1a1a1-0000-0000-0000-0000000000a1';
+set local role anon;
+do $$
+declare f jsonb;
+begin
+  f := public.get_site_features('a1a1a1a1-0000-0000-0000-0000000000a1');
+  if f is distinct from '{"chat": true, "valuation": true}'::jsonb then raise exception 'FALLO: sin interruptores todo debe estar prendido: %', f; end if;
+end $$;
+reset role;
+update public.tenant_entitlements set features = '{"valuation.owner_form":false}' where tenant_id = 'a1a1a1a1-0000-0000-0000-0000000000a1';
+set local role anon;
+do $$
+declare f jsonb;
+begin
+  f := public.get_site_features('a1a1a1a1-0000-0000-0000-0000000000a1');
+  if f is distinct from '{"chat": true, "valuation": false}'::jsonb then raise exception 'FALLO: apagar el valorizador debe apagar solo el valorizador: %', f; end if;
+end $$;
+reset role;
+update public.tenant_entitlements set features = '{"ai.chat":false,"branding.edit":false,"price":99}' where tenant_id = 'a1a1a1a1-0000-0000-0000-0000000000a1';
+set local role anon;
+do $$
+declare f jsonb;
+begin
+  f := public.get_site_features('a1a1a1a1-0000-0000-0000-0000000000a1');
+  if f is distinct from '{"chat": false, "valuation": true}'::jsonb then raise exception 'FALLO: apagar el chat debe apagar solo el chat y no mostrar el resto del plan: %', f; end if;
+end $$;
+reset role;
+update public.tenant_entitlements set features = '{}', status = 'suspended' where tenant_id = 'a1a1a1a1-0000-0000-0000-0000000000a1';
+set local role anon;
+do $$
+begin
+  if public.get_site_features('a1a1a1a1-0000-0000-0000-0000000000a1') is not null then raise exception 'FALLO: una corredora suspendida mostró sus herramientas'; end if;
+  if public.get_site_features('00000000-0000-0000-0000-000000000000') is not null then raise exception 'FALLO: una corredora inexistente devolvió herramientas'; end if;
+end $$;
+reset role;
+
 do $$ begin raise exception 'RLS OK: los datos del sitio son públicos para leer y solo el administrador de la corredora los cambia (este "error" deshace los datos de prueba a propósito)'; end $$;

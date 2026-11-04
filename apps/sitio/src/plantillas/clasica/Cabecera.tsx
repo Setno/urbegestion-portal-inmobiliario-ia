@@ -5,14 +5,16 @@ import { MenuMovil, type EnlaceMenu } from './MenuMovil';
 
 interface CabeceraProps {
   brand: SiteBrand;
+  mostrarVende: boolean;
   mostrarSobreNosotros: boolean;
   mostrarTestimonios: boolean;
 }
 
-export function Cabecera({ brand, mostrarSobreNosotros, mostrarTestimonios }: CabeceraProps) {
+export function Cabecera({ brand, mostrarVende, mostrarSobreNosotros, mostrarTestimonios }: CabeceraProps) {
   const { contact } = brand;
   const enlaces: EnlaceMenu[] = [
     { href: '/#propiedades', texto: 'Propiedades' },
+    ...(mostrarVende ? [{ href: '/#vende', texto: 'Vende con nosotros' }] : []),
     ...(mostrarSobreNosotros ? [{ href: '/#sobre-nosotros', texto: brand.brokerName }] : []),
     ...(mostrarTestimonios ? [{ href: '/#testimonios', texto: 'Testimonios' }] : []),
   ];

@@ -164,6 +164,33 @@ describe('plantilla clásica', () => {
     expect(pintar(site(), [{ ...propiedad, bathrooms: 1 }])).toContain('1 Baño<');
   });
 
+  it('la sección para propietarios solo aparece si la corredora tiene el valorizador (llega la función de envío)', () => {
+    const sin = pintar();
+    expect(sin).not.toContain('id="vende"');
+    const con = renderToStaticMarkup(<Clasica site={site()} catalogo={{ propiedades: [], marketId: 'cl' }} enviarTasacion={async () => ({ ok: true })} />);
+    expect(con).toContain('id="vende"');
+    expect(con).toContain('Solicitar tasación');
+  });
+
+  it('con valorizador, la cabecera y la portada llevan a la sección; sin él no hay enlaces rotos', () => {
+    const con = renderToStaticMarkup(<Clasica site={site()} catalogo={{ propiedades: [], marketId: 'cl' }} enviarTasacion={async () => ({ ok: true })} />);
+    expect(con).toContain('href="/#vende"');
+    expect(con).toContain('Vende con nosotros');
+    expect(con).toContain('Vende tu propiedad');
+    const sin = pintar();
+    expect(sin).not.toContain('#vende');
+    expect(sin).not.toContain('Vende con nosotros');
+    expect(sin).not.toContain('Vende tu propiedad');
+  });
+
+  it('la sección para propietarios es una banda con los colores de la corredora y beneficios sin promesas de plazos', () => {
+    const con = renderToStaticMarkup(<Clasica site={site()} catalogo={{ propiedades: [], marketId: 'cl' }} enviarTasacion={async () => ({ ok: true })} />);
+    const banda = con.slice(con.indexOf('id="vende"'));
+    expect(banda).toContain('bg-urbe-primary');
+    expect(banda).toContain('Tasación sin costo');
+    expect(banda).not.toMatch(/24 horas|24 hrs|en minutos/i);
+  });
+
   it('sin propiedades avisa en vez de dejar un hueco', () => {
     expect(pintar()).toContain('Aún no hay propiedades publicadas');
   });
