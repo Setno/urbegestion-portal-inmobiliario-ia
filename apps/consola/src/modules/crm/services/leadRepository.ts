@@ -104,9 +104,22 @@ export function createRemoteLeadRepository(client: SupabaseClient, tenantId: str
       throwIfError(error);
       return ((data ?? []) as Row[]).map(fromRow);
     },
-    // Sin .select(): el visitante del sitio puede crear leads pero no leerlos, así que no se pide la fila de vuelta.
+    // Un miembro de la corredora inserta directo (la base solo se lo permite en su corredora). Un visitante sin sesión
+    // (landing, chat) crea el lead con la función de la base, que valida y limita los envíos (H-052).
+    // Sin .select(): el visitante puede crear leads pero no leerlos, así que no se pide la fila de vuelta.
     create: async (item) => {
-      const { error } = await client.from('leads').insert({ id: item.id, tenant_id: tenantId, ...toRow(item) });
+      const row = { id: item.id, tenant_id: tenantId, ...toRow(item) };
+      const { data } = await client.auth.getSession();
+      if (data.session) {
+        const { error } = await client.from('leads').insert(row);
+        // Una sesión que no es de esta corredora (por ejemplo, un agente de otra visitando la landing) no puede
+        // insertar directo: se crea el lead como cualquier visitante.
+        if (!error || (error as { code?: string }).code !== '42501') {
+          throwIfError(error);
+          return;
+        }
+      }
+      const { error } = await client.rpc('create_site_lead', { p_tenant: tenantId, p_lead: row });
       throwIfError(error);
     },
     update: async (id, patch) => {

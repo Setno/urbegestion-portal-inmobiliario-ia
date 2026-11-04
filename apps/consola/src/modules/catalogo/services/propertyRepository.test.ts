@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { createFakeSupabase } from '../../../core/data/fakeSupabase';
-import { createRemotePropertyRepository, createLocalPropertyRepository } from './propertyRepository';
+import { PUBLIC_PROPERTY_COLUMNS as SITIO_COLUMNAS } from '@portal/sitio-datos/propiedades';
+import { createRemotePropertyRepository, createLocalPropertyRepository, PUBLIC_PROPERTY_COLUMNS_ANON } from './propertyRepository';
 import type { Property } from '../types/property';
 
 const TENANT = '5947138c-0eaa-4f12-8715-850e2fc833ae';
@@ -160,5 +163,34 @@ describe('propertyRepository local', () => {
     expect(JSON.parse(localStorage.getItem('urbe_properties') || '[]')).toEqual([propiedad]);
     expect(repo.mode).toBe('local');
     expect(repo.newId()).toMatch(/^prop-/);
+  });
+});
+
+describe('propertyRepository: columnas públicas para visitantes (H-047)', () => {
+  it('con sesión pide todas las columnas', async () => {
+    const fake = createFakeSupabase({ data: [], error: null });
+    await createRemotePropertyRepository(fake.client, 't').list();
+    expect(fake.argsOf(0, 'select')).toEqual(['*']);
+  });
+
+  it('sin sesión pide solo las columnas públicas, sin datos internos', async () => {
+    const fake = createFakeSupabase({ data: [], error: null }, { signedIn: false });
+    await createRemotePropertyRepository(fake.client, 't').list();
+    const pedidas = String(fake.argsOf(0, 'select')![0]).split(',');
+    expect(pedidas).toEqual(PUBLIC_PROPERTY_COLUMNS_ANON.split(','));
+    for (const interna of ['created_by', 'updated_by', 'approved_by', 'approved_at', 'rejection_reason', 'lat', 'lng']) {
+      expect(pedidas).not.toContain(interna);
+    }
+  });
+
+  it('la lista coincide con la que la base le permite leer a un visitante (migración)', () => {
+    const sql = readFileSync(path.resolve(__dirname, '../../../../../../supabase/migrations/20261104170000_propiedades_columnas_publicas.sql'), 'utf-8');
+    const permitidas = /grant select \(([^)]*)\)/.exec(sql)![1].split(',').map((c) => c.trim()).filter(Boolean).sort();
+    expect(permitidas).toEqual(PUBLIC_PROPERTY_COLUMNS_ANON.split(',').sort());
+  });
+
+  it('el sitio solo pide columnas que la base le permite leer', () => {
+    const permitidas = new Set(PUBLIC_PROPERTY_COLUMNS_ANON.split(','));
+    for (const c of SITIO_COLUMNAS.split(',')) expect(permitidas.has(c)).toBe(true);
   });
 });

@@ -1,10 +1,10 @@
 # Avance hacia el MVP
 
-Actualizado: 2026-11-04 (tras H-060). Se actualiza al cerrar cada historia.
+Actualizado: 2026-11-04 (tras el bloque de seguridad y producción). Se actualiza al cerrar cada historia.
 
-## Indicador: 73 %
+## Indicador: 78 %
 
-`███████░░░` 114.4 de 156 puntos. Faltan 41.6 puntos, unos 28 días de trabajo como estimación gruesa.
+`████████░░` 121.2 de 156 puntos. Faltan 34.8 puntos, unos 28 días de trabajo como estimación gruesa.
 
 | Bloque | Avance | Puntos |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ Actualizado: 2026-11-04 (tras H-060). Se actualiza al cerrar cada historia.
 | Catálogo, publicación y mercado Chile | `██████████` 100 % | 23.0 de 23 |
 | Sitio propio de cada corredora | `████████░░` 81 % | 27.4 de 34 |
 | Captación y CRM que pide el Blueprint | `████░░░░░░` 41 % | 13.0 de 32 |
-| Seguridad y salida a producción | `░░░░░░░░░░` 0 % | 0.0 de 14 |
+| Seguridad y salida a producción | `█████░░░░░` 49 % | 6.8 de 14 |
 
 Si se cuenta solo lo que hoy está anotado en el backlog, el avance sería 76 %. Ese número es engañoso: deja fuera las funciones de CRM del Blueprint que aún no tienen historia.
 
@@ -33,7 +33,7 @@ Si se cuenta solo lo que hoy está anotado en el backlog, el avance sería 76 %.
 
 **Captación y CRM que pide el Blueprint:** al 80 %: H-053, H-054 y H-060 (de H-054 faltan las claves de correo y Telegram). Pendientes: H-034, WhatsApp: la conversación entrante queda como lead (M+, sin historia aún), Consultas de portales por correo (M+, sin historia aún), Pipelines por tipo de cliente (M+, sin historia aún), Asignación de leads (M, sin historia aún).
 
-**Seguridad y salida a producción:** H-004, H-005, H-013, H-019, H-023, H-024, H-047, H-052, Producción: base propia, proyecto del sitio y variables (M, sin historia aún).
+**Seguridad y salida a producción:** al 80 % (hechas en código y aplicadas en desarrollo, falta unirlas a `main` y mirarlas en un preview): H-004, H-005, H-047, H-052 y la parte de leads de H-055; H-019 hecha; H-024 a medias (falta Lighthouse). Pendientes: H-013 (preparada, espera tu orden), H-062 (base de producción y variables: pasos tuyos, en `docs/guia-produccion.md`), H-023 (prueba de punta a punta: falta decidir la cuenta de prueba), H-063 (abuso directo de `create_site_lead`).
 
 ## Decisión pendiente
 

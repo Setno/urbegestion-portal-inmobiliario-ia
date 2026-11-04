@@ -100,18 +100,28 @@ export function createLocalPropertyRepository(): PropertyRepository {
   return createLocalRepository<Property>('urbe_properties', 'prop', newId);
 }
 
+// Las columnas que la base deja leer a un visitante (migración 20261104170000). Una prueba comprueba que coincidan.
+export const PUBLIC_PROPERTY_COLUMNS_ANON = [
+  'id', 'tenant_id', 'title', 'operation', 'property_type', 'commune', 'address', 'bedrooms', 'bathrooms',
+  'built_area_m2', 'total_area_m2', 'parking_spots', 'storage_units', 'featured', 'status', 'images', 'video_url',
+  'description', 'features', 'virtual_tour_url', 'expenses_monthly_clp', 'map_query', 'created_at', 'updated_at',
+  'publication_status', 'price_amount', 'price_currency',
+].join(',');
+
 export function createRemotePropertyRepository(client: SupabaseClient, tenantId: string): PropertyRepository {
   return {
     mode: 'remote',
     newId: newUuid,
     list: async () => {
+      // Un visitante sin sesión solo puede leer las columnas públicas (H-047); un miembro de la corredora lee todo.
+      const { data: sesion } = await client.auth.getSession();
       const { data, error } = await client
         .from('properties')
-        .select('*')
+        .select(sesion.session ? '*' : PUBLIC_PROPERTY_COLUMNS_ANON)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
       throwIfError(error);
-      return ((data ?? []) as Row[]).map(fromRow);
+      return ((data ?? []) as unknown as Row[]).map(fromRow);
     },
     create: async (item) => {
       const { error } = await client.from('properties').insert({ id: item.id, tenant_id: tenantId, ...toRow(item) });

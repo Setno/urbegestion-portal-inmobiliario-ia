@@ -63,11 +63,12 @@ export async function enviarSolicitudChat(
       privacy_notice: buildPrivacyNotice(ahora),
       ...conAtribucion(atribucion),
     };
-    const response = await fetch(`${env.url}/rest/v1/leads`, {
+    const response = await fetch(`${env.url}/rest/v1/rpc/create_site_lead`, {
       method: 'POST',
-      headers: { apikey: env.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      headers: { apikey: env.key, 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(ESPERA_MS),
-      body: JSON.stringify(fila),
+      // El lead se crea con una función de la base que valida la corredora, los campos y los topes de envío (H-052).
+      body: JSON.stringify({ p_tenant: env.tenantId, p_lead: fila }),
     });
     if (!response.ok) {
       console.warn(`[sitio] La base rechazó un contacto del asistente (${response.status})`);

@@ -33,20 +33,29 @@ set local role anon;
 do $$
 declare n int;
 begin
-  select count(*) into n from public.properties;
+  -- Solo las de las corredoras de prueba: la base de desarrollo puede traer propiedades de ejemplo.
+  select count(*) into n from public.properties where tenant_id in ('a1a1a1a1-0000-0000-0000-0000000000a1', 'b2b2b2b2-0000-0000-0000-0000000000b2');
   if n <> 2 then raise exception 'FALLO: el visitante ve % propiedades (debería ver las 2 del catálogo público)', n; end if;
 
   select count(*) into n from public.leads;
   if n <> 0 then raise exception 'FALLO: el visitante lee % leads (debería ver 0)', n; end if;
 
-  insert into public.leads (tenant_id, full_name, operation_interest, source)
-  values ('a1a1a1a1-0000-0000-0000-0000000000a1', 'Visita web', 'compra', 'ficha_propiedad');
+  -- Desde H-052 el visitante crea leads con la función de la base, no insertando directo.
+  perform public.create_site_lead('a1a1a1a1-0000-0000-0000-0000000000a1',
+    '{"phone":"+56 9 7000 0000","full_name":"Visita web","operation_interest":"compra","source":"ficha_propiedad"}'::jsonb);
 
   begin
-    insert into public.leads (tenant_id, full_name, operation_interest, source, status)
-    values ('a1a1a1a1-0000-0000-0000-0000000000a1', 'Intruso', 'compra', 'ficha_propiedad', 'cerrado');
-    raise exception 'FALLO: el visitante pudo crear un lead con estado distinto de nuevo';
+    insert into public.leads (tenant_id, full_name, operation_interest, source)
+    values ('a1a1a1a1-0000-0000-0000-0000000000a1', 'Intruso', 'compra', 'ficha_propiedad');
+    raise exception 'FALLO: el visitante pudo insertar directo en leads';
   exception when insufficient_privilege then null;
+  end;
+
+  begin
+    perform public.create_site_lead('a1a1a1a1-0000-0000-0000-0000000000a1',
+      '{"phone":"+56 9 7000 0000","full_name":"Intruso","operation_interest":"compra","source":"ficha_propiedad","status":"cerrado"}'::jsonb);
+    raise exception 'FALLO: el visitante pudo crear un lead con estado distinto de nuevo';
+  exception when sqlstate 'P0001' then null;
   end;
 
   begin

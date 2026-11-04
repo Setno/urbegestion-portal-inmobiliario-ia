@@ -206,6 +206,7 @@ export const LeadsTab: React.FC = () => {
           {/* Property Filter Dropdown */}
           <div className="w-full md:w-64">
             <select
+              aria-label="Filtrar por propiedad"
               value={leadPropertyFilter}
               onChange={(e) => setLeadPropertyFilter(e.target.value)}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
@@ -355,6 +356,7 @@ export const LeadsTab: React.FC = () => {
 
                           <td className="px-4 py-3">
                             <select
+                              aria-label={`Etapa de ${lead.fullName}`}
                               value={lead.status}
                               onChange={(e) => updateLeadStatus(lead.id, e.target.value as LeadStatus)}
                               className="text-xs bg-slate-50 border border-slate-200 rounded-xl p-1.5 font-bold text-slate-800 cursor-pointer"
@@ -463,6 +465,7 @@ export const LeadsTab: React.FC = () => {
 
                           <div className="pt-2 flex items-center gap-1">
                             <select
+                              aria-label={`Etapa de ${lead.fullName}`}
                               value={lead.status}
                               onChange={(e) => updateLeadStatus(lead.id, e.target.value as LeadStatus)}
                               onClick={(e) => e.stopPropagation()}
@@ -502,7 +505,7 @@ export const LeadsTab: React.FC = () => {
                 <p className="text-[11px] text-slate-500">Registrado el {selectedLead.createdAt}</p>
                 <p className="text-[11px] text-slate-500">Llegó por: {attributionLabel(selectedLead.attribution)}</p>
               </div>
-              <button onClick={() => setSelectedLead(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSelectedLead(null)} aria-label="Cerrar la ficha" className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>

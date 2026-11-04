@@ -3,7 +3,11 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { accessMode, entitlementsFromRow, limitOf, type EntitlementsRow } from '../../../packages/plataforma/src/contract.js';
 
+import { createRateLimiter, clientKey, tooManyRequests } from './_limiteTasa.js';
 declare const process: { env: Record<string, string | undefined> };
+
+// Límite por dirección IP (H-005): 20 llamadas cada 10 minutos.
+const limiter = createRateLimiter({ max: 20, windowMs: 600000 });
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -53,6 +57,8 @@ async function checkAgentRoom(client: SupabaseClient, tenantId: string): Promise
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const wait = limiter.check(clientKey(request));
+  if (wait > 0) return tooManyRequests(wait);
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) return json({ error: 'invite_not_configured' }, 503);

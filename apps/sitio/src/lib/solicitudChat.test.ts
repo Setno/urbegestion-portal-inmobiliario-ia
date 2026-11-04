@@ -18,8 +18,8 @@ const datos = (extra: Partial<DatosChat> = {}): DatosChat => ({
 function baseFalsa({ insertOk = true } = {}) {
   const insertados: Record<string, unknown>[] = [];
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
-    if (url.includes('/rest/v1/leads')) {
-      insertados.push(JSON.parse(String(init?.body)));
+    if (url.includes('/rpc/create_site_lead')) {
+      insertados.push(JSON.parse(String(init?.body)).p_lead);
       return { ok: insertOk, status: insertOk ? 201 : 403 };
     }
     return { ok: true, json: async () => null };

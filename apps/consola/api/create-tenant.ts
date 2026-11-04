@@ -2,7 +2,11 @@
 // su correo debe estar en PLATFORM_OWNER_EMAILS (lista separada por comas, solo en el servidor).
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+import { createRateLimiter, clientKey, tooManyRequests } from './_limiteTasa.js';
 declare const process: { env: Record<string, string | undefined> };
+
+// Límite por dirección IP (H-005): 10 llamadas cada 10 minutos.
+const limiter = createRateLimiter({ max: 10, windowMs: 600000 });
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -48,6 +52,8 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const wait = limiter.check(clientKey(request));
+  if (wait > 0) return tooManyRequests(wait);
   const auth = await authenticate(request);
   if (auth instanceof Response) return auth;
   if (!isOwner(auth.email)) return json({ error: 'not_owner' }, 403);

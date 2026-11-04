@@ -30,8 +30,8 @@ const fila = {
 function baseFalsa({ filas = [fila] as unknown[], insertOk = true } = {}) {
   const insertados: Record<string, unknown>[] = [];
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
-    if (url.includes('/rest/v1/leads')) {
-      insertados.push(JSON.parse(String(init?.body)));
+    if (url.includes('/rpc/create_site_lead')) {
+      insertados.push(JSON.parse(String(init?.body)).p_lead);
       return { ok: insertOk, status: insertOk ? 201 : 403 };
     }
     return { ok: true, json: async () => (url.includes('/rpc/') ? { market: 'cl', service_areas: [] } : filas) };
@@ -133,7 +133,7 @@ describe('enviarSolicitudVisita', () => {
   it('comprueba la propiedad con datos frescos, sin la caché de la página', async () => {
     const { fetchMock } = baseFalsa();
     await enviarSolicitudVisita(ID, datos(), env, AHORA);
-    const lecturas = fetchMock.mock.calls.filter(([url]) => !url.includes('/rest/v1/leads'));
+    const lecturas = fetchMock.mock.calls.filter(([url]) => !url.includes('/rpc/create_site_lead'));
     expect(lecturas.length).toBeGreaterThan(0);
     for (const [, init] of lecturas) {
       expect(init?.cache).toBe('no-store');
@@ -247,5 +247,26 @@ describe('enviarSolicitudVisita: atribución (H-058)', () => {
     expect(insertados[0]).not.toHaveProperty('attribution');
     await enviarSolicitudVisita(ID, datos(), env, AHORA, undefined, { fuente: '<b>x</b>', admin: 'si' } as never);
     expect(insertados[1].attribution).toEqual({ fuente: 'bx/b' });
+  });
+});
+
+describe('enviarSolicitudVisita: creación por función (H-052)', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('llama a la función de la base con la corredora de la dirección, no a la tabla', async () => {
+    const { fetchMock } = baseFalsa();
+    await enviarSolicitudVisita(ID, datos(), env, AHORA);
+    const llamada = fetchMock.mock.calls.find(([url]) => String(url).includes('/rpc/create_site_lead'))!;
+    expect(String(llamada[0])).toBe('https://proyecto.supabase.co/rest/v1/rpc/create_site_lead');
+    expect(JSON.parse(String((llamada[1] as RequestInit).body)).p_tenant).toBe('tenant-1');
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/rest/v1/leads'))).toBe(false);
+  });
+
+  it('si la base rechaza el envío por el tope, la persona ve un error y no se avisa al webhook', async () => {
+    baseFalsa({ insertOk: false });
+    const webhook = vi.fn();
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes('/rpc/create_site_lead') ? { ok: false, status: 400 } : { ok: true, json: async () => [fila] })));
+    expect(await enviarSolicitudVisita(ID, datos(), env, AHORA, 'https://hook.test/x')).toEqual({ ok: false, error: 'conexion' });
+    expect(webhook).not.toHaveBeenCalled();
   });
 });

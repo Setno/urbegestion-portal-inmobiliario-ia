@@ -1,5 +1,9 @@
 // Función serverless (Vercel). La clave del LLM vive solo en variables de entorno del servidor.
+import { createRateLimiter, clientKey, tooManyRequests } from './_limiteTasa.js';
 declare const process: { env: Record<string, string | undefined> };
+
+// Límite por dirección IP (H-005): 15 llamadas cada 10 minutos.
+const limiter = createRateLimiter({ max: 15, windowMs: 600000 });
 
 const ENDPOINTS: Record<string, { url: string; model: string }> = {
   openai: { url: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini' },
@@ -16,10 +20,15 @@ const json = (body: unknown, status = 200) =>
 const clean = (v: unknown, max: number) => String(v ?? '').replace(/[\r\n]+/g, ' ').trim().slice(0, max);
 
 export async function POST(request: Request): Promise<Response> {
+  const wait = limiter.check(clientKey(request));
+  if (wait > 0) return tooManyRequests(wait);
   const apiKey = process.env.LLM_API_KEY;
   const provider = process.env.AI_PROVIDER || 'openai';
   const target = ENDPOINTS[provider];
   if (!apiKey || !target) return json({ error: 'llm_not_configured' }, 503);
+
+  // Una consulta normal pesa pocos kilobytes: algo mayor se rechaza antes de leerlo.
+  if (Number(request.headers.get('content-length') ?? 0) > 30_000) return json({ error: 'payload_too_large' }, 413);
 
   let payload: Record<string, unknown> | null;
   try {

@@ -18,3 +18,21 @@ describe('construcción del sitio en Vercel', () => {
     expect(config).toMatch(/tsconfigPath:\s*'tsconfig\.build\.json'/);
   });
 });
+
+describe('cabeceras de seguridad del sitio (H-004)', () => {
+  it('next.config.ts las agrega a todas las páginas', async () => {
+    const { default: config } = await import('../next.config');
+    const grupos = await config.headers!();
+    const todas = grupos.find((g) => g.source === '/:path*')!.headers;
+    const valor = (k: string) => todas.find((h) => h.key === k)?.value ?? '';
+    expect(valor('Strict-Transport-Security')).toBe('max-age=63072000');
+    expect(valor('X-Content-Type-Options')).toBe('nosniff');
+    expect(valor('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
+    expect(valor('Permissions-Policy')).toMatch(/camera=\(\)/);
+    const csp = valor('Content-Security-Policy');
+    expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("frame-ancestors 'self'");
+    expect(csp).toContain('https://fonts.googleapis.com');
+    expect(csp).toContain('https://*.supabase.co');
+  });
+});

@@ -12,7 +12,8 @@ export interface FakeResult {
   error: { message: string } | null;
 }
 
-export function createFakeSupabase(result: FakeResult = { data: null, error: null }) {
+// `signedIn: false` simula a un visitante sin sesión (el cliente responde sin sesión en getSession).
+export function createFakeSupabase(result: FakeResult = { data: null, error: null }, options: { signedIn?: boolean } = {}) {
   const calls: FakeCall[] = [];
   const state = { result };
 
@@ -37,8 +38,15 @@ export function createFakeSupabase(result: FakeResult = { data: null, error: nul
     return builder;
   };
 
+  // Las llamadas a funciones de la base (rpc) quedan registradas como una tabla "rpc:nombre".
+  const rpc = (name: string, args: unknown) => {
+    calls.push({ table: `rpc:${name}`, ops: [['rpc', [args]]] });
+    return Promise.resolve(state.result);
+  };
+  const auth = { getSession: async () => ({ data: { session: options.signedIn === false ? null : { user: { id: 'u1' } } } }) };
+
   return {
-    client: { from } as unknown as SupabaseClient,
+    client: { from, rpc, auth } as unknown as SupabaseClient,
     calls,
     setResult: (next: FakeResult) => {
       state.result = next;

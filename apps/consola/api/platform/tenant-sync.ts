@@ -3,7 +3,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { MAX_BODY_BYTES, parseSyncMessage, verifySignature } from '../../../../packages/plataforma/src/syncProtocol.js';
 
+import { createRateLimiter, clientKey, tooManyRequests } from '../_limiteTasa.js';
 declare const process: { env: Record<string, string | undefined> };
+
+// Límite por dirección IP (H-005): 60 llamadas cada minuto.
+const limiter = createRateLimiter({ max: 60, windowMs: 60000 });
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -15,6 +19,8 @@ function fail(code: string, status: number, cause?: unknown): Response {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const wait = limiter.check(clientKey(request));
+  if (wait > 0) return tooManyRequests(wait);
   const secret = process.env.PLATFORM_SYNC_SECRET;
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
