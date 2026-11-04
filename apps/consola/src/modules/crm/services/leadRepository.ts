@@ -61,6 +61,7 @@ export function fromRow(r: Row): Lead {
     source: r.source as Lead['source'],
     createdAt: String(r.created_at ?? '').slice(0, 10),
   };
+  if (r.created_at) lead.createdAtIso = String(r.created_at);
   const set = <K extends keyof Lead>(key: K, value: Lead[K] | undefined) => {
     if (value !== undefined) lead[key] = value as Lead[K];
   };

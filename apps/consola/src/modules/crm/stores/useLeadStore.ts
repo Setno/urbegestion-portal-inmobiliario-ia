@@ -131,6 +131,7 @@ export const useLeadStore = create<LeadStore>((set, get) => {
         ...leadData,
         id: leadId,
         createdAt: new Date().toISOString().split('T')[0],
+        createdAtIso: new Date().toISOString(),
       };
 
       const updated = [newLead, ...get().leads];

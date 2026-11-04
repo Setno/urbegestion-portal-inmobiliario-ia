@@ -30,3 +30,17 @@ describe('leadEventRepository remoto (H-057)', () => {
     await expect(createRemoteLeadEventRepository(fake.client, 't').listForLead('l1')).rejects.toThrow('sin permiso');
   });
 });
+
+describe('leadEventRepository remoto: todos los eventos (H-060)', () => {
+  it('lee los eventos de la corredora entera para los reportes', async () => {
+    const fake = createFakeSupabase({
+      data: [{ id: 'e1', lead_id: 'l1', kind: 'llamada', text: 'Hola', occurred_at: '2026-11-04T10:00:00Z', author_email: 'a@b.cl' }],
+      error: null,
+    });
+    const lista = await createRemoteLeadEventRepository(fake.client, 'tenant-1').listAll!();
+    expect(fake.argsOf(0, 'eq')).toEqual(['tenant_id', 'tenant-1']);
+    expect(fake.argsOf(0, 'limit')).toEqual([5000]);
+    expect(fake.argsOf(0, 'in')).toEqual(['kind', ['llamada', 'whatsapp', 'correo', 'visita']]);
+    expect(lista).toHaveLength(1);
+  });
+});

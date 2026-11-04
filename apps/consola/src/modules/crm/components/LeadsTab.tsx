@@ -26,6 +26,7 @@ import { sourceLabel, attributionLabel } from '../services/leadSource';
 import { ActionBadge, NextActionEditor, TodayPanel } from './NextAction';
 import { Timeline } from './Timeline';
 import { Agenda } from './Agenda';
+import { Reports } from './Reports';
 
 export const LeadsTab: React.FC = () => {
   const { leads, updateLeadStatus, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
@@ -40,7 +41,7 @@ export const LeadsTab: React.FC = () => {
   const [mobileActiveStage, setMobileActiveStage] = useState<LeadStatus>('nuevo');
 
   // CRM High-Volume Workflow & Filter State
-  const [crmViewMode, setCrmViewMode] = useState<'kanban' | 'table' | 'agenda'>('kanban');
+  const [crmViewMode, setCrmViewMode] = useState<'kanban' | 'table' | 'agenda' | 'reports'>('kanban');
   const [leadSearchQuery, setLeadSearchQuery] = useState('');
   const [leadPropertyFilter, setLeadPropertyFilter] = useState('all');
   const [leadPriorityFilter, setLeadPriorityFilter] = useState<'all' | 'today' | 'appointment' | 'attachments'>('all');
@@ -154,6 +155,15 @@ export const LeadsTab: React.FC = () => {
               >
                 <span>Agenda</span>
               </button>
+              <button
+                type="button"
+                onClick={() => setCrmViewMode('reports')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                  crmViewMode === 'reports' ? 'bg-white text-urbe-primary shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <span>Reportes</span>
+              </button>
             </div>
 
             {/* CSV Export Button */}
@@ -263,6 +273,8 @@ export const LeadsTab: React.FC = () => {
 
         {/* Vista tabla de alta densidad (para 100 o más leads) */}
         {crmViewMode === 'agenda' && <Agenda leads={leads} onOpen={setSelectedLead} />}
+
+        {crmViewMode === 'reports' && <Reports leads={leads} />}
 
         {crmViewMode === 'table' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col flex-1">

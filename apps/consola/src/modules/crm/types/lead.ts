@@ -65,6 +65,7 @@ export interface Lead {
   attribution?: LeadAttribution; // sin valor = llegó directo
   convertedPropertyId?: string; // propiedad en borrador creada a partir de este lead de propietario
   createdAt: string;
+  createdAtIso?: string; // fecha y hora exactas del registro (sirve para medir tiempos de respuesta)
 }
 
 export interface ChatMessage {

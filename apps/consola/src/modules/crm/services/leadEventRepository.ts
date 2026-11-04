@@ -5,11 +5,16 @@ import { remoteContext } from '../../../core/data/dataSource';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { newId, newUuid } from '../../../core/utils/newId';
 
+// Tope de eventos que se piden para los reportes. Si llega a este número, el reporte avisa que puede estar incompleto.
+export const LIMITE_REPORTES = 5000;
+
 export interface LeadEventRepository {
   mode: 'local' | 'remote';
   newId: () => string;
   // Eventos de un lead, o null si no hace falta pedirlos (el almacenamiento local ya los tiene todos).
   listForLead: (leadId: string) => Promise<LeadEvent[] | null>;
+  // Todos los eventos de la corredora (para los reportes); null en el modo local, que ya los tiene todos.
+  listAll?: () => Promise<LeadEvent[] | null>;
   // `snapshot` es la lista completa para el modo local; el remoto la ignora.
   create: (event: LeadEvent, snapshot?: LeadEvent[]) => Promise<void>;
 }
@@ -32,6 +37,7 @@ export function createLocalLeadEventRepository(): LeadEventRepository {
     mode: 'local',
     newId: () => newId('evt'),
     listForLead: async () => null,
+    listAll: async () => null,
     create: async (_event, snapshot) => {
       if (snapshot) eventStorage.save(snapshot);
     },
@@ -50,6 +56,17 @@ export function createRemoteLeadEventRepository(client: SupabaseClient, tenantId
         .eq('lead_id', leadId)
         .order('occurred_at', { ascending: false })
         .limit(200);
+      throwIfError(error);
+      return ((data ?? []) as Row[]).map(fromRow);
+    },
+    listAll: async () => {
+      const { data, error } = await client
+        .from('lead_events')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .in('kind', ['llamada', 'whatsapp', 'correo', 'visita']) // los reportes solo miden contactos reales
+        .order('occurred_at', { ascending: false })
+        .limit(LIMITE_REPORTES);
       throwIfError(error);
       return ((data ?? []) as Row[]).map(fromRow);
     },

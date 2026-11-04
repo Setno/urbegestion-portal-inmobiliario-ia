@@ -108,3 +108,48 @@ describe('useTimelineStore: fallos y carreras (H-057)', () => {
     expect(localStorage.getItem('urbe_lead_events')).not.toContain('algo');
   });
 });
+
+describe('useTimelineStore: loadAll (H-060)', () => {
+  beforeEach(() => useTimelineStore.setState({ events: {}, saveError: null }));
+  afterEach(() => setLeadEventRepository(null));
+
+  it('con la base trae los eventos de todos los leads, agrupados', async () => {
+    const e = (id: string, leadId: string): LeadEvent => ({ id, leadId, kind: 'llamada', text: 't', occurredAt: '2026-11-01T10:00:00Z', author: 'a' });
+    setLeadEventRepository({ mode: 'remote', newId: () => 'n', listForLead: async () => [], listAll: async () => [e('1', 'a'), e('2', 'b'), e('3', 'a')], create: async () => {} });
+    await useTimelineStore.getState().loadAll();
+    expect(useTimelineStore.getState().events['a']).toHaveLength(2);
+    expect(useTimelineStore.getState().events['b']).toHaveLength(1);
+  });
+
+  it('en el modo local no hace nada', async () => {
+    useTimelineStore.setState({ events: { a: [] } });
+    await useTimelineStore.getState().loadAll();
+    expect(useTimelineStore.getState().events).toEqual({ a: [] });
+  });
+});
+
+describe('useTimelineStore: estado de la carga completa (H-060)', () => {
+  beforeEach(() => useTimelineStore.setState({ events: {}, allStatus: 'idle' }));
+  afterEach(() => setLeadEventRepository(null));
+  const repoCon = (listAll: () => Promise<LeadEvent[] | null>) =>
+    setLeadEventRepository({ mode: 'remote', newId: () => 'n', listForLead: async () => [], listAll, create: async () => {} });
+
+  it('si la base falla, queda en "error"', async () => {
+    repoCon(async () => { throw new Error('sin red'); });
+    await useTimelineStore.getState().loadAll();
+    expect(useTimelineStore.getState().allStatus).toBe('error');
+  });
+
+  it('si llega al tope de eventos, queda en "truncated"', async () => {
+    const e = (i: number): LeadEvent => ({ id: `e${i}`, leadId: 'a', kind: 'llamada', text: 't', occurredAt: '2026-11-01T10:00:00Z', author: 'a' });
+    repoCon(async () => Array.from({ length: 5000 }, (_, i) => e(i)));
+    await useTimelineStore.getState().loadAll();
+    expect(useTimelineStore.getState().allStatus).toBe('truncated');
+  });
+
+  it('con pocos eventos queda en "ok"', async () => {
+    repoCon(async () => []);
+    await useTimelineStore.getState().loadAll();
+    expect(useTimelineStore.getState().allStatus).toBe('ok');
+  });
+});

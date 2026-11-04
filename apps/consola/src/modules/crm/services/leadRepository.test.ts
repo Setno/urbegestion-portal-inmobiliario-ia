@@ -257,3 +257,15 @@ describe('leadRepository remoto: hora de visita vacía (H-059)', () => {
     expect(patch.appointment_time).toBeNull();
   });
 });
+
+describe('leadRepository remoto: hora exacta de registro (H-060)', () => {
+  it('devuelve la fecha y hora completas además del día', async () => {
+    const fake = createFakeSupabase({
+      data: [{ id: 'l1', full_name: 'Ana', email: '', phone: '', operation_interest: 'compra', status: 'nuevo', notes: [], source: 'ficha_propiedad', created_at: '2026-11-01T10:20:30Z' }],
+      error: null,
+    });
+    const l = (await createRemoteLeadRepository(fake.client, 't').list())![0];
+    expect(l.createdAt).toBe('2026-11-01');
+    expect(l.createdAtIso).toBe('2026-11-01T10:20:30Z');
+  });
+});
