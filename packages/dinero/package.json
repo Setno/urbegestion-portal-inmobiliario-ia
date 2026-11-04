@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/money.ts"
+    ".": "./src/money.ts",
+    "./tasas": "./src/rates.ts"
   },
   "dependencies": {
     "@portal/mercados": "*"

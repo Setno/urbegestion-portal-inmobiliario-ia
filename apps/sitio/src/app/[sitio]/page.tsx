@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getCatalogo } from '../../lib/getCatalogo';
 import { getFunciones } from '../../lib/getFunciones';
 import { getSite } from '../../lib/getSite';
+import { getTasas } from '../../lib/getTasas';
 import { resolverVisita } from '../../lib/direccion';
 import { datosDeLaCorredora, metadatosPortada } from '../../lib/seo';
 import { resolvePlantilla } from '../../plantillas';
@@ -45,12 +46,14 @@ export default async function Page({ params }: Props) {
       return { chat: false, valorizador: false };
     }),
   ]);
+  const tasas = await getTasas(catalogo.marketId);
   const Plantilla = resolvePlantilla(site.templateId);
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: datosDeLaCorredora(site, direccion.canonico) }} />
       <Plantilla site={site} catalogo={catalogo} enviarTasacion={funciones.valorizador ? solicitarTasacion : undefined}
         enviarContacto={funciones.chat ? solicitarContactoChat : undefined}
+        tasas={tasas}
       />
     </>
   );

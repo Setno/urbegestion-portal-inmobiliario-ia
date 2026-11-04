@@ -42,6 +42,57 @@ describe('catálogo del sitio', () => {
     expect(screen.getAllByText('Reservada')).toHaveLength(1);
   });
 
+  describe('precio (H-051)', () => {
+    const contacto = { whatsapp: '', whatsappMessage: '' };
+    const tasas = { rates: { UF: 40000 }, readings: [{ currency: 'UF', value: 40000, date: '2026-11-04', source: 'Banco Central de Chile, vía mindicador.cl' }] };
+    const precios = [
+      propiedad('barata', { priceAmount: 2000, priceCurrency: 'UF' }),
+      propiedad('cara', { priceAmount: 12000, priceCurrency: 'UF' }),
+      propiedad('pesos', { priceAmount: 200_000_000, priceCurrency: 'CLP' }),
+    ];
+
+    it('filtra por precio máximo en UF, con montos escritos a la chilena', () => {
+      render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
+      fireEvent.change(screen.getByLabelText('Precio máximo'), { target: { value: '6.000' } });
+      expect(screen.getByText('Propiedad barata')).toBeTruthy();
+      expect(screen.getByText('Propiedad pesos')).toBeTruthy(); // 5.000 UF
+      expect(screen.queryByText('Propiedad cara')).toBeNull();
+    });
+
+    it('al cambiar a pesos filtra y muestra los precios en pesos, con el valor publicado al lado', () => {
+      render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
+      fireEvent.change(screen.getByLabelText('Moneda'), { target: { value: 'CLP' } });
+      fireEvent.change(screen.getByLabelText('Precio mínimo'), { target: { value: '100.000.000' } });
+      expect(screen.queryByText('Propiedad barata')).toBeNull(); // 80.000.000 CLP
+      expect(screen.getByText(/≈ \$480\.000\.000 CLP/)).toBeTruthy();
+      expect(screen.getByText(/12\.000 UF/)).toBeTruthy();
+    });
+
+    it('dice de dónde sale la UF y de qué día es', () => {
+      render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
+      const nota = screen.getByText(/UF de hoy/);
+      expect(nota.textContent).toContain('$40.000');
+      expect(nota.textContent).toContain('Banco Central de Chile');
+      expect(nota.textContent).toContain('04-11-2026');
+    });
+
+    it('sin la tasa de la UF y con precios en dos monedas no ofrece un filtro que mentiría', () => {
+      render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} />);
+      expect(screen.queryByLabelText('Precio máximo')).toBeNull();
+      expect(screen.queryByLabelText('Moneda')).toBeNull();
+      expect(screen.queryByText(/UF de hoy/)).toBeNull();
+    });
+
+    it('limpiar filtros también borra el precio', () => {
+      render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
+      fireEvent.change(screen.getByLabelText('Precio máximo'), { target: { value: '3000' } });
+      expect(screen.queryByText('Propiedad cara')).toBeNull();
+      fireEvent.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+      expect(screen.getByText('Propiedad cara')).toBeTruthy();
+      expect((screen.getByLabelText('Precio máximo') as HTMLInputElement).value).toBe('');
+    });
+  });
+
   it('muestra primero las destacadas', () => {
     render(<Catalogo propiedades={lista} marketId="cl" conBuscador contacto={{ whatsapp: '', whatsappMessage: '' }} />);
     const titulos = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);

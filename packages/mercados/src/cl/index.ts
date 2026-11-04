@@ -1,6 +1,7 @@
 import type { MarketPack } from '../types';
 import { CHILE_AREAS } from './locations';
 import { CHILE_MESSAGES } from './messages';
+import { CHILE_RATE_FEEDS } from './rates';
 
 export const CHILE: MarketPack = {
   id: 'cl',
@@ -27,4 +28,5 @@ export const CHILE: MarketPack = {
     chicureo: ['chicureo', 'colina', 'chamisero'],
   },
   sectorKeywords: ['melipilla', 'chicureo', 'pirque', 'barnechea'],
+  rateFeeds: CHILE_RATE_FEEDS,
 };

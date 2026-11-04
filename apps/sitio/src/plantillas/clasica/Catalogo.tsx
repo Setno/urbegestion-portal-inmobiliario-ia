@@ -2,7 +2,11 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { Building, RotateCcw, Search } from 'lucide-react';
+import { formatMoney } from '@portal/dinero';
+import type { LiveRates } from '@portal/dinero/tasas';
+import { getMarketPack } from '@portal/mercados';
 import { filtrarPropiedades, ordenarDestacadas, SIN_FILTROS, type FiltrosCatalogo, type PublicProperty } from '@portal/sitio-datos/propiedades';
+import { filtrarPorPrecio, monedasPosibles, montoDesdeTexto } from '../../lib/precios';
 import { etiquetaTipo, TarjetaPropiedad, type ContactoTarjeta } from './TarjetaPropiedad';
 
 interface CatalogoProps {
@@ -10,25 +14,42 @@ interface CatalogoProps {
   marketId: string;
   conBuscador: boolean;
   contacto: ContactoTarjeta;
+  // Tasas del día del mercado (en Chile, la UF); sin ellas solo se ofrecen las monedas que se pueden comparar sin convertir.
+  tasas?: LiveRates;
 }
+
+const SIN_TASAS: LiveRates = { rates: {}, readings: [] };
+const diaMes = (fecha: string): string => fecha.split('-').reverse().join('-');
 
 const campo = 'w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-base sm:text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-urbe-primary';
 const titulo = 'block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1';
 
 // Filtra en el navegador sobre la lista que ya llegó pintada desde el servidor.
-export function Catalogo({ propiedades, marketId, conBuscador, contacto }: CatalogoProps) {
+export function Catalogo({ propiedades, marketId, conBuscador, contacto, tasas = SIN_TASAS }: CatalogoProps) {
   const [filtros, setFiltros] = useState<FiltrosCatalogo>(SIN_FILTROS);
+  const [monedaElegida, setMonedaElegida] = useState('');
+  const [precioMin, setPrecioMin] = useState('');
+  const [precioMax, setPrecioMax] = useState('');
+  const pack = getMarketPack(marketId);
+  const posibles = useMemo(() => monedasPosibles(propiedades, pack, tasas.rates), [propiedades, pack, tasas.rates]);
+  const moneda = posibles.includes(monedaElegida) ? monedaElegida : posibles.includes(pack.defaultCurrency) ? pack.defaultCurrency : (posibles[0] ?? '');
   const buscar = useRef<HTMLInputElement>(null);
-  const hayFiltros = JSON.stringify(filtros) !== JSON.stringify(SIN_FILTROS);
+  const hayFiltros = JSON.stringify(filtros) !== JSON.stringify(SIN_FILTROS) || precioMin.trim() !== '' || precioMax.trim() !== '';
   const limpiar = () => {
     setFiltros(SIN_FILTROS);
+    setPrecioMin('');
+    setPrecioMax('');
     // El botón desaparece al limpiar: el foco del teclado vuelve al buscador.
     buscar.current?.focus();
   };
   const cambiar = (cambio: Partial<FiltrosCatalogo>) => setFiltros((actual) => ({ ...actual, ...cambio }));
 
   const ordenadas = useMemo(() => ordenarDestacadas(propiedades), [propiedades]);
-  const visibles = useMemo(() => filtrarPropiedades(ordenadas, filtros), [ordenadas, filtros]);
+  const visibles = useMemo(() => {
+    const filtradas = filtrarPropiedades(ordenadas, filtros);
+    if (!moneda) return filtradas;
+    return filtrarPorPrecio(filtradas, { moneda, min: montoDesdeTexto(precioMin), max: montoDesdeTexto(precioMax) }, pack, tasas.rates);
+  }, [ordenadas, filtros, moneda, precioMin, precioMax, pack, tasas.rates]);
   // Solo se ofrece lo que existe: elegir una opción nunca deja el catálogo vacío por sí sola.
   const comunas = useMemo(() => [...new Set(propiedades.map((p) => p.commune))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'es')), [propiedades]);
   const tipos = useMemo(() => [...new Set(propiedades.map((p) => p.propertyType))].filter(Boolean), [propiedades]);
@@ -101,13 +122,42 @@ export function Catalogo({ propiedades, marketId, conBuscador, contacto }: Catal
               ))}
             </select>
           </div>
+          {moneda && (
+            <div className="col-span-2 lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {posibles.length > 1 && (
+                <div>
+                  <label htmlFor="filtro-moneda" className={titulo}>Moneda</label>
+                  <select id="filtro-moneda" value={moneda} onChange={(e) => setMonedaElegida(e.target.value)} className={campo}>
+                    {posibles.map((code) => (
+                      <option key={code} value={code}>{code}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div>
+                <label htmlFor="filtro-precio-min" className={titulo}>Precio mínimo</label>
+                <input id="filtro-precio-min" type="text" inputMode="decimal" autoComplete="off" value={precioMin} onChange={(e) => setPrecioMin(e.target.value)} className={campo} />
+              </div>
+              <div>
+                <label htmlFor="filtro-precio-max" className={titulo}>Precio máximo</label>
+                <input id="filtro-precio-max" type="text" inputMode="decimal" autoComplete="off" value={precioMax} onChange={(e) => setPrecioMax(e.target.value)} className={campo} />
+              </div>
+              {tasas.readings.length > 0 && (
+                <p className="col-span-2 sm:col-span-3 text-[11px] text-slate-500">
+                  {tasas.readings
+                    .map((r) => `${r.currency} de hoy: ${formatMoney({ amount: r.value, currency: pack.baseCurrency }, pack)} · ${r.source} (${diaMes(r.date)})`)
+                    .join(' — ')}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {visibles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {visibles.map((propiedad) => (
-            <TarjetaPropiedad key={propiedad.id} propiedad={propiedad} marketId={marketId} contacto={contacto} />
+            <TarjetaPropiedad key={propiedad.id} propiedad={propiedad} marketId={marketId} contacto={contacto} moneda={moneda || undefined} tasas={tasas.rates} />
           ))}
         </div>
       ) : (
