@@ -6,7 +6,7 @@ import { resolverVisita } from '../../lib/direccion';
 import { datosDeLaCorredora, metadatosPortada } from '../../lib/seo';
 import { resolvePlantilla } from '../../plantillas';
 import { SitioNoDisponible } from '../SitioNoDisponible';
-import { solicitarTasacion } from './acciones';
+import { solicitarContactoChat, solicitarTasacion } from './acciones';
 
 // `sitio` es la dirección con que llegó la visita: la pone proxy.ts, nunca el visitante (H-030).
 interface Props {
@@ -42,7 +42,9 @@ export default async function Page({ params }: Props) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: datosDeLaCorredora(site, direccion.canonico) }} />
-      <Plantilla site={site} catalogo={catalogo} enviarTasacion={funciones.valorizador ? solicitarTasacion : undefined} />
+      <Plantilla site={site} catalogo={catalogo} enviarTasacion={funciones.valorizador ? solicitarTasacion : undefined}
+        enviarContacto={funciones.chat ? solicitarContactoChat : undefined}
+      />
     </>
   );
 }

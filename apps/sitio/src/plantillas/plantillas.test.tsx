@@ -191,6 +191,12 @@ describe('plantilla clásica', () => {
     expect(banda).not.toMatch(/24 horas|24 hrs|en minutos/i);
   });
 
+  it('el asistente de chat solo aparece si la corredora lo tiene en su plan (llega la función de contacto)', () => {
+    expect(pintar()).not.toContain('Abrir asistente');
+    const con = renderToStaticMarkup(<Clasica site={site()} catalogo={{ propiedades: [], marketId: 'cl' }} enviarContacto={async () => ({ ok: true })} />);
+    expect(con).toContain('Abrir asistente');
+  });
+
   it('sin propiedades avisa en vez de dejar un hueco', () => {
     expect(pintar()).toContain('Aún no hay propiedades publicadas');
   });

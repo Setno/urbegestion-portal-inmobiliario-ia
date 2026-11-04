@@ -43,6 +43,13 @@ describe('portada del sitio', () => {
     expect(sin).not.toContain('Vende con nosotros');
   });
 
+  it('el asistente de chat aparece solo si el plan de la corredora incluye el chat', async () => {
+    vi.mocked(getFunciones).mockResolvedValue({ chat: true, valorizador: false });
+    expect(renderToStaticMarkup(await Page({ params }))).toContain('Abrir asistente');
+    vi.mocked(getFunciones).mockResolvedValue({ chat: false, valorizador: true });
+    expect(renderToStaticMarkup(await Page({ params }))).not.toContain('Abrir asistente');
+  });
+
   it('una dirección sin corredora avisa que el sitio no está disponible', async () => {
     vi.mocked(resolverVisita).mockResolvedValue(null);
     vi.mocked(getSite).mockResolvedValue(null);
