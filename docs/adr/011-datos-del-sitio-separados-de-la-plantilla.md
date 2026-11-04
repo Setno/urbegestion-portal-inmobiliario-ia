@@ -32,4 +32,4 @@ ADR-005 exige que el contenido viva en la base y que la plantilla solo decida c�
 - Mientras no exista H-032, los textos de `content` se cargan directamente en la base.
 - La consola solo deja editar la marca tras una lectura correcta: guardar reemplaza la marca completa y, de lo contrario, se borrarían los datos que el formulario no muestra (estadísticas, asistente, horario). H-032 debería guardar por partes.
 - Si falla la lectura, el sitio Next.js lanza un error para conservar la última copia buena; si nunca hubo una, muestra "Sitio no disponible". Una compilación con la base caída falla en vez de publicar el aviso.
-- **Decisión pendiente (H-030):** `get_tenant_public_site` y `apps/sitio` todavía no aplican `site.enabled` ni el estado de la suscripción, así que una corredora cancelada seguiría publicada.
+- **Resuelto en ADR-012 (H-030):** el sitio ya no se muestra si la corredora está suspendida, cancelada o sin `site.enabled`; `get_tenant_public_site` sigue respondiendo para que el panel pueda leer la marca.

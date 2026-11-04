@@ -95,6 +95,19 @@ describe('useLeadStore con repositorio remoto', () => {
     expect(useLeadStore.getState().leads).toEqual(delaBase);
   });
 
+  it('un lead recibido en vivo mientras load() lee la lista no se pierde (H-054)', async () => {
+    const delaBase: Lead[] = [{ ...base(), id: 'x1', createdAt: '2026-10-31' }];
+    const enVivo: Lead = { ...base(), id: 'vivo-1', createdAt: '2026-11-03' };
+    useLeadStore.setState({ leads: [{ ...base(), id: 'viejo', createdAt: '2026-10-01' }] });
+    setLeadRepository(remoto({ list: vi.fn().mockResolvedValue(delaBase) }));
+    const lectura = useLeadStore.getState().load();
+    expect(useLeadStore.getState().receiveLead(enVivo)).toBe(true);
+    expect(useLeadStore.getState().receiveLead(enVivo)).toBe(false);
+    await lectura;
+    // El de la lista anterior que ya no está en la base se va; el que llegó en vivo se queda
+    expect(useLeadStore.getState().leads.map((l) => l.id)).toEqual(['vivo-1', 'x1']);
+  });
+
   it('load() deja la lista como estaba si la base falla', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     setLeadRepository(remoto({ list: vi.fn().mockRejectedValue(new Error('sin red')) }));

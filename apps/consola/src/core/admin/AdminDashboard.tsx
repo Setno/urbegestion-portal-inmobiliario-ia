@@ -16,6 +16,7 @@ import { getLeadRepository } from '../../modules/crm/services/leadRepository';
 import { usePropertyStore } from '../../modules/catalogo/stores/usePropertyStore';
 import { agencyConfig } from '../config/agencyConfig';
 import { LeadsTab } from '../../modules/crm/components/LeadsTab';
+import { NewLeadNotice } from '../../modules/crm/components/NewLeadNotice';
 import { PropertiesTab } from '../../modules/catalogo/components/PropertiesTab';
 import { AnalyticsTab } from './tabs/AnalyticsTab';
 import { IntegrationsTab } from './tabs/IntegrationsTab';
@@ -150,6 +151,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
         {status === 'con_sesion' && (
           <>
+            {/* Cada lead nuevo se avisa al instante mientras el panel está abierto (H-054) */}
+            <NewLeadNotice active={visibleTabs.includes('crm')} onOpenCrm={() => setRequestedTab('crm')} />
             {/* Global Navigation Tabs (según el rol) */}
             <div className="bg-slate-800 px-3 py-2 border-b border-slate-700 flex items-center gap-1.5 overflow-x-auto shrink-0 text-xs font-semibold">
               {visibleTabs.includes('crm') && (

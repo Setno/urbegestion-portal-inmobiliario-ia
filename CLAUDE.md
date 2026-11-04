@@ -8,18 +8,19 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 - Lenguaje / framework: TypeScript, React 18, Vite 6, Tailwind 3, Zustand, Recharts, Framer Motion.
 - Base de datos: Supabase (PostgreSQL) para usuarios, corredoras, propiedades, leads y datos del sitio cuando hay `VITE_TENANT_ID`; sin él, los datos siguen en `localStorage` (`apps/consola/src/core/storage/localStore.ts`). Acceso a datos vía repositorios (`apps/consola/src/core/data/`). Ver docs/adr/004 y 007.
 - Monorepo con espacios de trabajo de npm (ADR-010, H-026): la consola y sus funciones viven en `apps/consola`, el sitio en `apps/sitio`, y los paquetes compartidos en `packages/`; los comandos se ejecutan desde la raíz.
-- Sitio público por corredora: Next.js en `apps/sitio` (ADR-006, ADR-011; plantilla clásica, catálogo y ficha con formulario de visita hechos; falta el chat y el valorizador, H-028.4); la consola y el widget siguen en React + Vite.
-- Hosting: Vercel (SPA + funciones en `apps/consola/api/`; carpeta raíz del proyecto: `apps/consola`, y su `vercel.json` vive ahí). El sitio tendrá su propio proyecto con carpeta raíz `apps/sitio`, que ya trae su `vercel.json` con los despliegues automáticos desactivados. Desde 2026-11-01 cada commit se despliega como *preview* (con variables de desarrollo) para probar en la web; producción no se toca sin orden explícita.
+- Sitio público por corredora: Next.js en `apps/sitio` (ADR-006, ADR-011, ADR-012; plantilla clásica, catálogo, ficha con formulario de visita, SEO y una dirección por corredora hechos; falta el chat y el valorizador, H-028.4); la consola y el widget siguen en React + Vite.
+- Avisos de leads (H-054): funciones de Supabase en `supabase/functions/` (Deno), que se despliegan aparte del código de Vercel; guía en `docs/guia-avisos.md`.
+- Hosting: Vercel (SPA + funciones en `apps/consola/api/`; carpeta raíz del proyecto: `apps/consola`, y su `vercel.json` vive ahí). El sitio tiene su propio proyecto (`portal-inmobiliario-sitio`, carpeta raíz `apps/sitio`, que trae su `vercel.json` con los despliegues automáticos desactivados). Desde 2026-11-01 cada commit se despliega como *preview* (con variables de desarrollo) para probar en la web; producción no se toca sin orden explícita.
 
-## Comandos (verificados el 2026-11-02)
+## Comandos (verificados el 2026-11-03)
 | Acción | Comando |
 | --- | --- |
 | Instalar | `npm ci` (validado con `--dry-run`) |
-| Correr el sitio en local | `npm run dev:sitio` → http://localhost:3001 (lee `.env.local` de la raíz; además de las claves de Supabase necesita `SITIO_TENANT_ID` o `VITE_TENANT_ID`; `GHL_WEBHOOK_URL` es opcional y reenvía los leads) |
+| Correr el sitio en local | `npm run dev:sitio` → http://<subdominio>.localhost:3001 (lee `.env.local` de la raíz y necesita las claves de Supabase; la corredora sale de la dirección, ADR-012: en desarrollo existe el subdominio `urbe`. `SITIO_TENANT_ID` o `VITE_TENANT_ID` es opcional y se usa en `localhost` y en los previews; `SITIO_DOMINIO_BASE` es el dominio de la plataforma; `GHL_WEBHOOK_URL` es opcional y reenvía los leads. Si falla la conexión por certificado, usar `NODE_OPTIONS=--use-system-ca`, como en `.claude/launch.json`) |
 | Build del sitio | `npm run build:sitio` |
 | Correr en local | `npm run dev` → http://localhost:3000 (el panel admin pide iniciar sesión con Supabase; necesita `.env.local` con `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`; sin ellas el panel no aparece; con `VITE_TENANT_ID` (id de la corredora) leads y propiedades van a Supabase, sin él quedan en el navegador) |
 | Tests rápidos | `npm test` (Vitest + jsdom, ~30 s); `npm run test:watch` para desarrollo |
-| Suite completa | `npm test` (744 pruebas, incluidas las de pantalla (CRM, catálogo y captación) con Testing Library; sin cobertura medida aún) |
+| Suite completa | `npm test` (840 pruebas, incluidas las de pantalla (CRM, catálogo y captación) con Testing Library; sin cobertura medida aún) |
 | Lint | `npm run lint` (0 errores y 0 avisos; sin deuda suprimida, H-015) |
 | Tipos | `npx tsc --noEmit` |
 | Build | `npm run build` (ejecuta `tsc && vite build` en `apps/consola`; el resultado queda en `apps/consola/dist`) |

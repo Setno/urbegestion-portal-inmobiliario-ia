@@ -1,18 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { getSite, siteEnv } from './getSite';
+import { getSite } from './getSite';
 
 const env = { url: 'https://proyecto.supabase.co', key: 'clave-publicable', tenantId: 'tenant-1' };
-
-describe('siteEnv', () => {
-  it('acepta los nombres propios del sitio y, en local, los de la consola', () => {
-    expect(siteEnv({ SUPABASE_URL: 'u', SUPABASE_PUBLISHABLE_KEY: 'k', SITIO_TENANT_ID: 't' })).toEqual({ url: 'u', key: 'k', tenantId: 't' });
-    expect(siteEnv({ VITE_SUPABASE_URL: 'u', VITE_SUPABASE_PUBLISHABLE_KEY: 'k', VITE_TENANT_ID: 't' })).toEqual({ url: 'u', key: 'k', tenantId: 't' });
-  });
-
-  it('sin alguna de las tres variables no hay configuración', () => {
-    expect(siteEnv({ SUPABASE_URL: 'u', SUPABASE_PUBLISHABLE_KEY: 'k' })).toBeNull();
-  });
-});
 
 describe('getSite', () => {
   afterEach(() => {

@@ -77,6 +77,7 @@ export const en: Record<MessageKey, string> = {
   'type.office': 'Office',
   'type.other': 'Property',
   'card.exclusive': 'Exclusive',
+  'card.reserved': 'Reserved',
   'card.bedrooms': '{count} Bed.',
   'card.bathrooms': '{count} Bath',
   'card.parking': '{count} Park.',

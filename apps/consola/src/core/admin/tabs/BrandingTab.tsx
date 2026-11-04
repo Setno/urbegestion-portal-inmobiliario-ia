@@ -13,6 +13,7 @@ import {
 import { useBrandStore, BRAND_COLOR_PRESETS } from '../../brand/useBrandStore';
 import { isRemoteData } from '../../data/dataSource';
 import { uploadOriginalIfRemote } from '../../../modules/catalogo/services/imageStorage';
+import { SiteTextsSection } from './SiteTextsSection';
 
 const SAVE_ERRORS: Record<string, string> = {
   permiso: 'Tu cuenta no puede cambiar la marca de esta corredora, o su plan no lo incluye. Los cambios no se guardaron.',
@@ -624,6 +625,7 @@ const BrandingForm: React.FC = () => {
           </div>
         </div>
 
+        <SiteTextsSection />
       </div>
   );
 };

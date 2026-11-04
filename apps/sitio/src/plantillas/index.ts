@@ -1,11 +1,13 @@
 import type { ComponentType } from 'react';
 import { DEFAULT_TEMPLATE_ID, type SiteData } from '@portal/sitio-datos';
 import type { PublicCatalog, PublicProperty } from '@portal/sitio-datos/propiedades';
+import type { EnviarContactoChat } from '../lib/chat';
+import type { EnviarTasacion } from '../lib/tasacion';
 import type { EnviarVisita } from '../lib/visita';
 import { Clasica } from './Clasica';
 import { FichaClasica } from './clasica/FichaPropiedad';
 
-export type Plantilla = ComponentType<{ site: SiteData; catalogo: PublicCatalog }>;
+export type Plantilla = ComponentType<{ site: SiteData; catalogo: PublicCatalog; enviarTasacion?: EnviarTasacion; enviarContacto?: EnviarContactoChat }>;
 
 // Plantillas disponibles. Todas reciben los mismos datos, así cambiar de plantilla no pierde nada (H-029).
 const PLANTILLAS: Record<string, Plantilla> = {

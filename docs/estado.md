@@ -2,7 +2,7 @@
 
 - Modo: adoptado
 - Fase actual: A6 Adopción (documentos listos; faltan tests de caracterización y CI real)
-- Última actualización: 2026-11-02
+- Última actualización: 2026-11-03
 
 ## Puertas
 
@@ -21,7 +21,9 @@
 - Paso 1 (commit 3344273): panel por pestañas, capa de datos y estructura por módulos.
 
 ## Siguiente paso
-H-028 (la landing como plantilla clásica en Next.js): H-028.1 a H-028.3 hechas en código entre el 2026-11-02 y el 2026-11-03, en la rama `h-028-plantilla-clasica`, que parte de `h-027-datos-del-sitio`; ninguna de las dos está unida a `main`. Sigue H-028.4 (asistente y valorizador). Falta crear el proyecto de Vercel del sitio y confirmar con el responsable la prueba de guardar la marca desde el panel: la base muestra un cambio de marca y colores del 2026-11-02, posterior al preview de H-027.
+El 2026-11-03 el responsable eligió para avanzar: cerrar el sitio y unirlo a `main`, el proyecto de Vercel del sitio, H-030 (dirección por corredora), H-031 (SEO), H-032 (editor de textos) y H-048 (vendidas, arrendadas y reservadas). El resto de la lista de pendientes no se descarta: el responsable decide después qué más entra al MVP.
+
+Hecho ese día: H-027 y H-028.1 a .3 unidas a `main`; H-030, H-031, H-032 y H-048 hechas en código en la rama `h-030-sitio-mvp` (migraciones aplicadas en desarrollo, prueba RLS en verde, ADR-012); proyecto `portal-inmobiliario-sitio` creado en Vercel con carpeta raíz `apps/sitio` y solo variables de desarrollo y preview. Después, H-054 (avisos de leads nuevos en el panel, por correo y por Telegram) quedó hecha en código en la misma rama, con su migración y sus funciones de Supabase en desarrollo; faltan las claves de Resend y del bot de Telegram (`docs/guia-avisos.md`). Decisión del responsable: seguir solo con el proyecto Supabase de desarrollo; producción se crea al terminar el desarrollo. Falta: probar a mano desde el panel, con sesión real, guardar la marca, la dirección, los textos y los avisos; unir la rama a `main`; elegir y comprar el dominio de la plataforma (guía en `docs/guia-dominios.md`).
 
 H-026 (monorepo) quedó terminada: la consola, sus funciones y sus pruebas viven en `apps/consola`, el sitio en `apps/sitio`, hay cuatro paquetes en `packages/` (`plataforma`, `mercados`, `dinero` y `sitio-datos`), y la carpeta raíz del proyecto de la consola en Vercel es `apps/consola`. Abierto: Semgrep está en rojo en el CI, al parecer desde antes del monorepo (revisar antes de H-013), `npm audit` muestra 11 avisos moderados de `minimatch`, y `vercel dev` no se ha probado con la estructura nueva.
 

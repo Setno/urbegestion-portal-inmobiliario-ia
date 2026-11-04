@@ -44,7 +44,8 @@ function toRow(l: Partial<Lead>, clear = false): Row {
 
 const opt = <T>(value: unknown): T | undefined => (value === null || value === undefined ? undefined : (value as T));
 
-function fromRow(r: Row): Lead {
+// También la usa el aviso en vivo de leads nuevos (leadRealtime.ts).
+export function fromRow(r: Row): Lead {
   const lead: Lead = {
     id: String(r.id),
     fullName: String(r.full_name),

@@ -1,13 +1,13 @@
 import { buildPrivacyNotice } from '@portal/sitio-datos/privacidad';
-import { getSite, siteEnv, type SiteEnv } from './getSite';
+import { getSite, type SiteEnv } from './getSite';
 import { getPropiedad } from './getPropiedad';
 import { HORARIOS, type DatosVisita, type ErrorVisita, type ResultadoVisita } from './visita';
 
 export type { DatosVisita } from './visita';
 
 // Sin separadores ni signos de fórmula: estos datos los escribe cualquier visitante y terminan en planillas del CRM.
-const CORREO = /^[^\s@?&;"'=|<>,]+@[^\s@?&;"'=|<>,]+\.[^\s@?&;"'=|<>,]+$/;
-const TELEFONO = /^[+\d\s()-]+$/;
+export const CORREO = /^[^\s@?&;"'=|<>,]+@[^\s@?&;"'=|<>,]+\.[^\s@?&;"'=|<>,]+$/;
+export const TELEFONO = /^[+\d\s()-]+$/;
 const UN_DIA_MS = 24 * 60 * 60 * 1000;
 const ESPERA_MS = 8000;
 
@@ -35,7 +35,7 @@ export function validarSolicitud(datos: DatosVisita, ahora: Date = new Date()): 
 
 const texto = (value: unknown): string => (typeof value === 'string' ? value : '');
 
-async function nombreDeLaCorredora(env: SiteEnv): Promise<string> {
+export async function nombreDeLaCorredora(env: SiteEnv): Promise<string> {
   try {
     return (await getSite(env))?.brand.brandName ?? '';
   } catch {
@@ -44,7 +44,13 @@ async function nombreDeLaCorredora(env: SiteEnv): Promise<string> {
 }
 
 // Mismo formato que la consola (dispatchLeadToGHL). El lead ya quedó guardado: si esto falla, la persona igual ve éxito.
-async function avisarWebhook(webhookUrl: string, env: SiteEnv, fila: Record<string, unknown>, ahora: Date): Promise<void> {
+export async function avisarWebhook(
+  webhookUrl: string,
+  env: SiteEnv,
+  fila: Record<string, unknown>,
+  ahora: Date,
+  tipoDeContacto = 'Comprador/Arrendatario',
+): Promise<void> {
   try {
     const nombre = String(fila.full_name);
     const [primero, ...resto] = nombre.split(/\s+/);
@@ -63,7 +69,7 @@ async function avisarWebhook(webhookUrl: string, env: SiteEnv, fila: Record<stri
           email: fila.email,
           phone: fila.phone,
           source: `Web Portal - ${fila.source}`,
-          tags: ['Inmobiliaria', await nombreDeLaCorredora(env), 'Comprador/Arrendatario', fila.source].filter(Boolean),
+          tags: ['Inmobiliaria', await nombreDeLaCorredora(env), tipoDeContacto, fila.source].filter(Boolean),
           customFields: {
             lead_id: fila.id,
             property_interest: fila.property_title,
@@ -94,7 +100,7 @@ async function avisarWebhook(webhookUrl: string, env: SiteEnv, fila: Record<stri
 export async function enviarSolicitudVisita(
   propiedadId: string,
   recibidos: DatosVisita,
-  env: SiteEnv | null = siteEnv(),
+  env: SiteEnv | null,
   ahora: Date = new Date(),
   webhookUrl: string | undefined = process.env.GHL_WEBHOOK_URL,
 ): Promise<ResultadoVisita> {

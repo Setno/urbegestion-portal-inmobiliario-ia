@@ -35,6 +35,7 @@ const propiedad: PublicProperty = {
   images: ['https://a.cl/1.jpg', 'https://a.cl/2.jpg'],
   description: 'Luminosa y amplia',
   features: ['Piscina', 'Quincho'],
+  reservada: false,
 };
 
 const pintar = (p: PublicProperty = propiedad, s: SiteData = site()) =>
@@ -54,6 +55,11 @@ describe('ficha de la propiedad', () => {
     expect(html).toContain('Piscina');
     expect(html).toContain('$150.000 CLP');
     expect(html).toContain('https://a.cl/1.jpg');
+  });
+
+  it('avisa que la propiedad está reservada (H-048)', () => {
+    expect(pintar({ ...propiedad, reservada: true })).toContain('Reservada');
+    expect(pintar()).not.toContain('Reservada');
   });
 
   it('muestra el mapa con la dirección y permite volver al catálogo', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
 import { PropertiesTab } from './PropertiesTab';
 import { usePropertyStore } from '../stores/usePropertyStore';
@@ -56,6 +56,28 @@ describe('PropertiesTab (gestor de propiedades)', () => {
       expect(screen.getByText('Casa Uno')).toBeTruthy();
       expect(screen.getByText('Casa Dos')).toBeTruthy();
       expect(screen.queryByText('Publicada')).toBeNull();
+    });
+
+    it('cambia el estado comercial desde la tarjeta: vendida deja de ofrecerse en el sitio (H-048)', () => {
+      const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      render(<PropertiesTab />);
+      fireEvent.change(screen.getByLabelText('Estado comercial de Casa Uno'), { target: { value: 'vendida' } });
+      expect(usePropertyStore.getState().properties.find((p) => p.id === 'p1')?.status).toBe('vendida');
+      expect(within(tarjeta('Casa Uno')).getByText(/No se muestra en el sitio/)).toBeTruthy();
+      expect(within(tarjeta('Casa Dos')).queryByText(/No se muestra en el sitio/)).toBeNull();
+      expect(confirmar).toHaveBeenCalledWith('¿Marcar "Casa Uno" como vendida? Dejará de mostrarse en el sitio.');
+      confirmar.mockRestore();
+    });
+
+    it('si no se confirma, la propiedad sigue disponible; reservar no pide confirmación (H-048)', () => {
+      const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(false);
+      render(<PropertiesTab />);
+      fireEvent.change(screen.getByLabelText('Estado comercial de Casa Uno'), { target: { value: 'arrendada' } });
+      expect(usePropertyStore.getState().properties.find((p) => p.id === 'p1')?.status).toBe('disponible');
+      fireEvent.change(screen.getByLabelText('Estado comercial de Casa Uno'), { target: { value: 'reservada' } });
+      expect(usePropertyStore.getState().properties.find((p) => p.id === 'p1')?.status).toBe('reservada');
+      expect(confirmar).toHaveBeenCalledTimes(1);
+      confirmar.mockRestore();
     });
 
     it('crea una propiedad con los datos del formulario, publicada y con foto por defecto', () => {
@@ -247,6 +269,11 @@ describe('PropertiesTab (gestor de propiedades)', () => {
       expect(estado('b')).toBe('en_revision');
       expect(within(tarjeta('En borrador')).getByText('En revisión')).toBeTruthy();
       expect(within(tarjeta('En borrador')).queryByRole('button', { name: 'Enviar a revisión' })).toBeNull();
+    });
+
+    it('el agente que propone no cambia el estado comercial: lo decide el administrador (H-048)', () => {
+      render(<PropertiesTab />);
+      expect((screen.getByLabelText('Estado comercial de Casa Uno') as HTMLSelectElement).disabled).toBe(true);
     });
 
     it('editar una propiedad ya publicada la devuelve a revisión', () => {

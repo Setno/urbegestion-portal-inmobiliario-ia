@@ -20,6 +20,17 @@
     font-family: 'Lato', 'Inter', system-ui, sans-serif;
   }
 
+  /* Cursor y selección visibles en los campos de texto (el cursor no se veía y el texto seleccionado no se resaltaba) */
+  input,
+  textarea {
+    caret-color: #0f172a;
+  }
+  input::selection,
+  textarea::selection {
+    background: #a5d8e6;
+    color: #0f172a;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;

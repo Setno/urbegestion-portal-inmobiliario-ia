@@ -1,5 +1,5 @@
 import { supabase } from '../auth/supabaseClient';
-import { parseSiteData, type SiteBrand, type SiteData, type SiteLayout, type SiteTheme } from '@portal/sitio-datos';
+import { parseSiteData, type SiteBrand, type SiteContent, type SiteData, type SiteLayout, type SiteTheme } from '@portal/sitio-datos';
 
 export type SiteSaveResult = { ok: true } | { ok: false; error: 'permiso' | 'demasiado_grande' | 'conexion' | 'no_configurado' | 'sin_datos' | 'enlace_invalido' };
 
@@ -29,6 +29,22 @@ export async function saveSiteBrand(tenantId: string, brand: SiteBrand, theme: S
     return { ok: false, error: 'conexion' };
   } catch (err) {
     console.warn('[sitio] No se pudo guardar la marca:', err);
+    return { ok: false, error: 'conexion' };
+  }
+}
+
+// Solo los textos (H-032): la marca, los colores y la plantilla quedan como están. Mismas reglas que la marca.
+export async function saveSiteContent(tenantId: string, content: SiteContent): Promise<SiteSaveResult> {
+  if (!supabase) return { ok: false, error: 'no_configurado' };
+  try {
+    const { error } = await supabase.rpc('set_site_content', { p_tenant: tenantId, p_content: content });
+    if (!error) return { ok: true };
+    if (error.code === '42501') return { ok: false, error: 'permiso' };
+    if (error.code === '23514') return { ok: false, error: 'demasiado_grande' };
+    console.warn('[sitio] No se pudieron guardar los textos:', error);
+    return { ok: false, error: 'conexion' };
+  } catch (err) {
+    console.warn('[sitio] No se pudieron guardar los textos:', err);
     return { ok: false, error: 'conexion' };
   }
 }

@@ -242,24 +242,75 @@ describe('LeadsTab (CRM)', () => {
   });
 
   describe('exportación', () => {
-    it('Exportar Excel descarga un CSV con los leads filtrados', () => {
-      let descarga: { href: string | null; nombre: string | null } | null = null;
-      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
-        descarga = { href: this.getAttribute('href'), nombre: this.getAttribute('download') };
+    // Captura el archivo que se descarga: su nombre y su contenido (H-053: ya no va dentro de un enlace, donde un "#" lo cortaba).
+    const capturarDescarga = () => {
+      const descarga: { nombre: string | null; blob: Blob | null } = { nombre: null, blob: null };
+      URL.createObjectURL = vi.fn((blob: Blob) => {
+        descarga.blob = blob;
+        return 'blob:prueba';
       });
+      URL.revokeObjectURL = vi.fn();
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+        descarga.nombre = this.getAttribute('download');
+      });
+      const contenido = (): Promise<string> =>
+        new Promise((resolve) => {
+          const lector = new FileReader();
+          lector.onload = () => resolve(String(lector.result));
+          lector.readAsText(descarga.blob!);
+        });
+      return { descarga, contenido };
+    };
+
+    it('Exportar Excel descarga un CSV con los leads filtrados', async () => {
+      const { descarga, contenido } = capturarDescarga();
       render(<LeadsTab />);
       fireEvent.change(screen.getByPlaceholderText(/Buscar por cliente/), { target: { value: 'Beto' } });
       fireEvent.click(screen.getByTitle('Exportar a Excel / CSV'));
 
-      expect(descarga).not.toBeNull();
-      const { href, nombre } = descarga!;
-      expect(nombre).toBe(`leads_${hoy}.csv`);
-      const csv = decodeURI(href!.replace('data:text/csv;charset=utf-8,', ''));
-      const lineas = csv.split('\n');
+      expect(descarga.nombre).toBe(`corredora_contactos_${hoy}.csv`);
+      const csv = await contenido();
+      const lineas = csv.split('\r\n');
       expect(lineas).toHaveLength(2);
       expect(lineas[0]).toContain('Nombre');
       expect(lineas[1]).toContain('Beto Soto');
       expect(csv).not.toContain('Ana Rojas');
+    });
+
+    it('un texto escrito por un visitante no se vuelve fórmula ni corta el archivo (H-053)', async () => {
+      const { contenido } = capturarDescarga();
+      useLeadStore.setState({
+        leads: [lead({ id: 'z', fullName: '=HYPERLINK("http://malo.cl")', propertyTitle: 'Casa #1; "vista"', phone: '+56 9 1111 2222', email: '@malo' })],
+      });
+      render(<LeadsTab />);
+      fireEvent.click(screen.getByTitle('Exportar a Excel / CSV'));
+
+      const csv = await contenido();
+      expect(csv).toContain(`"'=HYPERLINK(""http://malo.cl"")"`);
+      expect(csv).toContain(`'@malo`);
+      // La coma y el # quedan dentro de su celda: la fila no se parte ni se corta
+      expect(csv).toContain('"Casa #1; ""vista"""');
+      expect(csv.split('\r\n')).toHaveLength(2);
+    });
+
+    it('un lead sin correo sale con la celda de correo vacía, no con un correo de relleno', async () => {
+      const { contenido } = capturarDescarga();
+      useLeadStore.setState({ leads: [lead({ id: 'q', fullName: 'Sin Correo', email: 'sin-correo@solicitud.cl' })] });
+      render(<LeadsTab />);
+      fireEvent.click(screen.getByTitle('Exportar a Excel / CSV'));
+      expect(await contenido()).not.toContain('solicitud.cl');
+    });
+  });
+
+  describe('lead sin correo (H-053)', () => {
+    it('muestra "Sin correo" en vez de un correo de relleno o un hueco', () => {
+      useLeadStore.setState({
+        leads: [lead({ id: 'e1', fullName: 'Uno', email: '' }), lead({ id: 'e2', fullName: 'Dos', email: 'propietario@sin-email.cl' })],
+      });
+      render(<LeadsTab />);
+      abrirTabla();
+      expect(screen.getAllByText('Sin correo').length).toBeGreaterThanOrEqual(2);
+      expect(screen.queryByText('propietario@sin-email.cl')).toBeNull();
     });
   });
 });

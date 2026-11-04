@@ -1,13 +1,14 @@
-import { Award, ChevronDown, Instagram, Phone, Search } from 'lucide-react';
+import { ArrowRight, Award, ChevronDown, Instagram, Phone, Search } from 'lucide-react';
 import { instagramHandle, type SiteBrand, type SiteContent } from '@portal/sitio-datos';
 import { enlaceTelefono } from './enlaces';
 
 interface PortadaProps {
   brand: SiteBrand;
   hero: SiteContent['hero'];
+  conTasacion?: boolean;
 }
 
-export function Portada({ brand, hero }: PortadaProps) {
+export function Portada({ brand, hero, conTasacion = false }: PortadaProps) {
   const { contact } = brand;
   const handle = instagramHandle(contact.instagram);
   const stats = [
@@ -75,6 +76,15 @@ export function Portada({ brand, hero }: PortadaProps) {
                 <Search className="w-4 h-4" />
                 <span>Ver Propiedades en Venta / Arriendo</span>
               </a>
+              {conTasacion && (
+                <a
+                  href="#vende"
+                  className="w-full sm:w-auto px-5 py-3.5 sm:py-4 rounded-xl border border-white/30 hover:bg-white/10 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors"
+                >
+                  <span>Vende tu propiedad</span>
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+              )}
             </div>
 
             {(enlaceTelefono(contact.phone) || contact.instagram) && (

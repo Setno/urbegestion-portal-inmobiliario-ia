@@ -52,6 +52,7 @@ export function FichaClasica({ site, propiedad: p, marketId, enviarVisita }: Fic
                 {p.operation === 'venta' ? 'En Venta' : 'En Arriendo'}
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-800">{etiquetaTipo(p.propertyType)}</span>
+              {p.reservada && <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-500 text-slate-950">Reservada</span>}
               {p.featured && (
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-urbe-accent text-slate-950 inline-flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />

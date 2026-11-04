@@ -1,4 +1,4 @@
-import type { Property, PublicationStatus } from '../types/property';
+import type { Property, PropertyStatus, PublicationStatus } from '../types/property';
 import type { Role } from '../../../core/auth/permissions';
 import type { PublicationMode } from '../../../core/auth/authService';
 
@@ -23,6 +23,16 @@ export function actorFor(role: Role | null, mode: PublicationMode | undefined): 
 // Sin estado (datos antiguos o modo local) la propiedad cuenta como publicada.
 export const isPublished = (p: Pick<Property, 'publicationStatus'>): boolean =>
   (p.publicationStatus ?? 'publicada') === 'publicada';
+
+// Estado comercial (H-048): lo vendido o arrendado sale del sitio; lo reservado sigue a la vista con su etiqueta.
+export const SALE_STATUS_LABEL: Record<PropertyStatus, string> = {
+  disponible: 'Disponible',
+  reservada: 'Reservada',
+  vendida: 'Vendida',
+  arrendada: 'Arrendada',
+};
+
+export const isOnOffer = (p: Pick<Property, 'status'>): boolean => p.status !== 'vendida' && p.status !== 'arrendada';
 
 // El agente propone (borrador); el administrador decide y publica. Sin roles (modo local) no hay flujo.
 export const statusForNew = (actor: Actor): PublicationStatus => (actor === 'proponente' ? 'borrador' : 'publicada');

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filtrarPropiedades, ordenarDestacadas, parsePublicProperties, parsePublicSettings, SIN_FILTROS, type PublicProperty } from './propiedades';
+import { ESTADOS_VISIBLES, filtrarPropiedades, ordenarDestacadas, parsePublicProperties, parsePublicSettings, SIN_FILTROS, type PublicProperty } from './propiedades';
 
 const fila = (extra: Record<string, unknown> = {}) => ({
   id: 'p1',
@@ -48,7 +48,23 @@ describe('parsePublicProperties', () => {
       images: ['https://a.cl/1.jpg'],
       description: 'Luminosa',
       features: ['Piscina'],
+      reservada: false,
     });
+  });
+
+  it('una reservada se muestra marcada; una vendida o arrendada no se muestra (H-048)', () => {
+    const lista = parsePublicProperties([
+      fila({ id: 'libre', status: 'disponible' }),
+      fila({ id: 'reservada', status: 'reservada' }),
+      fila({ id: 'vendida', status: 'vendida' }),
+      fila({ id: 'arrendada', status: 'arrendada' }),
+      fila({ id: 'sin-estado' }),
+    ]);
+    expect(lista.map((p) => [p.id, p.reservada])).toEqual([['libre', false], ['reservada', true], ['sin-estado', false]]);
+  });
+
+  it('pide a la base solo las disponibles y reservadas', () => {
+    expect(ESTADOS_VISIBLES).toBe('in.(disponible,reservada)');
   });
 
   it('descarta las filas inservibles y las imágenes que no son direcciones web', () => {
