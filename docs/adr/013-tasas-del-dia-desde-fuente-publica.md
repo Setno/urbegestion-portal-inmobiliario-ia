@@ -19,5 +19,5 @@ Si la fuente no responde, **no se inventa una tasa**: el sitio solo ofrece las m
 ## Consecuencias
 - Un mercado sin unidades de cuenta no declara fuentes y no muestra nada de esto.
 - Cambiar de fuente es cambiar una entrada del paquete de Chile, sin tocar el sitio.
-- mindicador.cl es un servicio comunitario sin garantía de disponibilidad; en las pruebas de desarrollo respondió a `curl` pero no a Node. La alternativa oficial y gratuita es la API de la CMF (requiere registrar una clave) o la del Banco Central (usuario y contraseña); se agregaría como segunda fuente de la UF sin cambiar el resto.
+- mindicador.cl es un servicio comunitario sin garantía de disponibilidad; en las pruebas del 2026-11-04 respondió a `curl` pero no a Node, ni en el computador de desarrollo ni en los servidores de Vercel (el sitio agotó la espera de 5 segundos y siguió sin tasa, como está previsto). La alternativa oficial y gratuita es la API de la CMF (requiere registrar una clave) o la del Banco Central (usuario y contraseña); se agregaría como segunda fuente de la UF sin cambiar el resto.
 - La UF que usa la consola (Integraciones) sigue siendo manual por ahora.
