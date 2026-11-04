@@ -51,21 +51,58 @@ describe('catálogo del sitio', () => {
       propiedad('pesos', { priceAmount: 200_000_000, priceCurrency: 'CLP' }),
     ];
 
-    it('filtra por precio máximo en UF, con montos escritos a la chilena', () => {
+    const mover = (etiqueta: 'Precio mínimo' | 'Precio máximo', valor: number) =>
+      fireEvent.change(screen.getByLabelText(etiqueta), { target: { value: String(valor) } });
+    const valorDe = (etiqueta: string) => (screen.getByLabelText(etiqueta) as HTMLInputElement).value;
+
+    it('la banda de precio tiene dos manillas que van del precio más bajo al más alto, y muestra el rango elegido', () => {
       render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
-      fireEvent.change(screen.getByLabelText('Precio máximo'), { target: { value: '6.000' } });
+      const min = screen.getByLabelText('Precio mínimo') as HTMLInputElement;
+      const max = screen.getByLabelText('Precio máximo') as HTMLInputElement;
+      expect([min.type, max.type]).toEqual(['range', 'range']);
+      expect([min.min, min.max, max.min, max.max]).toEqual(['2000', '12000', '2000', '12000']);
+      expect([min.value, max.value]).toEqual(['2000', '12000']);
+      expect(screen.getByText('2.000 UF – 12.000 UF')).toBeTruthy();
+    });
+
+    it('al mover la manilla del máximo deja fuera lo más caro, también las que están en pesos', () => {
+      render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
+      mover('Precio máximo', 6000);
       expect(screen.getByText('Propiedad barata')).toBeTruthy();
       expect(screen.getByText('Propiedad pesos')).toBeTruthy(); // 5.000 UF
       expect(screen.queryByText('Propiedad cara')).toBeNull();
+      expect(screen.getByText('2.000 UF – 6.000 UF')).toBeTruthy();
     });
 
-    it('al cambiar a pesos filtra y muestra los precios en pesos, con el valor publicado al lado', () => {
+    it('las manillas no se cruzan', () => {
       render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
+      mover('Precio mínimo', 8000);
+      mover('Precio máximo', 3000);
+      expect(valorDe('Precio máximo')).toBe('8000');
+      mover('Precio máximo', 10000);
+      mover('Precio mínimo', 11000);
+      expect(valorDe('Precio mínimo')).toBe('10000');
+    });
+
+    it('con las manillas en los extremos no filtra nada', () => {
+      render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
+      mover('Precio máximo', 6000);
+      mover('Precio máximo', 12000);
+      expect(screen.getByText('Propiedad cara')).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).toBeNull();
+    });
+
+    it('al cambiar a pesos la banda se rehace en pesos y los precios se muestran en pesos, con el valor publicado al lado', () => {
+      render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
+      mover('Precio máximo', 6000);
       fireEvent.change(screen.getByLabelText('Moneda'), { target: { value: 'CLP' } });
-      fireEvent.change(screen.getByLabelText('Precio mínimo'), { target: { value: '100.000.000' } });
+      expect((screen.getByLabelText('Precio mínimo') as HTMLInputElement).min).toBe('80000000');
+      expect((screen.getByLabelText('Precio máximo') as HTMLInputElement).max).toBe('480000000');
+      expect(valorDe('Precio máximo')).toBe('480000000'); // la banda vuelve a los extremos
+      mover('Precio mínimo', 100_000_000);
       expect(screen.queryByText('Propiedad barata')).toBeNull(); // 80.000.000 CLP
       expect(screen.getByText(/≈ \$480\.000\.000 CLP/)).toBeTruthy();
-      expect(screen.getByText(/12\.000 UF/)).toBeTruthy();
+      expect(screen.getByText(/12\.000 UF/, { selector: 'span.text-xs' })).toBeTruthy();
     });
 
     it('dice de dónde sale la UF y de qué día es', () => {
@@ -76,20 +113,25 @@ describe('catálogo del sitio', () => {
       expect(nota.textContent).toContain('04-11-2026');
     });
 
-    it('sin la tasa de la UF y con precios en dos monedas no ofrece un filtro que mentiría', () => {
+    it('sin la tasa de la UF y con precios en dos monedas no ofrece una banda que mentiría', () => {
       render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} />);
       expect(screen.queryByLabelText('Precio máximo')).toBeNull();
       expect(screen.queryByLabelText('Moneda')).toBeNull();
       expect(screen.queryByText(/UF de hoy/)).toBeNull();
     });
 
-    it('limpiar filtros también borra el precio', () => {
+    it('limpiar filtros devuelve la banda a los extremos', () => {
       render(<Catalogo propiedades={precios} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
-      fireEvent.change(screen.getByLabelText('Precio máximo'), { target: { value: '3000' } });
+      mover('Precio máximo', 3000);
       expect(screen.queryByText('Propiedad cara')).toBeNull();
       fireEvent.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
       expect(screen.getByText('Propiedad cara')).toBeTruthy();
-      expect((screen.getByLabelText('Precio máximo') as HTMLInputElement).value).toBe('');
+      expect(valorDe('Precio máximo')).toBe('12000');
+    });
+
+    it('con todo el catálogo al mismo precio no muestra una banda sin sentido', () => {
+      render(<Catalogo propiedades={[propiedad('x'), propiedad('y')]} marketId="cl" conBuscador contacto={contacto} tasas={tasas} />);
+      expect(screen.queryByLabelText('Precio máximo')).toBeNull();
     });
   });
 

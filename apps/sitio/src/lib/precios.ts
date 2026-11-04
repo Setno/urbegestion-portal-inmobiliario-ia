@@ -8,16 +8,6 @@ export interface FiltroPrecio {
   max: number | null;
 }
 
-// Un monto como se escribe en Chile: "5.000", "200.000.000", "3,5" o "1.250,5". Vacío es "sin límite" (null); lo que no es un monto también.
-export function montoDesdeTexto(texto: string): number | null {
-  const limpio = texto.trim();
-  if (!limpio) return null;
-  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(limpio)) return Number(limpio.replace(/\./g, '').replace(',', '.'));
-  if (/^\d+(,\d+)?$/.test(limpio)) return Number(limpio.replace(',', '.'));
-  if (/^\d+\.\d{1,2}$/.test(limpio)) return Number(limpio);
-  return null;
-}
-
 const convertible = (desde: string, hacia: string, pack: MarketPack, rates: CurrencyRates): boolean =>
   desde === hacia || convertMoney({ amount: 1, currency: desde }, hacia, pack, rates).currency === hacia;
 
@@ -38,4 +28,41 @@ export function filtrarPorPrecio(propiedades: PublicProperty[], filtro: FiltroPr
     const { amount } = convertMoney({ amount: p.priceAmount, currency: p.priceCurrency }, filtro.moneda, pack, rates);
     return (filtro.min === null || amount >= filtro.min) && (filtro.max === null || amount <= filtro.max);
   });
+}
+
+// El paso de la banda: de 1, 2 o 5 por una potencia de diez, el menor que deje unos 100 pasos entre los extremos.
+function pasoDeBanda(rango: number): number {
+  const objetivo = rango / 100;
+  for (let potencia = -2; potencia < 15; potencia++) {
+    for (const base of [1, 2, 5]) {
+      const paso = base * 10 ** potencia;
+      if (paso >= objetivo) return Number(paso.toFixed(2));
+    }
+  }
+  return rango;
+}
+
+const redondear = (valor: number): number => Number(valor.toFixed(6));
+
+export interface RangoDePrecios {
+  min: number;
+  max: number;
+  paso: number;
+}
+
+// Los extremos de la banda de precio: del más bajo al más alto del catálogo en la moneda elegida, redondeados hacia afuera a un
+// paso cómodo para que ninguna propiedad quede fuera. Sin banda (null) si hay un solo precio o no se puede convertir todo.
+export function rangoDePrecios(propiedades: PublicProperty[], moneda: string, pack: MarketPack, rates: CurrencyRates): RangoDePrecios | null {
+  if (propiedades.length === 0) return null;
+  if (!propiedades.every((p) => convertible(p.priceCurrency, moneda, pack, rates))) return null;
+  const montos = propiedades.map((p) => convertMoney({ amount: p.priceAmount, currency: p.priceCurrency }, moneda, pack, rates).amount);
+  const bajo = Math.min(...montos);
+  const alto = Math.max(...montos);
+  if (!(alto > bajo)) return null;
+  const paso = pasoDeBanda(alto - bajo);
+  return {
+    min: Math.max(0, redondear(Math.floor(bajo / paso + 1e-9) * paso)),
+    max: redondear(Math.ceil(alto / paso - 1e-9) * paso),
+    paso,
+  };
 }
