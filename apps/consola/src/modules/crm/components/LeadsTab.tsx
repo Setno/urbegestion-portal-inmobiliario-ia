@@ -20,6 +20,8 @@ import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
 import { Lead, LeadStatus } from '../types/lead';
 import { buildPropertyFromLead } from '../services/leadToProperty';
 import { useCan } from '../../../core/platform/useEntitlementsStore';
+import { downloadFile, exportFileName, leadsToCsv } from '../../../core/export/dataExport';
+import { displayEmail } from '../services/leadEmail';
 
 export const LeadsTab: React.FC = () => {
   const { leads, updateLeadStatus, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
@@ -73,28 +75,10 @@ export const LeadsTab: React.FC = () => {
     return true;
   });
 
+  // Misma exportaci\u00F3n segura que la de "Mi corredora" (H-053): comillas en cada celda con signos, nada que Excel tome por f\u00F3rmula
+  // y el archivo viaja como archivo, no dentro de un enlace donde un "#" lo cortar\u00EDa.
   const handleExportLeadsCsv = () => {
-    const headers = ['ID', 'Nombre', 'Email', 'Telefono', 'Propiedad Interes', 'Operacion', 'Estado', 'Fecha Visita', 'Hora Visita', 'Fecha Registro'];
-    const rows = filteredLeads.map(l => [
-      l.id,
-      `"${l.fullName.replace(/"/g, '""')}"`,
-      l.email,
-      `"${l.phone}"`,
-      `"${(l.propertyTitle || 'General').replace(/"/g, '""')}"`,
-      l.operationInterest,
-      l.status,
-      l.appointmentDate || '',
-      l.appointmentTime || '',
-      l.createdAt
-    ]);
-    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map(e => e.join(';'))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `leads_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadFile(exportFileName('contactos', 'csv'), leadsToCsv(filteredLeads), 'text/csv');
   };
 
   // Kanban Columns Definition
@@ -314,7 +298,7 @@ export const LeadsTab: React.FC = () => {
                                 <MessageCircle className="w-3.5 h-3.5" />
                                 <span>{lead.phone}</span>
                               </a>
-                              <span className="text-[11px] text-slate-400 block">{lead.email}</span>
+                              <span className="text-[11px] text-slate-400 block">{displayEmail(lead.email)}</span>
                             </div>
                           </td>
 
@@ -500,7 +484,7 @@ export const LeadsTab: React.FC = () => {
               </div>
               <div className="flex justify-between p-2.5 rounded-xl bg-slate-50">
                 <span className="text-slate-500 font-medium">Correo:</span>
-                <span className="font-bold text-slate-800">{selectedLead.email}</span>
+                <span className="font-bold text-slate-800">{displayEmail(selectedLead.email)}</span>
               </div>
               {selectedLead.propertySpecs && (
                 <div className="p-2.5 rounded-xl bg-cyan-50 border border-cyan-100 text-cyan-900 space-y-1">

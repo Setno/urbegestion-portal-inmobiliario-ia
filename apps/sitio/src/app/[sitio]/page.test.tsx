@@ -50,6 +50,14 @@ describe('portada del sitio', () => {
     expect(renderToStaticMarkup(await Page({ params }))).not.toContain('Abrir asistente');
   });
 
+  it('si no se puede leer el plan, la portada se ve igual, sin herramientas, en vez de caerse', async () => {
+    vi.mocked(getFunciones).mockRejectedValue(new Error('migración pendiente'));
+    const html = renderToStaticMarkup(await Page({ params }));
+    expect(html).toContain('Casa Sur');
+    expect(html).not.toContain('id="vende"');
+    expect(html).not.toContain('Abrir asistente');
+  });
+
   it('una dirección sin corredora avisa que el sitio no está disponible', async () => {
     vi.mocked(resolverVisita).mockResolvedValue(null);
     vi.mocked(getSite).mockResolvedValue(null);

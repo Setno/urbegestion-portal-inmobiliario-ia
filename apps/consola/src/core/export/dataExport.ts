@@ -1,5 +1,6 @@
 import type { Lead } from '../../modules/crm/types/lead';
 import type { Property } from '../../modules/catalogo/types/property';
+import { realEmail } from '../../modules/crm/services/leadEmail';
 
 type Cell = string | number | boolean | null | undefined;
 
@@ -26,7 +27,7 @@ export const leadsToCsv = (leads: Lead[]): string =>
       'Aviso de privacidad (finalidad)', 'Fecha de registro',
     ],
     leads.map((l) => [
-      l.id, l.fullName, l.email, l.phone, l.propertyTitle, l.operationInterest, l.status, l.source,
+      l.id, l.fullName, realEmail(l.email), l.phone, l.propertyTitle, l.operationInterest, l.status, l.source,
       l.budgetAmount, l.budgetCurrency, l.appointmentDate, l.appointmentTime, l.notes.length,
       l.convertedPropertyId, l.privacyNotice?.version, l.privacyNotice?.shownAt, l.privacyNotice?.purpose,
       l.createdAt,

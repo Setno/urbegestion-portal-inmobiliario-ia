@@ -107,6 +107,8 @@ describe('asistente del sitio (motor local, sin costo)', () => {
     const r = responder('¿cuál es su teléfono?', catalogo, ctx());
     expect(r.texto).toContain('+56 9 1111 2222');
     expect(r.texto).toContain('hola@casasur.cl');
+    // El chat muestra texto plano: los asteriscos de un formato que no existe se verían tal cual
+    expect(r.texto).not.toContain('**');
     const sin = responder('¿cuál es su teléfono?', catalogo, ctx({ telefono: '', correo: '' }));
     expect(sin.texto).not.toContain('undefined');
     expect(sin.pedirContacto).toBe(true);

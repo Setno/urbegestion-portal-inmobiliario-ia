@@ -134,7 +134,7 @@ export function responder(consulta: string, propiedades: PublicProperty[], ctx: 
 
   // 5. Contacto directo
   if (tiene('telefono', 'whatsapp', 'contacto', 'correo', 'donde estan', 'horario')) {
-    const datos = [ctx.telefono && `teléfono o WhatsApp **${ctx.telefono}**`, ctx.correo && `correo **${ctx.correo}**`].filter(Boolean);
+    const datos = [ctx.telefono && `teléfono o WhatsApp ${ctx.telefono}`, ctx.correo && `correo ${ctx.correo}`].filter(Boolean);
     return respuesta(
       datos.length > 0
         ? `Puedes comunicarte directamente con ${quien(ctx)}: ${datos.join(' o por ')}.`

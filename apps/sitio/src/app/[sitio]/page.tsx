@@ -37,7 +37,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const { direccion, env, site } = await cargar(params);
   if (!site) return <SitioNoDisponible />;
-  const [catalogo, funciones] = await Promise.all([getCatalogo(env), getFunciones(env)]);
+  // Las herramientas son secundarias: si no se puede leer el plan, el sitio se ve igual, sin ellas, en vez de caerse.
+  const [catalogo, funciones] = await Promise.all([
+    getCatalogo(env),
+    getFunciones(env).catch(() => {
+      console.warn('[sitio] No se pudo leer el plan de la corredora: se muestra el sitio sin herramientas');
+      return { chat: false, valorizador: false };
+    }),
+  ]);
   const Plantilla = resolvePlantilla(site.templateId);
   return (
     <>
