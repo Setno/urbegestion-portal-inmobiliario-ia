@@ -24,6 +24,15 @@ describe('tasas del día desde la fuente del mercado', () => {
     expect((await fetchLiveRates(CHILE, vi.fn().mockResolvedValue(sinJson), HOY)).readings).toEqual([]);
   });
 
+  it('deja registro de por qué una moneda quedó sin tasa', async () => {
+    const motivos: string[] = [];
+    const registrar = (moneda: string, motivo: string) => motivos.push(`${moneda}: ${motivo}`);
+    await fetchLiveRates(CHILE, vi.fn().mockRejectedValue(new Error('sin red')), HOY, registrar);
+    await fetchLiveRates(CHILE, vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) }), HOY, registrar);
+    await fetchLiveRates(CHILE, vi.fn().mockResolvedValue(respuesta({ serie: [] })), HOY, registrar);
+    expect(motivos).toEqual(['UF: sin red', expect.stringContaining('UF: la fuente respondió con error (503)'), expect.stringContaining('UF: la respuesta no tiene un valor')]);
+  });
+
   it('un mercado sin fuentes no pide nada: fuera de Chile no hay UF', async () => {
     const otro: MarketPack = { ...CHILE, id: 'xx', baseCurrency: 'USD', defaultCurrency: 'USD', currencies: [{ code: 'USD', symbol: '$', fractionDigits: 2 }], rateFeeds: undefined };
     const fetcher = vi.fn();
