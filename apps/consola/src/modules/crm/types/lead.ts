@@ -43,6 +43,8 @@ export interface Lead {
   appointmentDate?: string;
   appointmentTime?: string;
   notes: string[];
+  nextActionText?: string; // próxima acción pendiente (H-056)
+  nextActionDue?: string; // AAAA-MM-DD
   source: LeadSource;
   attachments?: string[]; // URLs or Base64 images/docs
   propertySpecs?: {

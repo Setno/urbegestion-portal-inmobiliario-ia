@@ -81,6 +81,11 @@ Orden: contener → estabilizar → mejorar. Origen: AUDITORIA.md, `npm audit` y
 | H-053 | Exportación CSV de leads a prueba de texto escrito por visitantes: comillas en cada celda, neutralizar `= + - @` al inicio para que Excel no lo tome como fórmula y no cortar el archivo con `#`; mostrar "Sin correo" en el CRM | Media | S | hecha en código (2026-11-04): el CRM exporta con la misma función segura que "Mi corredora" y muestra "Sin correo"; falta probarla a mano | H-028.3 |
 | H-054 | Avisar a la corredora cuando entra un lead nuevo: el panel solo los lee al iniciar sesión, así que una solicitud de visita puede quedar horas sin verse si no hay webhook configurado | Alta | M | hecha en código (2026-11-03): aviso en vivo en el panel, por correo y por Telegram; migración aplicada y funciones desplegadas en desarrollo. Faltan las claves de Resend y del bot de Telegram (guía en docs/guia-avisos.md) | H-028.3 |
 | H-055 | Dominios propios a prueba de abusos y sitio apagado también en la API: hoy cualquier administrador con `site.custom_domain` puede registrar un dominio ajeno y ocuparlo (el primero que lo guarda se lo queda; no se muestra mientras el dueño de la plataforma no lo agregue en Vercel). Dejarlo "pendiente" hasta verificarlo (registro TXT) y activarlo desde el panel del dueño. Además, `get_tenant_public_site` y el insert de leads con la clave pública no consultan `site_is_public`: con el id de una corredora suspendida se pueden leer sus datos públicos y crearle leads directo contra la API (revisar junto con H-052) | Media | M | pendiente | H-030 |
+| H-056 | Próxima acción por contacto: cada lead guarda qué hay que hacer y para cuándo; el CRM muestra "Para hoy" (vencidas, de hoy y sin acción) y al cumplirla deja una nota (ver criterios abajo) | Alta | M | hecha en código (2026-11-04); migración `20261104130000` aplicada en desarrollo; falta probarla a mano | H-054 |
+| H-057 | Línea de tiempo del contacto: historial de llamadas, WhatsApp, correos, visitas y notas con fecha y autor | Alta | M | pendiente | H-056 |
+| H-058 | Atribución: fuente, campaña (UTM) y propiedad consultada en cada lead que entra por el sitio | Alta | S | pendiente | H-028.3 |
+| H-059 | Agenda de visitas: calendario dentro del panel con las visitas agendadas, sin sincronizar con calendarios externos | Alta | M+ | pendiente | H-056 |
+| H-060 | Reportes básicos: leads por etapa, fuente y agente, y tiempo de primera respuesta | Media | M | pendiente | H-057, H-058 |
 | H-013 | Despliegue final: reactivar despliegues en `vercel.json`, cargar variables y smoke test | Alta | S | bloqueada hasta nuevo aviso | todas las fases |
 
 ## Estacionadas: seguridad y comprobaciones (revisar antes del despliegue)
@@ -392,3 +397,43 @@ Hoy los datos viven en el navegador de cada visitante (`localStorage`): lo que e
 **Cierre H-010.2 (2026-11-01):** la agenda de visitas y la ficha de propiedad usan textos con clave en español e inglés. La ficha no tenía pruebas: se escribieron 15 de caracterización antes de traducirla (más 3 en inglés). Los textos de marca que mencionan a la corredora (nombre, "Hola Pilar Osorio") salen de la configuración de la corredora y no están escritos en los textos. Las notas que se guardan dentro de cada contacto ("Visita solicitada para…") siguen en español: son datos del CRM, no texto de pantalla.
 
 **Cierre H-010.3 (2026-11-01):** el chat y el valorizador usan textos con clave en español e inglés. El motor local reconoce las intenciones y las palabras de tipo y operación en ambos idiomas y responde en el idioma activo; el mensaje de bienvenida se traduce al cambiar de idioma sin perder la conversación; las sugerencias salen de las propiedades publicadas. El subtítulo del valorizador dejó de decir "Región Metropolitana" fijo y nombra el alcance de la corredora. Quedan en español, por decisión: el aviso de privacidad (texto legal con versión: cada idioma y país necesita revisión legal, H-012) y las afirmaciones de marca dentro de las respuestas del chat ("más de 25 años", "42 días"), que pasarán al contenido de cada corredora con H-032.
+
+
+## H-056 a H-060 Captación y CRM del primer piloto
+
+Elegidas por el responsable el 2026-11-04 (propuesta: tareas, línea de tiempo, atribución, agenda y reportes). Fuera del primer piloto, sin descartarlas: asignación de leads, pipelines por tipo de cliente, WhatsApp automático y consultas de portales por correo.
+
+### H-056 Próxima acción por contacto
+**Como** corredor **quiero** anotar qué haré con cada contacto y para cuándo **para** que ningún lead se enfríe.
+
+**Criterios de aceptación**
+1. Dado un lead abierto, cuando escribo una acción ("Llamar para confirmar visita") y una fecha y guardo, entonces queda en el lead, se ve en su tarjeta y sobrevive a recargar la página.
+2. Dado un lead con acción pendiente, cuando la marco como hecha, entonces la acción se borra y queda una nota con la fecha ("Hecho: …") en el historial.
+3. Dado el CRM, cuando miro el recuadro "Para hoy", entonces veo primero las acciones vencidas, luego las de hoy y luego los leads sin acción; los leads cerrados o descartados no aparecen.
+4. Dado un lead con acción de fecha pasada, entonces se muestra como "Vencida" en rojo; una de hoy, como "Hoy"; una futura, con su fecha.
+5. Dado una acción sin texto o con una fecha inválida, cuando intento guardar, entonces no se guarda.
+
+**Fuera de alcance:** varias tareas por lead, avisos por correo del vencimiento, asignar a otro agente.
+**Tamaño:** M. **Nota de datos:** requiere columnas `next_action_text` y `next_action_due` en `leads` (migración nueva, se muestra el SQL antes de aplicar).
+
+### H-057 Línea de tiempo del contacto
+1. Dado un lead, cuando registro una llamada, WhatsApp, correo, visita o nota, entonces aparece en un historial ordenado, con tipo, fecha y quién lo registró.
+2. Dado las notas actuales, entonces se siguen viendo en la línea de tiempo como "Nota".
+3. Dado un cambio de estado, entonces queda un evento automático en el historial.
+
+### H-058 Atribución
+1. Dado un visitante que llega al sitio con parámetros `utm_source`, `utm_medium` y `utm_campaign`, cuando deja sus datos, entonces el lead guarda esos valores.
+2. Dado un lead de una ficha, entonces guarda la propiedad consultada; sin parámetros, la fuente queda como "Directo".
+3. Dado el CRM, entonces la fuente y la campaña se ven en la ficha del lead y salen en el CSV.
+
+### H-059 Agenda de visitas
+1. Dado leads con visita agendada, cuando abro la agenda, entonces veo un calendario de semana/mes con cada visita (hora, contacto y propiedad).
+2. Dado una visita, cuando cambio su fecha u hora desde la agenda, entonces el lead se actualiza.
+3. Dado dos visitas a la misma hora, entonces se avisa del choque.
+
+### H-060 Reportes básicos
+1. Dado el CRM, cuando abro Reportes, entonces veo cuántos leads hay por etapa y la conversión entre etapas.
+2. Veo leads por fuente y por campaña, y por agente.
+3. Veo el tiempo promedio hasta la primera respuesta y cuántos leads llevan más de 24 horas sin contactar.
+
+**Resultado H-056 (2026-11-04):** `leadTasks.ts` (estados y orden de "Para hoy"), `setNextAction` y `completeNextAction` en la tienda, columnas en el repositorio y componentes en `NextAction.tsx`. 89 pruebas del CRM nuevas y viejas en verde. **Revisión independiente:** sin bloqueantes; se corrigió el orden remoto (primero se limpia la acción, luego se agrega la nota), la fecha por defecto se calcula al guardar y la migración impide que un visitante siembre una acción al crear un lead. **Migración `20261104130000_leads_proxima_accion.sql` aplicada en desarrollo (2026-11-04) y verificada: dos columnas y política nueva.** **Limitación:** con dos agentes editando la misma acción gana el último que guarda.

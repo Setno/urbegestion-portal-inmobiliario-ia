@@ -190,3 +190,29 @@ describe('leadRepository local', () => {
     expect(repo.newId()).toMatch(/^lead-/);
   });
 });
+
+describe('leadRepository remoto: próxima acción (H-056)', () => {
+  it('guarda la acción y la fecha en sus columnas y las devuelve al leer', async () => {
+    const fake = createFakeSupabase();
+    await createRemoteLeadRepository(fake.client, 'tenant-1').create({ ...lead, nextActionText: 'Llamar', nextActionDue: '2026-11-10' }, []);
+    const fila = (fake.argsOf(0, 'insert') as Array<Record<string, unknown>>)[0];
+    expect(fila.next_action_text).toBe('Llamar');
+    expect(fila.next_action_due).toBe('2026-11-10');
+
+    const lectura = createFakeSupabase({
+      data: [{ id: 'l1', full_name: 'Ana', email: '', phone: '', operation_interest: 'compra', status: 'nuevo', notes: [], source: 'asistente_ia', created_at: '2026-11-01T10:00:00Z', next_action_text: 'Llamar', next_action_due: '2026-11-10' }],
+      error: null,
+    });
+    const leads = await createRemoteLeadRepository(lectura.client, 'tenant-1').list();
+    expect(leads![0].nextActionText).toBe('Llamar');
+    expect(leads![0].nextActionDue).toBe('2026-11-10');
+  });
+
+  it('al cumplirla envía null para que la acción vieja no reaparezca', async () => {
+    const fake = createFakeSupabase({ data: [{ id: 'x' }], error: null });
+    await createRemoteLeadRepository(fake.client, 'tenant-1').update('x', { nextActionText: undefined, nextActionDue: undefined }, []);
+    const patch = fake.argsOf(0, 'update')[0] as Record<string, unknown>;
+    expect(patch.next_action_text).toBeNull();
+    expect(patch.next_action_due).toBeNull();
+  });
+});

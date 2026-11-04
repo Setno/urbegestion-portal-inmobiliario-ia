@@ -34,6 +34,8 @@ function toRow(l: Partial<Lead>, clear = false): Row {
   if ('appointmentDate' in l) row.appointment_date = l.appointmentDate ? l.appointmentDate : null;
   put('appointment_time', 'appointmentTime', l.appointmentTime);
   put('notes', 'notes', l.notes);
+  put('next_action_text', 'nextActionText', l.nextActionText);
+  put('next_action_due', 'nextActionDue', l.nextActionDue);
   put('source', 'source', l.source);
   put('attachments', 'attachments', l.attachments);
   put('property_specs', 'propertySpecs', l.propertySpecs);
@@ -69,6 +71,9 @@ export function fromRow(r: Row): Lead {
   set('targetMoveDate', opt(r.target_move_date));
   set('appointmentDate', opt<string>(r.appointment_date));
   set('appointmentTime', opt<string>(r.appointment_time));
+  set('nextActionText', opt<string>(r.next_action_text));
+  const due = opt<string>(r.next_action_due);
+  set('nextActionDue', due ? due.slice(0, 10) : undefined);
   const attachments = opt<string[]>(r.attachments);
   set('attachments', attachments && attachments.length > 0 ? attachments : undefined);
   set('propertySpecs', opt(r.property_specs));

@@ -108,3 +108,55 @@ describe('useLeadStore', () => {
     }
   });
 });
+
+describe('próxima acción (H-056)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useLeadStore.setState({
+      leads: [{ id: 'l1', fullName: 'Ana', email: '', phone: '', operationInterest: 'compra', status: 'nuevo', notes: [], source: 'formulario_contacto', createdAt: '2026-01-01' }],
+    });
+  });
+
+  it('guarda la acción y la fecha, y las deja en el almacenamiento', () => {
+    expect(useLeadStore.getState().setNextAction('l1', ' Llamar para confirmar visita ', '2026-11-10')).toBe(true);
+    const l = useLeadStore.getState().leads[0];
+    expect(l.nextActionText).toBe('Llamar para confirmar visita');
+    expect(l.nextActionDue).toBe('2026-11-10');
+    expect(JSON.stringify(JSON.parse(localStorage.getItem('urbe_leads') ?? '[]'))).toContain('Llamar para confirmar visita');
+  });
+
+  it('rechaza una acción vacía o una fecha inválida sin cambiar nada', () => {
+    expect(useLeadStore.getState().setNextAction('l1', '   ', '2026-11-10')).toBe(false);
+    expect(useLeadStore.getState().setNextAction('l1', 'Llamar', '2026-13-40')).toBe(false);
+    expect(useLeadStore.getState().leads[0].nextActionText).toBeUndefined();
+  });
+
+  it('al cumplirla borra la acción y deja una nota con la fecha', () => {
+    useLeadStore.getState().setNextAction('l1', 'Llamar', '2026-11-10');
+    useLeadStore.getState().completeNextAction('l1');
+    const l = useLeadStore.getState().leads[0];
+    expect(l.nextActionText).toBeUndefined();
+    expect(l.nextActionDue).toBeUndefined();
+    expect(l.notes).toHaveLength(1);
+    expect(l.notes[0]).toMatch(/^Hecho: Llamar \(\d{4}-\d{2}-\d{2}\)$/);
+  });
+});
+
+describe('cumplir la acción con repositorio remoto (H-056)', () => {
+  it('limpia la acción antes de agregar la nota atómica', async () => {
+    const { setLeadRepository } = await import('../services/leadRepository');
+    const calls: string[] = [];
+    setLeadRepository({
+      mode: 'remote', newId: () => 'n', list: async () => [], create: async () => {}, remove: async () => {},
+      update: async () => { calls.push('update'); },
+      appendNote: async () => { calls.push('appendNote'); },
+    });
+    useLeadStore.setState({
+      leads: [{ id: 'l1', fullName: 'Ana', email: '', phone: '', operationInterest: 'compra', status: 'nuevo', notes: [], source: 'formulario_contacto', createdAt: '2026-01-01', nextActionText: 'Llamar', nextActionDue: '2026-11-10' }],
+    });
+    useLeadStore.getState().completeNextAction('l1');
+    await new Promise((r) => setTimeout(r, 0));
+    setLeadRepository(null);
+    expect(calls).toEqual(['update', 'appendNote']);
+  });
+});

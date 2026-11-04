@@ -3,6 +3,7 @@ import { Lead, LeadStatus } from '../types/lead';
 import { webhookService } from '../../captacion/services/webhookService';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { getLeadRepository } from '../services/leadRepository';
+import { isValidDate, localToday } from '../services/leadTasks';
 
 interface LeadStore {
   leads: Lead[];
@@ -12,6 +13,10 @@ interface LeadStore {
   addLead: (lead: Omit<Lead, 'id' | 'createdAt'>) => string;
   updateLeadStatus: (id: string, status: LeadStatus) => void;
   addNoteToLead: (id: string, note: string) => void;
+  // Próxima acción del contacto (H-056). Devuelve false si falta el texto o la fecha no es válida.
+  setNextAction: (id: string, text: string, due: string) => boolean;
+  // Da por cumplida la acción: la borra y deja una nota con la fecha.
+  completeNextAction: (id: string) => void;
   setSelectedLead: (lead: Lead | null) => void;
   deleteLead: (id: string) => void;
   // Deja el vínculo entre un lead de propietario y la propiedad en borrador creada a partir de él.
@@ -151,6 +156,36 @@ export const useLeadStore = create<LeadStore>((set, get) => {
       warnOnFail(
         repo.appendNote ? repo.appendNote(id, note) : repo.update(id, { notes }, updated),
         'guardar la nota del lead',
+      );
+    },
+
+    setNextAction: (id, text, due) => {
+      const clean = text.trim();
+      if (!clean || !isValidDate(due) || !get().leads.some((l) => l.id === id)) return false;
+      const updated = get().leads.map((l) => (l.id === id ? { ...l, nextActionText: clean, nextActionDue: due } : l));
+      set({ leads: updated });
+      warnOnFail(getLeadRepository().update(id, { nextActionText: clean, nextActionDue: due }, updated), 'guardar la próxima acción');
+      return true;
+    },
+
+    completeNextAction: (id) => {
+      const lead = get().leads.find((l) => l.id === id);
+      if (!lead || !lead.nextActionText) return;
+      const note = `Hecho: ${lead.nextActionText} (${localToday()})`;
+      const notes = [...lead.notes, note];
+      const updated = get().leads.map((l) =>
+        l.id === id ? { ...l, notes, nextActionText: undefined, nextActionDue: undefined } : l,
+      );
+      set({ leads: updated });
+      const repo = getLeadRepository();
+      const cleared = { nextActionText: undefined, nextActionDue: undefined };
+      // Con la base, primero se limpia la acción y después se agrega la nota (atómica): si algo falla,
+      // lo peor es una nota que falta, nunca una acción "fantasma" que reaparece o una nota duplicada.
+      warnOnFail(
+        repo.appendNote
+          ? repo.update(id, cleared, updated).then(() => repo.appendNote!(id, note))
+          : repo.update(id, { notes, ...cleared }, updated),
+        'cumplir la próxima acción',
       );
     },
 

@@ -61,7 +61,7 @@ describe('LeadsTab (CRM)', () => {
 
     it('cambiar el estado desde la tarjeta mueve el lead en la tienda', () => {
       render(<LeadsTab />);
-      const tarjeta = screen.getAllByText('Ana Rojas')[0].closest('.cursor-pointer') as HTMLElement;
+      const tarjeta = screen.getAllByText('Ana Rojas').at(-1)!.closest('.cursor-pointer') as HTMLElement;
       fireEvent.change(within(tarjeta).getByRole('combobox'), { target: { value: 'en_negociacion' } });
       expect(useLeadStore.getState().leads.find((l) => l.id === 'a')?.status).toBe('en_negociacion');
     });

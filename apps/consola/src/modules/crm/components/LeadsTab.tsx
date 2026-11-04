@@ -23,6 +23,7 @@ import { useCan } from '../../../core/platform/useEntitlementsStore';
 import { downloadFile, exportFileName, leadsToCsv } from '../../../core/export/dataExport';
 import { displayEmail } from '../services/leadEmail';
 import { sourceLabel } from '../services/leadSource';
+import { ActionBadge, NextActionEditor, TodayPanel } from './NextAction';
 
 export const LeadsTab: React.FC = () => {
   const { leads, updateLeadStatus, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
@@ -103,6 +104,8 @@ export const LeadsTab: React.FC = () => {
     <>
       <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-slate-100/80 flex flex-col space-y-4">
         
+        <TodayPanel leads={leads} onOpen={setSelectedLead} />
+
         {/* Header info & Export Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div>
@@ -415,6 +418,8 @@ export const LeadsTab: React.FC = () => {
                             🎯 {lead.propertyTitle || 'Consulta General'}
                           </p>
 
+                          <ActionBadge lead={lead} />
+
                           {lead.attachments && lead.attachments.length > 0 && (
                             <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 w-fit">
                               <Paperclip className="w-3 h-3" />
@@ -567,11 +572,13 @@ export const LeadsTab: React.FC = () => {
               </div>
             )}
 
+            <NextActionEditor leadId={selectedLead.id} />
+
             {/* Notes Log */}
             <div>
               <h4 className="text-xs font-bold text-slate-800 mb-1.5">Bitácora / Historial de Notas</h4>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 max-h-28 overflow-y-auto space-y-1.5 text-xs text-slate-700">
-                {selectedLead.notes.map((n, i) => (
+                {(leads.find((l) => l.id === selectedLead.id)?.notes ?? selectedLead.notes).map((n, i) => (
                   <p key={i} className="border-b border-slate-100 pb-1 last:border-none">
                     • {n}
                   </p>
