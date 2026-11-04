@@ -8,8 +8,11 @@ const ESPERA_MS = 5000;
 // ningún visitante llama a la fuente. Si no responde, el sitio sigue sin esa tasa en vez de usar un valor viejo escrito a mano.
 export async function getTasas(marketId: string): Promise<LiveRates> {
   try {
-    return await fetchLiveRates(getMarketPack(marketId), (url) =>
-      fetch(url, { next: { revalidate: UNA_HORA }, signal: AbortSignal.timeout(ESPERA_MS) }),
+    return await fetchLiveRates(
+      getMarketPack(marketId),
+      (url) => fetch(url, { next: { revalidate: UNA_HORA }, signal: AbortSignal.timeout(ESPERA_MS) }),
+      new Date(),
+      (moneda, motivo) => console.warn(`[sitio] Sin tasa de ${moneda}: ${motivo}`),
     );
   } catch {
     console.warn('[sitio] No se pudieron leer las tasas del día');
