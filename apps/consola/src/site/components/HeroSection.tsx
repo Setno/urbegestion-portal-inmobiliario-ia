@@ -37,19 +37,25 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenValuation }) => 
       
       {/* Background Video / Ambient Media with Contrast Gradients */}
       <div className="absolute inset-0 z-0">
-        <video 
-          autoPlay 
-          muted 
-          loop 
-          playsInline 
-          className="w-full h-full object-cover scale-105 filter brightness-70"
-          poster="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=1920"
-        >
-          <source 
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260503_144509_89e2d612-8af2-45c3-90f4-4831bc60715d.mp4" 
-            type="video/mp4" 
-          />
-        </video>
+        {/* Fondo de la corredora: su foto y su video, o un fondo neutro (H-049); nada viene de servidores ajenos */}
+        {hero.imageUrl ? (
+          <img src={hero.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover filter brightness-70" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-urbe-primary to-slate-900" />
+        )}
+        {hero.videoUrl && (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster={hero.imageUrl || undefined}
+            className="absolute inset-0 w-full h-full object-cover scale-105 filter brightness-70 motion-reduce:hidden"
+          >
+            <source src={hero.videoUrl} />
+          </video>
+        )}
         {/* Layered Gradients */}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/75 to-slate-950/90" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/50" />

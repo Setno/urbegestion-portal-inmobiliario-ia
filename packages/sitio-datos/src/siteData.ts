@@ -69,6 +69,9 @@ export interface SiteContent {
     services: string;
     credential: string;
     verifiedLabel: string;
+    // Foto de fondo y video opcional de la portada: de la corredora, nunca los de otra (H-049). Vacíos = fondo neutro.
+    imageUrl: string;
+    videoUrl: string;
   };
   about: {
     eyebrow: string;
@@ -143,6 +146,8 @@ export const NEUTRAL_CONTENT: SiteContent = {
     services: 'Venta y arriendo de propiedades.',
     credential: '',
     verifiedLabel: '',
+    imageUrl: '',
+    videoUrl: '',
   },
   about: { eyebrow: '', title: '', paragraphs: [], credential: '', highlights: [] },
   testimonials: { eyebrow: '', title: '', subtitle: '', items: [] },
@@ -280,6 +285,8 @@ function parseContent(raw: unknown): SiteContent {
       services: text(hero.services, heroStored ? '' : NEUTRAL_CONTENT.hero.services),
       credential: text(hero.credential),
       verifiedLabel: text(hero.verifiedLabel),
+      imageUrl: safeUrl(hero.imageUrl),
+      videoUrl: safeUrl(hero.videoUrl),
     },
     about: {
       eyebrow: text(about.eyebrow),

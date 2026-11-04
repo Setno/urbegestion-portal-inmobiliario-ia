@@ -95,6 +95,21 @@ export const SiteTextsSection: React.FC = () => {
     }
   };
 
+  const uploadHeroPhoto = async (file: File) => {
+    setMessage(null);
+    setUploads((n) => n + 1);
+    try {
+      const url = await uploadOriginalIfRemote(file);
+      if (url) setHero('imageUrl', url);
+      else setMessage({ ok: false, text: 'Sin conexión a la base de datos, pega la dirección de la foto.' });
+    } catch (err) {
+      console.warn('[sitio] No se pudo subir la foto de portada:', err);
+      setMessage({ ok: false, text: SAVE_ERRORS.foto });
+    } finally {
+      setUploads((n) => n - 1);
+    }
+  };
+
   const handleSave = async () => {
     setMessage(null);
     setSaving(true);
@@ -136,6 +151,27 @@ export const SiteTextsSection: React.FC = () => {
         <Field label="Servicios" value={content.hero.services} onChange={(v) => setHero('services', v)} placeholder="Venta y arriendo de propiedades." />
         <Field label="Credencial" value={content.hero.credential} onChange={(v) => setHero('credential', v)} />
         <Field label="Sello de verificación" value={content.hero.verifiedLabel} onChange={(v) => setHero('verifiedLabel', v)} />
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+          <div className="flex-1">
+            <Field label="Foto de portada (dirección)" value={content.hero.imageUrl} onChange={(v) => setHero('imageUrl', v)} placeholder="https://… (opcional)" />
+          </div>
+          <label className="shrink-0 text-[11px] font-bold text-urbe-primary cursor-pointer pb-2">
+            Subir foto de portada
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void uploadHeroPhoto(file);
+              }}
+            />
+          </label>
+        </div>
+        <Field label="Video de portada (dirección, opcional)" value={content.hero.videoUrl} onChange={(v) => setHero('videoUrl', v)} placeholder="https://…/video.mp4" />
+        <p className="text-[11px] text-slate-500 -mt-1">
+          Sin foto ni video se ve un fondo con los colores de tu marca. El video solo se reproduce en computador y sin sonido; usa uno tuyo o con licencia. En el celular se ve la foto.
+        </p>
       </Block>
 
       <Block title="Sobre nosotros" help="Quiénes son y por qué elegirlos. Separa los párrafos con una línea en blanco.">

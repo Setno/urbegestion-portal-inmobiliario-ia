@@ -49,6 +49,17 @@ describe('SiteTextsSection (editor de textos del sitio, H-032)', () => {
     expect(await screen.findByText(/Textos guardados/)).toBeTruthy();
   });
 
+  it('guarda la foto y el video de la portada (H-049)', async () => {
+    render(<SiteTextsSection />);
+    fireEvent.change(screen.getByLabelText('Foto de portada (dirección)'), { target: { value: 'https://a.cl/portada.jpg' } });
+    fireEvent.change(screen.getByLabelText('Video de portada (dirección, opcional)'), { target: { value: 'https://a.cl/portada.mp4' } });
+    guardar();
+    await waitFor(() => expect(saveContent).toHaveBeenCalled());
+    const enviado = saveContent.mock.calls[0][0] as SiteContent;
+    expect(enviado.hero.imageUrl).toBe('https://a.cl/portada.jpg');
+    expect(enviado.hero.videoUrl).toBe('https://a.cl/portada.mp4');
+  });
+
   it('agrega y quita testimonios', async () => {
     render(<SiteTextsSection />);
     fireEvent.click(screen.getByRole('button', { name: /Agregar testimonio/ }));

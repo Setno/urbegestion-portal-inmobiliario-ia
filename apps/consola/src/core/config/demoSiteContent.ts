@@ -9,6 +9,8 @@ export const demoSiteContent: SiteContent = {
     services: 'Venta, arriendo, administración y tasación profesional.',
     credential: 'Ex-Colaboradora ACOP',
     verifiedLabel: 'Verificada',
+    imageUrl: '',
+    videoUrl: '',
   },
   about: {
     eyebrow: 'Liderazgo & Confianza Inmobiliaria',
