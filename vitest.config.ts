@@ -16,7 +16,7 @@ export default defineConfig({
         test: {
           name: 'paquetes',
           environment: 'jsdom',
-          include: ['packages/*/src/**/*.test.ts'],
+          include: ['packages/*/src/**/*.test.ts', 'supabase/functions/**/*.test.ts'],
         },
       },
     ],

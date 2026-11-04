@@ -18,7 +18,13 @@ interface LeadStore {
   linkProperty: (id: string, propertyId: string) => void;
   // Trae los leads de la base (solo con Supabase; con almacenamiento local no hace nada).
   load: () => Promise<void>;
+  // Un lead que ya está en la base y llegó en vivo (H-054): se muestra arriba sin volver a guardarlo.
+  // Devuelve true si el lead era nuevo en la lista.
+  receiveLead: (lead: Lead) => boolean;
 }
+
+// Leads recibidos en vivo (H-054): si llegan mientras load() lee la lista, se conservan.
+const liveLeadIds = new Set<string>();
 
 const initialLeads: Lead[] = [
   {
@@ -164,12 +170,23 @@ export const useLeadStore = create<LeadStore>((set, get) => {
       warnOnFail(getLeadRepository().update(id, { convertedPropertyId: propertyId }, updated), 'vincular la propiedad al lead');
     },
 
+    receiveLead: (lead) => {
+      if (get().leads.some((l) => l.id === lead.id)) return false;
+      liveLeadIds.add(lead.id);
+      set({ leads: [lead, ...get().leads] });
+      return true;
+    },
+
     load: async () => {
       const repo = getLeadRepository();
       if (repo.mode !== 'remote') return;
       try {
         const leads = await repo.list();
-        if (leads) set({ leads });
+        // Un lead que llegó en vivo mientras se leía la lista no se pierde
+        if (leads) {
+          const ids = new Set(leads.map((l) => l.id));
+          set({ leads: [...get().leads.filter((l) => liveLeadIds.has(l.id) && !ids.has(l.id)), ...leads] });
+        }
       } catch (err) {
         console.warn('[useLeadStore] No se pudieron cargar los leads:', err);
       }
