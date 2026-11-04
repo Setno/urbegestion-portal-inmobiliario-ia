@@ -71,6 +71,19 @@ describe('parseSiteData (lo que llega de la base nunca rompe el sitio)', () => {
     expect(site?.content.footer.coverageAreas).toEqual(['Ñuñoa']);
   });
 
+  it('la foto y el video de la portada son direcciones web normales; cualquier otra cosa queda vacía (H-049)', () => {
+    const con = parseSiteData({ tenantName: 'Casa Sur', content: { hero: { imageUrl: 'https://a.cl/p.jpg', videoUrl: 'http://a.cl/p.mp4' } } });
+    expect(con?.content.hero.imageUrl).toBe('https://a.cl/p.jpg');
+    expect(con?.content.hero.videoUrl).toBe('http://a.cl/p.mp4');
+    const mala = parseSiteData({ tenantName: 'Casa Sur', content: { hero: { imageUrl: 'javascript:alert(1)', videoUrl: 'data:video/mp4;base64,AAAA' } } });
+    expect(mala?.content.hero.imageUrl).toBe('');
+    expect(mala?.content.hero.videoUrl).toBe('');
+    const sin = parseSiteData({ tenantName: 'Casa Sur' });
+    expect(sin?.content.hero.imageUrl).toBe('');
+    expect(sin?.content.hero.videoUrl).toBe('');
+  });
+
+
   it('una plantilla sin nombre válido usa la predeterminada', () => {
     expect(parseSiteData({ tenantName: 'X', templateId: 7 })?.templateId).toBe(DEFAULT_TEMPLATE_ID);
     expect(parseSiteData({ tenantName: 'X', templateId: 'moderna' })?.templateId).toBe('moderna');

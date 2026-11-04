@@ -1,6 +1,7 @@
 import { ArrowRight, Award, ChevronDown, Instagram, Phone, Search } from 'lucide-react';
 import { instagramHandle, type SiteBrand, type SiteContent } from '@portal/sitio-datos';
 import { enlaceTelefono } from './enlaces';
+import { VideoPortada } from './VideoPortada';
 
 interface PortadaProps {
   brand: SiteBrand;
@@ -22,20 +23,14 @@ export function Portada({ brand, hero, conTasacion = false }: PortadaProps) {
 
   return (
     <section id="inicio" className="relative min-h-[85vh] lg:min-h-screen flex items-center justify-center overflow-hidden pt-16 sm:pt-20">
-      <div className="absolute inset-0 z-0">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover scale-105 brightness-75 motion-reduce:hidden"
-          poster="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=1920"
-        >
-          <source
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260503_144509_89e2d612-8af2-45c3-90f4-4831bc60715d.mp4"
-            type="video/mp4"
-          />
-        </video>
+      <div className="absolute inset-0 z-0 bg-slate-950">
+        {/* Fondo de la corredora: su foto, o un fondo neutro con sus colores. Nada viene de servidores ajenos (H-049). */}
+        {hero.imageUrl ? (
+          <img src={hero.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover brightness-75" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-urbe-primary to-slate-900" />
+        )}
+        {hero.videoUrl && <VideoPortada src={hero.videoUrl} poster={hero.imageUrl} />}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/75 to-slate-950/90" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/50" />
       </div>
