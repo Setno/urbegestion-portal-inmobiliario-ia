@@ -10,6 +10,7 @@ import Page, { generateMetadata } from './page';
 vi.mock('../../lib/getSite', () => ({ getSite: vi.fn() }));
 vi.mock('../../lib/getCatalogo', () => ({ getCatalogo: vi.fn() }));
 vi.mock('../../lib/getFunciones', () => ({ getFunciones: vi.fn() }));
+vi.mock('../../lib/getTasas', () => ({ getTasas: vi.fn().mockResolvedValue({ rates: {}, readings: [] }) }));
 vi.mock('../../lib/direccion', () => ({ resolverVisita: vi.fn() }));
 
 const site: SiteData = { templateId: 'clasica', brand: neutralBrand('Casa Sur'), theme: DEFAULT_THEME, layout: DEFAULT_LAYOUT, content: NEUTRAL_CONTENT };

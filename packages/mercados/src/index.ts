@@ -1,7 +1,7 @@
 import type { LocationArea, LocationZone, MarketPack } from './types';
 import { CHILE } from './cl';
 
-export type { LocationArea, LocationZone, MarketPack } from './types';
+export type { LocationArea, LocationZone, MarketPack, RateFeed, RateReading } from './types';
 
 export const DEFAULT_MARKET_ID = 'cl';
 

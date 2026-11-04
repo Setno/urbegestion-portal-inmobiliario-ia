@@ -1,5 +1,6 @@
 import { hasAbout, hasTestimonials, type SiteData } from '@portal/sitio-datos';
 import type { PublicCatalog } from '@portal/sitio-datos/propiedades';
+import type { LiveRates } from '@portal/dinero/tasas';
 import type { EnviarContactoChat } from '../lib/chat';
 import type { EnviarTasacion } from '../lib/tasacion';
 import { AsistenteChat } from './clasica/AsistenteChat';
@@ -18,11 +19,13 @@ export function Clasica({
   catalogo,
   enviarTasacion,
   enviarContacto,
+  tasas,
 }: {
   site: SiteData;
   catalogo: PublicCatalog;
   enviarTasacion?: EnviarTasacion;
   enviarContacto?: EnviarContactoChat;
+  tasas?: LiveRates;
 }) {
   const { brand, layout, content } = site;
 
@@ -33,6 +36,7 @@ export function Clasica({
         propiedades={catalogo.propiedades}
         marketId={catalogo.marketId}
         conBuscador={layout.showSearchFilter}
+        tasas={tasas}
         contacto={{ whatsapp: brand.contact.whatsapp, whatsappMessage: brand.contact.whatsappMessage }}
       />
       {enviarTasacion && <SeccionTasacion brand={brand} enviarTasacion={enviarTasacion} />}

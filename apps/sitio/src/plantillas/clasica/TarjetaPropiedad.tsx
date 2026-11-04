@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Bath, Bed, Building, Car, Eye, MapPin, Maximize2, MessageCircle, Sparkles } from 'lucide-react';
-import { formatMoney } from '@portal/dinero';
+import { convertMoney, formatMoney, type CurrencyRates } from '@portal/dinero';
 import { getMarketPack } from '@portal/mercados';
 import type { PublicProperty } from '@portal/sitio-datos/propiedades';
 import { enlaceWhatsapp } from './enlaces';
@@ -26,9 +26,16 @@ interface TarjetaProps {
   propiedad: PublicProperty;
   marketId: string;
   contacto: ContactoTarjeta;
+  // Moneda en que se muestra el precio (la que eligió quien mira) y las tasas para convertir; sin ellas se ve como se publicó.
+  moneda?: string;
+  tasas?: CurrencyRates;
 }
 
-export function TarjetaPropiedad({ propiedad: p, marketId, contacto }: TarjetaProps) {
+export function TarjetaPropiedad({ propiedad: p, marketId, contacto, moneda, tasas = {} }: TarjetaProps) {
+  const pack = getMarketPack(marketId);
+  const publicado = { amount: p.priceAmount, currency: p.priceCurrency };
+  const visto = moneda ? convertMoney(publicado, moneda, pack, tasas) : publicado;
+  const convertido = visto.currency !== publicado.currency;
   const superficie = p.builtAreaM2 || p.totalAreaM2;
   const lugar = p.commune ? ` (${p.commune})` : '';
   const consulta = enlaceWhatsapp(contacto.whatsapp, `Hola, vi la propiedad "${p.title}"${lugar} y quiero más información.`);
@@ -81,8 +88,9 @@ export function TarjetaPropiedad({ propiedad: p, marketId, contacto }: TarjetaPr
 
         <div className="p-5">
           <span className="text-2xl font-black text-slate-900 block leading-tight tracking-tight mb-2">
-            {formatMoney({ amount: p.priceAmount, currency: p.priceCurrency }, getMarketPack(marketId))}
+            {convertido ? `≈ ${formatMoney(visto, pack)}` : formatMoney(publicado, pack)}
           </span>
+          {convertido && <span className="text-xs text-slate-500 block -mt-1 mb-2">Publicado en {formatMoney(publicado, pack)}</span>}
           <h3 className="text-base font-bold text-slate-800 line-clamp-1 mb-2">
             <Link href={ficha} className="hover:text-urbe-primary transition-colors">{p.title}</Link>
           </h3>

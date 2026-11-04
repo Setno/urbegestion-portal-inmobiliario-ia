@@ -1,17 +1,17 @@
 # Avance hacia el MVP
 
-Actualizado: 2026-11-04 (tras H-049). Se actualiza al cerrar cada historia.
+Actualizado: 2026-11-04 (tras H-051). Se actualiza al cerrar cada historia.
 
-## Indicador: 65 %
+## Indicador: 66 %
 
-`██████░░░░` 102.2 de 156 puntos. Faltan 53.8 puntos, unos 29 días de trabajo como estimación gruesa.
+`██████░░░░` 103.8 de 156 puntos. Faltan 52.2 puntos, unos 29 días de trabajo como estimación gruesa.
 
 | Bloque | Avance | Puntos |
 | --- | --- | --- |
 | Base técnica: calidad, monorepo y datos en la nube | `██████████` 100 % | 29.0 de 29 |
 | Cuentas, corredoras, roles y planes | `█████████░` 92 % | 22.0 de 24 |
 | Catálogo, publicación y mercado Chile | `██████████` 100 % | 23.0 de 23 |
-| Sitio propio de cada corredora | `████████░░` 76 % | 25.8 de 34 |
+| Sitio propio de cada corredora | `████████░░` 81 % | 27.4 de 34 |
 | Captación y CRM que pide el Blueprint | `█░░░░░░░░░` 8 % | 2.4 de 32 |
 | Seguridad y salida a producción | `░░░░░░░░░░` 0 % | 0.0 de 14 |
 
@@ -29,7 +29,7 @@ Si se cuenta solo lo que hoy está anotado en el backlog, el avance sería 76 %.
 
 **Cuentas, corredoras, roles y planes:** H-043.3.
 
-**Sitio propio de cada corredora:** H-029, H-050, H-051. Al 80 % (hechas en código, falta unirlas a `main` o la prueba a mano desde el panel): H-027.1, H-028.4a, H-028.4b, H-028.4c, H-030, H-049, H-031, H-032 y H-048.
+**Sitio propio de cada corredora:** H-029, H-050. Al 80 % (hechas en código, falta unirlas a `main` o la prueba a mano desde el panel): H-027.1, H-028.4a, H-028.4b, H-028.4c, H-030, H-049, H-051, H-031, H-032 y H-048.
 
 **Captación y CRM que pide el Blueprint:** al 80 %: H-053 y H-054 (de H-054 faltan las claves de correo y Telegram). Pendientes: H-034, WhatsApp: la conversación entrante queda como lead (M+, sin historia aún), Consultas de portales por correo (M+, sin historia aún), Atribución: campaña y fuente en cada lead (S, sin historia aún), Contactos con línea de tiempo (M, sin historia aún), Pipelines por tipo de cliente (M+, sin historia aún), Tareas y recordatorios (M, sin historia aún), Agenda de visitas (M+, sin historia aún), Asignación de leads (M, sin historia aún), Reportes básicos (M, sin historia aún).
 

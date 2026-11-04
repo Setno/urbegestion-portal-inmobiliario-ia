@@ -20,6 +20,22 @@ export interface CurrencyDef {
   fractionDigits: number;
 }
 
+// Lo que una fuente pública entrega para una moneda: cuánto vale 1 unidad en la moneda base, y de qué día es.
+export interface RateReading {
+  value: number;
+  date: string; // AAAA-MM-DD
+}
+
+// De dónde se lee, sin que nadie la escriba a mano, el valor diario de una moneda que no es la base (en Chile, la UF).
+// Un mercado sin unidades de cuenta como la UF no declara ninguna.
+export interface RateFeed {
+  currency: string;
+  source: string; // se muestra al público
+  url: string;
+  // Devuelve null si la respuesta no sirve (formato distinto, valor imposible).
+  parse: (json: unknown, now: Date) => RateReading | null;
+}
+
 export interface MarketPack {
   id: string; // 'cl'
   name: string;
@@ -39,4 +55,6 @@ export interface MarketPack {
   // Sectores que se escriben distinto en la lista y en la ficha ("Colina (Chicureo)" frente a "Chicureo / Colina");
   // dos nombres que contengan la misma palabra clave cuentan como el mismo lugar.
   sectorKeywords: string[];
+  // Fuentes de tasas diarias de las monedas del mercado distintas de la base. Opcional: en Chile la UF; fuera de Chile no se usa.
+  rateFeeds?: RateFeed[];
 }
