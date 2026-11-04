@@ -107,3 +107,21 @@ describe('exportFileName', () => {
     expect(exportFileName('leads', 'csv', new Date('2026-11-01T12:00:00Z'))).toBe('corredora_leads_2026-11-01.csv');
   });
 });
+
+describe('leadsToCsv: atribución (H-058)', () => {
+  it('agrega fuente, medio y campaña, y "Directo" cuando no hay', () => {
+    const csv = sinBom(leadsToCsv([
+      lead({ attribution: { fuente: 'google', medio: 'cpc', campana: 'verano' } }),
+      lead({ id: 'l2' }),
+    ]));
+    const [cabecera, a, b] = csv.split('\r\n');
+    expect(cabecera).toContain('Campaña (utm)');
+    expect(a).toContain('google');
+    expect(a).toContain('verano');
+    expect(b).toContain('Directo');
+  });
+  it('una campaña que parece fórmula no se ejecuta en Excel', () => {
+    const csv = sinBom(leadsToCsv([lead({ attribution: { campana: '=HYPERLINK("x")' } })]));
+    expect(csv.split('\r\n')[1]).not.toMatch(/;=HYPERLINK/);
+  });
+});

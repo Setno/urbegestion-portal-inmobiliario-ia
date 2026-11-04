@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { limpiarHost } from './lib/host';
 import { esUuid } from './lib/uuid';
+import { aCookie, atribucionDeBusqueda, COOKIE_ATRIBUCION, DURACION_COOKIE_SEGUNDOS } from '@portal/sitio-datos/atribucion';
 
 const NO_DISPONIBLE = () => new NextResponse('Esta página no está disponible.', { status: 404 });
 
@@ -15,7 +16,20 @@ export function proxy(request: NextRequest) {
   if (ficha && !esUuid(ficha[1])) return NO_DISPONIBLE();
   const destino = request.nextUrl.clone();
   destino.pathname = pathname === '/' ? `/${host}` : `/${host}${pathname}`;
-  return NextResponse.rewrite(destino);
+  const respuesta = NextResponse.rewrite(destino);
+  // Si el enlace trae los parámetros utm de un anuncio, se recuerdan 30 días para saber de dónde vino el lead (H-058).
+  // La cookie solo lleva fuente, medio y campaña: ningún dato personal.
+  const atribucion = atribucionDeBusqueda(request.nextUrl.searchParams);
+  if (atribucion) {
+    respuesta.cookies.set(COOKIE_ATRIBUCION, aCookie(atribucion), {
+      maxAge: DURACION_COOKIE_SEGUNDOS,
+      path: '/',
+      sameSite: 'lax',
+      httpOnly: true,
+      secure: request.nextUrl.protocol === 'https:',
+    });
+  }
+  return respuesta;
 }
 
 // Todo menos los archivos internos de Next (scripts, estilos e imágenes del propio sitio).

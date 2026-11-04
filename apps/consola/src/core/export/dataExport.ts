@@ -24,13 +24,13 @@ export const leadsToCsv = (leads: Lead[]): string =>
       'ID', 'Nombre', 'Email', 'Teléfono', 'Propiedad de interés', 'Operación', 'Estado', 'Origen',
       'Presupuesto', 'Moneda', 'Fecha de visita', 'Hora de visita', 'Cantidad de notas',
       'Propiedad creada desde el lead', 'Aviso de privacidad (versión)', 'Aviso de privacidad (fecha)',
-      'Aviso de privacidad (finalidad)', 'Fecha de registro',
+      'Aviso de privacidad (finalidad)', 'Fecha de registro', 'Fuente (utm)', 'Medio (utm)', 'Campaña (utm)',
     ],
     leads.map((l) => [
       l.id, l.fullName, realEmail(l.email), l.phone, l.propertyTitle, l.operationInterest, l.status, l.source,
       l.budgetAmount, l.budgetCurrency, l.appointmentDate, l.appointmentTime, l.notes.length,
       l.convertedPropertyId, l.privacyNotice?.version, l.privacyNotice?.shownAt, l.privacyNotice?.purpose,
-      l.createdAt,
+      l.createdAt, l.attribution?.fuente ?? 'Directo', l.attribution?.medio, l.attribution?.campana,
     ]),
   );
 

@@ -12,3 +12,6 @@ export const sourceLabel = (source: string): string => {
   const texto = source.replace(/_/g, ' ').trim();
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 };
+
+// De dónde llegó el contacto según los parámetros utm del enlace: "google / cpc / verano" o "Directo" (H-058).
+export { describirAtribucion as attributionLabel } from '@portal/sitio-datos/atribucion';

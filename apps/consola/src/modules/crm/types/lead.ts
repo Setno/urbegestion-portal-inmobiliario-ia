@@ -27,6 +27,13 @@ export interface LeadPrivacyNotice {
   purpose: string;
 }
 
+// De qué anuncio o enlace llegó el contacto (parámetros utm del enlace; H-058).
+export interface LeadAttribution {
+  fuente?: string;
+  medio?: string;
+  campana?: string;
+}
+
 export interface Lead {
   id: string;
   fullName: string;
@@ -55,6 +62,7 @@ export interface Lead {
     bedrooms?: string;
   };
   privacyNotice?: LeadPrivacyNotice;
+  attribution?: LeadAttribution; // sin valor = llegó directo
   convertedPropertyId?: string; // propiedad en borrador creada a partir de este lead de propietario
   createdAt: string;
 }

@@ -231,3 +231,21 @@ describe('enviarSolicitudVisita', () => {
     expect(await enviarSolicitudVisita(ID, datos(), null, AHORA)).toEqual({ ok: false, error: 'conexion' });
   });
 });
+
+describe('enviarSolicitudVisita: atribución (H-058)', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('guarda la fuente, el medio y la campaña con el lead', async () => {
+    const { insertados } = baseFalsa();
+    await enviarSolicitudVisita(ID, datos(), env, AHORA, undefined, { fuente: 'google', medio: 'cpc', campana: 'verano' });
+    expect(insertados[0].attribution).toEqual({ fuente: 'google', medio: 'cpc', campana: 'verano' });
+  });
+
+  it('sin atribución no envía la columna, y limpia lo que traiga de más', async () => {
+    const { insertados } = baseFalsa();
+    await enviarSolicitudVisita(ID, datos(), env, AHORA, undefined, null);
+    expect(insertados[0]).not.toHaveProperty('attribution');
+    await enviarSolicitudVisita(ID, datos(), env, AHORA, undefined, { fuente: '<b>x</b>', admin: 'si' } as never);
+    expect(insertados[1].attribution).toEqual({ fuente: 'bx/b' });
+  });
+});

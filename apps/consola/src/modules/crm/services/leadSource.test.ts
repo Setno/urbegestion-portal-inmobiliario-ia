@@ -14,3 +14,13 @@ describe('origen de un lead', () => {
     expect(sourceLabel('')).toBe('Sin origen');
   });
 });
+
+describe('attributionLabel (H-058)', () => {
+  it('une fuente, medio y campaña, o dice Directo', async () => {
+    const { attributionLabel } = await import('./leadSource');
+    expect(attributionLabel({ fuente: 'google', medio: 'cpc', campana: 'verano' })).toBe('google / cpc / verano');
+    expect(attributionLabel({ campana: 'remate' })).toBe('remate');
+    expect(attributionLabel(undefined)).toBe('Directo');
+    expect(attributionLabel({})).toBe('Directo');
+  });
+});

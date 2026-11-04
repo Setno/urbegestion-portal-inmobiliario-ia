@@ -1,4 +1,5 @@
 import { buildPrivacyNotice } from '@portal/sitio-datos/privacidad';
+import { conAtribucion, type Atribucion } from '@portal/sitio-datos/atribucion';
 import { getSite, type SiteEnv } from './getSite';
 import { getPropiedad } from './getPropiedad';
 import { HORARIOS, type DatosVisita, type ErrorVisita, type ResultadoVisita } from './visita';
@@ -103,6 +104,7 @@ export async function enviarSolicitudVisita(
   env: SiteEnv | null,
   ahora: Date = new Date(),
   webhookUrl: string | undefined = process.env.GHL_WEBHOOK_URL,
+  atribucion: Atribucion | null = null,
 ): Promise<ResultadoVisita> {
   // Lo que llega del navegador puede traer cualquier cosa, aunque el formulario solo envíe texto.
   const datos: DatosVisita = {
@@ -141,6 +143,7 @@ export async function enviarSolicitudVisita(
       notes: [conCita ? `Visita solicitada desde el sitio para el ${datos.fecha}${preferencia}` : `Consulta desde el sitio${preferencia}`],
       source: 'ficha_propiedad',
       privacy_notice: buildPrivacyNotice(ahora),
+      ...conAtribucion(atribucion),
     };
     const response = await fetch(`${env.url}/rest/v1/leads`, {
       method: 'POST',

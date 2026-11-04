@@ -1,4 +1,5 @@
 import { buildPrivacyNotice } from '@portal/sitio-datos/privacidad';
+import { conAtribucion, type Atribucion } from '@portal/sitio-datos/atribucion';
 import type { SiteEnv } from './getSite';
 import { avisarWebhook, CORREO, TELEFONO } from './solicitudVisita';
 import { OPERACIONES_TASACION, TIPOS_TASACION, type DatosTasacion, type ErrorTasacion, type ResultadoTasacion } from './tasacion';
@@ -38,6 +39,7 @@ export async function enviarSolicitudTasacion(
   env: SiteEnv | null,
   ahora: Date = new Date(),
   webhookUrl: string | undefined = process.env.GHL_WEBHOOK_URL,
+  atribucion: Atribucion | null = null,
 ): Promise<ResultadoTasacion> {
   // Lo que llega del navegador puede traer cualquier cosa, aunque el formulario solo envíe texto.
   const datos = {
@@ -78,6 +80,7 @@ export async function enviarSolicitudTasacion(
       ],
       source: 'captacion_propietarios',
       privacy_notice: buildPrivacyNotice(ahora),
+      ...conAtribucion(atribucion),
     };
     const response = await fetch(`${env.url}/rest/v1/leads`, {
       method: 'POST',

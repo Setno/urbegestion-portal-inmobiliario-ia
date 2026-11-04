@@ -1,4 +1,5 @@
 import { buildPrivacyNotice } from '@portal/sitio-datos/privacidad';
+import { conAtribucion, type Atribucion } from '@portal/sitio-datos/atribucion';
 import type { SiteEnv } from './getSite';
 import type { DatosChat, ErrorChat, ResultadoChat } from './chat';
 import { avisarWebhook, validarSolicitud } from './solicitudVisita';
@@ -22,6 +23,7 @@ export async function enviarSolicitudChat(
   env: SiteEnv | null,
   ahora: Date = new Date(),
   webhookUrl: string | undefined = process.env.GHL_WEBHOOK_URL,
+  atribucion: Atribucion | null = null,
 ): Promise<ResultadoChat> {
   // Lo que llega del navegador puede traer cualquier cosa, aunque el chat solo envíe texto.
   const datos: DatosChat = {
@@ -59,6 +61,7 @@ export async function enviarSolicitudChat(
       ],
       source: 'asistente_ia',
       privacy_notice: buildPrivacyNotice(ahora),
+      ...conAtribucion(atribucion),
     };
     const response = await fetch(`${env.url}/rest/v1/leads`, {
       method: 'POST',

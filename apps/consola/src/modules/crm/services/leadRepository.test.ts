@@ -216,3 +216,44 @@ describe('leadRepository remoto: próxima acción (H-056)', () => {
     expect(patch.next_action_due).toBeNull();
   });
 });
+
+describe('leadRepository remoto: atribución (H-058)', () => {
+  const attribution = { fuente: 'google', medio: 'cpc', campana: 'verano' };
+  it('guarda y devuelve la atribución del lead', async () => {
+    const fake = createFakeSupabase();
+    await createRemoteLeadRepository(fake.client, 'tenant-1').create({ ...lead, attribution }, []);
+    expect((fake.argsOf(0, 'insert') as Array<Record<string, unknown>>)[0].attribution).toEqual(attribution);
+    const lectura = createFakeSupabase({
+      data: [{ id: 'l1', full_name: 'Ana', email: '', phone: '', operation_interest: 'compra', status: 'nuevo', notes: [], source: 'ficha_propiedad', created_at: '2026-11-01T10:00:00Z', attribution }],
+      error: null,
+    });
+    expect((await createRemoteLeadRepository(lectura.client, 't').list())![0].attribution).toEqual(attribution);
+  });
+  it('un lead sin atribución no la trae', async () => {
+    const lectura = createFakeSupabase({
+      data: [{ id: 'l1', full_name: 'Ana', email: '', phone: '', operation_interest: 'compra', status: 'nuevo', notes: [], source: 'ficha_propiedad', created_at: '2026-11-01T10:00:00Z', attribution: null }],
+      error: null,
+    });
+    expect((await createRemoteLeadRepository(lectura.client, 't').list())![0]).not.toHaveProperty('attribution');
+  });
+});
+
+describe('leadRepository remoto: atribución mal formada (H-058)', () => {
+  it('lo que no tenga la forma esperada se limpia al leer', async () => {
+    const lectura = createFakeSupabase({
+      data: [{ id: 'l1', full_name: 'Ana', email: '', phone: '', operation_interest: 'compra', status: 'nuevo', notes: [], source: 'ficha_propiedad', created_at: '2026-11-01T10:00:00Z', attribution: { fuente: '<b>x</b>', campana: { a: 1 }, extra: 'y' } }],
+      error: null,
+    });
+    expect((await createRemoteLeadRepository(lectura.client, 't').list())![0].attribution).toEqual({ fuente: 'bx/b' });
+  });
+});
+
+describe('leadRepository remoto: hora de visita vacía (H-059)', () => {
+  it('al quitar la hora envía null para que la anterior no reaparezca', async () => {
+    const fake = createFakeSupabase({ data: [{ id: 'x' }], error: null });
+    await createRemoteLeadRepository(fake.client, 't').update('x', { appointmentDate: '2026-12-05', appointmentTime: undefined }, []);
+    const patch = fake.argsOf(0, 'update')[0] as Record<string, unknown>;
+    expect(patch.appointment_date).toBe('2026-12-05');
+    expect(patch.appointment_time).toBeNull();
+  });
+});

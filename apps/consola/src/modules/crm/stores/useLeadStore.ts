@@ -4,6 +4,7 @@ import { webhookService } from '../../captacion/services/webhookService';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { getLeadRepository } from '../services/leadRepository';
 import { isValidDate, localToday } from '../services/leadTasks';
+import { isValidTime } from '../services/leadAgenda';
 import { statusLabel } from '../services/leadTimeline';
 import { useTimelineStore } from './useTimelineStore';
 
@@ -17,6 +18,8 @@ interface LeadStore {
   addNoteToLead: (id: string, note: string) => void;
   // Próxima acción del contacto (H-056). Devuelve false si falta el texto o la fecha no es válida.
   setNextAction: (id: string, text: string, due: string) => boolean;
+  // Cambia la fecha y hora de la visita (H-059). La hora puede ir vacía. Devuelve false si los datos no son válidos.
+  rescheduleVisit: (id: string, date: string, time: string) => boolean;
   // Da por cumplida la acción: la borra y deja una nota con la fecha.
   completeNextAction: (id: string) => void;
   setSelectedLead: (lead: Lead | null) => void;
@@ -176,6 +179,22 @@ export const useLeadStore = create<LeadStore>((set, get) => {
       const updated = get().leads.map((l) => (l.id === id ? { ...l, nextActionText: clean, nextActionDue: due } : l));
       set({ leads: updated });
       warnOnFail(getLeadRepository().update(id, { nextActionText: clean, nextActionDue: due }, updated), 'guardar la próxima acción');
+      return true;
+    },
+
+    rescheduleVisit: (id, date, time) => {
+      const lead = get().leads.find((l) => l.id === id);
+      if (!lead || !isValidDate(date) || (time !== '' && !isValidTime(time))) return false;
+      // Sin cambios no se escribe nada ni se ensucia el historial.
+      if (lead.appointmentDate === date && (lead.appointmentTime ?? '') === time) return true;
+      const patch: Partial<Lead> = { appointmentDate: date, appointmentTime: time || undefined, status: lead.status === 'nuevo' || lead.status === 'contactado' ? 'visita_agendada' : lead.status };
+      const updated = get().leads.map((l) => (l.id === id ? { ...l, ...patch } : l));
+      set({ leads: updated });
+      warnOnFail(getLeadRepository().update(id, patch, updated), 'reagendar la visita');
+      if (patch.status !== lead.status) {
+        useTimelineStore.getState().add(id, 'estado', `Pasó a ${statusLabel(patch.status as LeadStatus)}`, true);
+      }
+      useTimelineStore.getState().add(id, 'visita', `Visita agendada para el ${date}${time ? ` a las ${time}` : ''}`);
       return true;
     },
 

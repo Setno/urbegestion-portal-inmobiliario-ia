@@ -39,3 +39,19 @@ describe('proxy del sitio', () => {
     expect(config.matcher).toBe('/((?!_next/).*)');
   });
 });
+
+describe('proxy del sitio: atribución de campañas (H-058)', () => {
+  it('recuerda 30 días los parámetros utm de un anuncio en una cookie', () => {
+    const respuesta = pedir('/?utm_source=google&utm_medium=cpc&utm_campaign=verano');
+    const cookie = respuesta.cookies.get('atribucion');
+    expect(JSON.parse(decodeURIComponent(cookie!.value))).toEqual({ fuente: 'google', medio: 'cpc', campana: 'verano' });
+    const crudo = respuesta.headers.get('set-cookie') ?? '';
+    expect(crudo).toMatch(/Max-Age=2592000/i);
+    expect(crudo).toMatch(/HttpOnly/i);
+    expect(crudo).toMatch(/SameSite=lax/i);
+  });
+
+  it('sin parámetros utm no crea ni cambia la cookie', () => {
+    expect(pedir('/').cookies.get('atribucion')).toBeUndefined();
+  });
+});

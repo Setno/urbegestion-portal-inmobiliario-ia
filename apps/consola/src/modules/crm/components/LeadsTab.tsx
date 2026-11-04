@@ -22,9 +22,10 @@ import { buildPropertyFromLead } from '../services/leadToProperty';
 import { useCan } from '../../../core/platform/useEntitlementsStore';
 import { downloadFile, exportFileName, leadsToCsv } from '../../../core/export/dataExport';
 import { displayEmail } from '../services/leadEmail';
-import { sourceLabel } from '../services/leadSource';
+import { sourceLabel, attributionLabel } from '../services/leadSource';
 import { ActionBadge, NextActionEditor, TodayPanel } from './NextAction';
 import { Timeline } from './Timeline';
+import { Agenda } from './Agenda';
 
 export const LeadsTab: React.FC = () => {
   const { leads, updateLeadStatus, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
@@ -39,7 +40,7 @@ export const LeadsTab: React.FC = () => {
   const [mobileActiveStage, setMobileActiveStage] = useState<LeadStatus>('nuevo');
 
   // CRM High-Volume Workflow & Filter State
-  const [crmViewMode, setCrmViewMode] = useState<'kanban' | 'table'>('kanban');
+  const [crmViewMode, setCrmViewMode] = useState<'kanban' | 'table' | 'agenda'>('kanban');
   const [leadSearchQuery, setLeadSearchQuery] = useState('');
   const [leadPropertyFilter, setLeadPropertyFilter] = useState('all');
   const [leadPriorityFilter, setLeadPriorityFilter] = useState<'all' | 'today' | 'appointment' | 'attachments'>('all');
@@ -143,6 +144,15 @@ export const LeadsTab: React.FC = () => {
               >
                 <List className="w-3.5 h-3.5" />
                 <span>Tabla Lista</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCrmViewMode('agenda')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                  crmViewMode === 'agenda' ? 'bg-white text-urbe-primary shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <span>Agenda</span>
               </button>
             </div>
 
@@ -251,7 +261,9 @@ export const LeadsTab: React.FC = () => {
           </div>
         </div>
 
-        {/* View Mode 1: High Density Table View (For 100+ Leads) */}
+        {/* Vista tabla de alta densidad (para 100 o más leads) */}
+        {crmViewMode === 'agenda' && <Agenda leads={leads} onOpen={setSelectedLead} />}
+
         {crmViewMode === 'table' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col flex-1">
             <div className="overflow-x-auto">
@@ -476,6 +488,7 @@ export const LeadsTab: React.FC = () => {
                 </span>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 mt-1">{selectedLead.fullName}</h3>
                 <p className="text-[11px] text-slate-500">Registrado el {selectedLead.createdAt}</p>
+                <p className="text-[11px] text-slate-500">Llegó por: {attributionLabel(selectedLead.attribution)}</p>
               </div>
               <button onClick={() => setSelectedLead(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />

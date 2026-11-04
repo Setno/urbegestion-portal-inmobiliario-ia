@@ -3,7 +3,10 @@ import { resolverVisita } from '../../../../lib/direccion';
 import { enviarSolicitudVisita } from '../../../../lib/solicitudVisita';
 import { solicitarVisita } from './acciones';
 
-vi.mock('next/headers', () => ({ headers: async () => new Headers({ host: 'casasur.cl' }) }));
+vi.mock('next/headers', () => ({
+  headers: async () => new Headers({ host: 'casasur.cl' }),
+  cookies: async () => ({ get: () => ({ value: encodeURIComponent(JSON.stringify({ fuente: 'meta', medio: 'social' })) }) }),
+}));
 vi.mock('../../../../lib/direccion', () => ({ resolverVisita: vi.fn() }));
 vi.mock('../../../../lib/solicitudVisita', () => ({ enviarSolicitudVisita: vi.fn() }));
 
@@ -20,7 +23,8 @@ describe('acción de solicitar visita (H-030)', () => {
     vi.mocked(resolverVisita).mockResolvedValue(env);
     expect(await solicitarVisita('p1', datos)).toEqual({ ok: true });
     expect(resolverVisita).toHaveBeenCalledWith('casasur.cl');
-    expect(enviarSolicitudVisita).toHaveBeenCalledWith('p1', datos, env);
+    expect(vi.mocked(enviarSolicitudVisita).mock.calls[0].slice(0, 3)).toEqual(['p1', datos, env]);
+    expect(vi.mocked(enviarSolicitudVisita).mock.calls[0][5]).toEqual({ fuente: 'meta', medio: 'social' });
   });
 
   it('si no se puede saber la corredora, avisa un problema de conexión', async () => {

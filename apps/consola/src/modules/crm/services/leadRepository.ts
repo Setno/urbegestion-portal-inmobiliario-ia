@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Lead } from '../types/lead';
 import { createLocalRepository, throwIfError, throwIfNoRows, type Repository } from '../../../core/data/repository';
 import { remoteContext } from '../../../core/data/dataSource';
+import { limpiarAtribucion } from '@portal/sitio-datos/atribucion';
 import { isUuid, newId, newUuid } from '../../../core/utils/newId';
 
 // `appendNote` solo existe en el repositorio remoto: agrega la nota dentro de la base en un solo paso,
@@ -40,6 +41,7 @@ function toRow(l: Partial<Lead>, clear = false): Row {
   put('attachments', 'attachments', l.attachments);
   put('property_specs', 'propertySpecs', l.propertySpecs);
   put('privacy_notice', 'privacyNotice', l.privacyNotice);
+  put('attribution', 'attribution', l.attribution);
   if ('convertedPropertyId' in l) row.converted_property_id = isUuid(l.convertedPropertyId) ? l.convertedPropertyId : null;
   return row;
 }
@@ -78,6 +80,8 @@ export function fromRow(r: Row): Lead {
   set('attachments', attachments && attachments.length > 0 ? attachments : undefined);
   set('propertySpecs', opt(r.property_specs));
   set('privacyNotice', opt(r.privacy_notice));
+  // Lo guarda quien llame a la base con la clave pública: se limpia al leer, no se confía en su forma.
+  set('attribution', limpiarAtribucion(r.attribution) ?? undefined);
   set('convertedPropertyId', opt<string>(r.converted_property_id));
   return lead;
 }

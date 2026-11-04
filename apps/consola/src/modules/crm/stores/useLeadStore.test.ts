@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useLeadStore } from './useLeadStore';
+import { useTimelineStore } from './useTimelineStore';
 import type { Lead } from '../types/lead';
 
 const nuevoLead = (): Omit<Lead, 'id' | 'createdAt'> => ({
@@ -158,5 +159,54 @@ describe('cumplir la acción con repositorio remoto (H-056)', () => {
     await new Promise((r) => setTimeout(r, 0));
     setLeadRepository(null);
     expect(calls).toEqual(['update', 'appendNote']);
+  });
+});
+
+describe('reagendar visita (H-059)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useLeadStore.setState({
+      leads: [{ id: 'l1', fullName: 'Ana', email: '', phone: '', operationInterest: 'compra', status: 'contactado', notes: [], source: 'formulario_contacto', createdAt: '2026-01-01' }],
+    });
+  });
+
+  it('guarda fecha y hora, pasa el lead a "visita agendada" y lo deja en el almacenamiento', () => {
+    expect(useLeadStore.getState().rescheduleVisit('l1', '2026-12-05', '10:30')).toBe(true);
+    const l = useLeadStore.getState().leads[0];
+    expect(l.appointmentDate).toBe('2026-12-05');
+    expect(l.appointmentTime).toBe('10:30');
+    expect(l.status).toBe('visita_agendada');
+    expect(localStorage.getItem('urbe_leads')).toContain('2026-12-05');
+  });
+
+  it('acepta una visita sin hora y rechaza fecha u hora inválidas', () => {
+    expect(useLeadStore.getState().rescheduleVisit('l1', '2026-12-05', '')).toBe(true);
+    expect(useLeadStore.getState().leads[0].appointmentTime).toBeUndefined();
+    expect(useLeadStore.getState().rescheduleVisit('l1', '', '10:00')).toBe(false);
+    expect(useLeadStore.getState().rescheduleVisit('l1', '2026-12-05', '25:00')).toBe(false);
+    expect(useLeadStore.getState().rescheduleVisit('nadie', '2026-12-05', '10:00')).toBe(false);
+  });
+});
+
+describe('reagendar visita: historial y sin cambios (H-059)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useTimelineStore.setState({ events: {} });
+    useLeadStore.setState({
+      leads: [{ id: 'l1', fullName: 'Ana', email: '', phone: '', operationInterest: 'compra', status: 'contactado', notes: [], source: 'formulario_contacto', createdAt: '2026-01-01', appointmentDate: '2026-12-05', appointmentTime: '10:30' }],
+    });
+  });
+
+  it('al pasar a "visita agendada" deja el cambio de etapa y la visita en el historial', () => {
+    useLeadStore.getState().rescheduleVisit('l1', '2026-12-06', '10:30');
+    const textos = useTimelineStore.getState().events['l1'].map((e) => e.text);
+    expect(textos).toContain('Pasó a Visita agendada');
+    expect(textos.some((t) => t.startsWith('Visita agendada para el 2026-12-06'))).toBe(true);
+  });
+
+  it('si no cambia nada, no escribe ni agrega eventos', () => {
+    expect(useLeadStore.getState().rescheduleVisit('l1', '2026-12-05', '10:30')).toBe(true);
+    expect(useTimelineStore.getState().events['l1']).toBeUndefined();
+    expect(useLeadStore.getState().leads[0].status).toBe('contactado');
   });
 });
