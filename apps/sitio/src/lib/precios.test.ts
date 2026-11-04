@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { getMarketPack } from '@portal/mercados';
 import type { PublicProperty } from '@portal/sitio-datos/propiedades';
-import { filtrarPorPrecio, monedasPosibles, montoDesdeTexto } from './precios';
+import { filtrarPorPrecio, monedasPosibles, rangoDePrecios } from './precios';
 
 const cl = getMarketPack('cl');
 const UF = 40000; // 1 UF = 40.000 pesos
@@ -11,23 +11,26 @@ const prop = (id: string, priceAmount: number, priceCurrency: string): PublicPro
 const catalogo = [prop('barata', 2000, 'UF'), prop('media', 5000, 'UF'), prop('cara', 12000, 'UF'), prop('en-pesos', 200_000_000, 'CLP')];
 const ids = (l: PublicProperty[]) => l.map((p) => p.id);
 
-describe('montoDesdeTexto', () => {
-  it('entiende los montos como se escriben en Chile', () => {
-    expect(montoDesdeTexto('5000')).toBe(5000);
-    expect(montoDesdeTexto('5.000')).toBe(5000);
-    expect(montoDesdeTexto('200.000.000')).toBe(200_000_000);
-    expect(montoDesdeTexto('3,5')).toBe(3.5);
-    expect(montoDesdeTexto('1.250,5')).toBe(1250.5);
-    expect(montoDesdeTexto('  7500  ')).toBe(7500);
+describe('rangoDePrecios (extremos de la banda)', () => {
+  it('va del precio más bajo al más alto del catálogo, redondeado a un paso cómodo', () => {
+    // En UF: 2.000 a 12.000 (los 200.000.000 CLP valen 5.000 UF)
+    expect(rangoDePrecios(catalogo, 'UF', cl, { UF })).toEqual({ min: 2000, max: 12000, paso: 100 });
+    // En pesos: 80.000.000 a 480.000.000
+    expect(rangoDePrecios(catalogo, 'CLP', cl, { UF })).toEqual({ min: 80_000_000, max: 480_000_000, paso: 5_000_000 });
   });
 
-  it('lo vacío significa sin límite y lo que no es un monto no cuenta', () => {
-    expect(montoDesdeTexto('')).toBeNull();
-    expect(montoDesdeTexto('   ')).toBeNull();
-    expect(montoDesdeTexto('abc')).toBeNull();
-    expect(montoDesdeTexto('-5')).toBeNull();
-    expect(montoDesdeTexto('1e9')).toBeNull();
-    expect(montoDesdeTexto('0')).toBe(0);
+  it('redondea hacia afuera para que ninguna propiedad quede fuera de los extremos', () => {
+    const r = rangoDePrecios([prop('a', 45, 'UF'), prop('b', 24_900, 'UF')], 'UF', cl, {});
+    expect(r).toEqual({ min: 0, max: 25_000, paso: 500 });
+  });
+
+  it('con un solo precio, o sin propiedades, no hay banda que mover', () => {
+    expect(rangoDePrecios([prop('a', 100, 'UF'), prop('b', 100, 'UF')], 'UF', cl, {})).toBeNull();
+    expect(rangoDePrecios([], 'UF', cl, {})).toBeNull();
+  });
+
+  it('si no se puede convertir todo a la moneda, no inventa una banda', () => {
+    expect(rangoDePrecios(catalogo, 'CLP', cl, {})).toBeNull();
   });
 });
 

@@ -6,7 +6,7 @@ import { formatMoney } from '@portal/dinero';
 import type { LiveRates } from '@portal/dinero/tasas';
 import { getMarketPack } from '@portal/mercados';
 import { filtrarPropiedades, ordenarDestacadas, SIN_FILTROS, type FiltrosCatalogo, type PublicProperty } from '@portal/sitio-datos/propiedades';
-import { filtrarPorPrecio, monedasPosibles, montoDesdeTexto } from '../../lib/precios';
+import { filtrarPorPrecio, monedasPosibles, rangoDePrecios } from '../../lib/precios';
 import { etiquetaTipo, TarjetaPropiedad, type ContactoTarjeta } from './TarjetaPropiedad';
 
 interface CatalogoProps {
@@ -28,17 +28,21 @@ const titulo = 'block text-[11px] font-bold text-slate-500 uppercase tracking-wi
 export function Catalogo({ propiedades, marketId, conBuscador, contacto, tasas = SIN_TASAS }: CatalogoProps) {
   const [filtros, setFiltros] = useState<FiltrosCatalogo>(SIN_FILTROS);
   const [monedaElegida, setMonedaElegida] = useState('');
-  const [precioMin, setPrecioMin] = useState('');
-  const [precioMax, setPrecioMax] = useState('');
+  // null: la manilla está en su extremo, sin límite. Se guardan solo los valores que de verdad filtran.
+  const [desde, setDesde] = useState<number | null>(null);
+  const [hasta, setHasta] = useState<number | null>(null);
   const pack = getMarketPack(marketId);
   const posibles = useMemo(() => monedasPosibles(propiedades, pack, tasas.rates), [propiedades, pack, tasas.rates]);
   const moneda = posibles.includes(monedaElegida) ? monedaElegida : posibles.includes(pack.defaultCurrency) ? pack.defaultCurrency : (posibles[0] ?? '');
+  const rango = useMemo(() => (moneda ? rangoDePrecios(propiedades, moneda, pack, tasas.rates) : null), [propiedades, moneda, pack, tasas.rates]);
+  const valorMin = desde ?? rango?.min ?? 0;
+  const valorMax = hasta ?? rango?.max ?? 0;
   const buscar = useRef<HTMLInputElement>(null);
-  const hayFiltros = JSON.stringify(filtros) !== JSON.stringify(SIN_FILTROS) || precioMin.trim() !== '' || precioMax.trim() !== '';
+  const hayFiltros = JSON.stringify(filtros) !== JSON.stringify(SIN_FILTROS) || desde !== null || hasta !== null;
   const limpiar = () => {
     setFiltros(SIN_FILTROS);
-    setPrecioMin('');
-    setPrecioMax('');
+    setDesde(null);
+    setHasta(null);
     // El botón desaparece al limpiar: el foco del teclado vuelve al buscador.
     buscar.current?.focus();
   };
@@ -48,8 +52,8 @@ export function Catalogo({ propiedades, marketId, conBuscador, contacto, tasas =
   const visibles = useMemo(() => {
     const filtradas = filtrarPropiedades(ordenadas, filtros);
     if (!moneda) return filtradas;
-    return filtrarPorPrecio(filtradas, { moneda, min: montoDesdeTexto(precioMin), max: montoDesdeTexto(precioMax) }, pack, tasas.rates);
-  }, [ordenadas, filtros, moneda, precioMin, precioMax, pack, tasas.rates]);
+    return filtrarPorPrecio(filtradas, { moneda, min: desde, max: hasta }, pack, tasas.rates);
+  }, [ordenadas, filtros, moneda, desde, hasta, pack, tasas.rates]);
   // Solo se ofrece lo que existe: elegir una opción nunca deja el catálogo vacío por sí sola.
   const comunas = useMemo(() => [...new Set(propiedades.map((p) => p.commune))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'es')), [propiedades]);
   const tipos = useMemo(() => [...new Set(propiedades.map((p) => p.propertyType))].filter(Boolean), [propiedades]);
@@ -123,27 +127,75 @@ export function Catalogo({ propiedades, marketId, conBuscador, contacto, tasas =
             </select>
           </div>
           {moneda && (
-            <div className="col-span-2 lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="col-span-2 lg:col-span-5 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-6 gap-y-3 items-end">
               {posibles.length > 1 && (
-                <div>
+                <div className="sm:w-40">
                   <label htmlFor="filtro-moneda" className={titulo}>Moneda</label>
-                  <select id="filtro-moneda" value={moneda} onChange={(e) => setMonedaElegida(e.target.value)} className={campo}>
+                  <select
+                    id="filtro-moneda"
+                    value={moneda}
+                    onChange={(e) => {
+                      // La banda se rehace en la moneda nueva: los valores de la anterior no significan lo mismo.
+                      setMonedaElegida(e.target.value);
+                      setDesde(null);
+                      setHasta(null);
+                    }}
+                    className={campo}
+                  >
                     {posibles.map((code) => (
                       <option key={code} value={code}>{code}</option>
                     ))}
                   </select>
                 </div>
               )}
-              <div>
-                <label htmlFor="filtro-precio-min" className={titulo}>Precio mínimo</label>
-                <input id="filtro-precio-min" type="text" inputMode="decimal" autoComplete="off" value={precioMin} onChange={(e) => setPrecioMin(e.target.value)} className={campo} />
-              </div>
-              <div>
-                <label htmlFor="filtro-precio-max" className={titulo}>Precio máximo</label>
-                <input id="filtro-precio-max" type="text" inputMode="decimal" autoComplete="off" value={precioMax} onChange={(e) => setPrecioMax(e.target.value)} className={campo} />
-              </div>
+              {rango && (
+                <div className="sm:col-start-2">
+                  <div className="flex items-baseline justify-between gap-3 mb-1">
+                    <span className={`${titulo} mb-0`}>Precio</span>
+                    <span className="text-xs font-bold text-slate-800" aria-live="polite">
+                      {`${formatMoney({ amount: valorMin, currency: moneda }, pack)} – ${formatMoney({ amount: valorMax, currency: moneda }, pack)}`}
+                    </span>
+                  </div>
+                  <div className="rango-doble relative h-8">
+                    <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-slate-200" />
+                    <div
+                      className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-urbe-primary"
+                      style={{ left: `${((valorMin - rango.min) / (rango.max - rango.min)) * 100}%`, right: `${100 - ((valorMax - rango.min) / (rango.max - rango.min)) * 100}%` }}
+                    />
+                    <input
+                      type="range"
+                      aria-label="Precio mínimo"
+                      aria-valuetext={formatMoney({ amount: valorMin, currency: moneda }, pack)}
+                      min={rango.min}
+                      max={rango.max}
+                      step={rango.paso}
+                      value={valorMin}
+                      // Si las dos manillas quedan juntas al final, la de abajo debe poder tomarse y moverse hacia la izquierda.
+                      style={{ zIndex: valorMin > rango.max - rango.paso * 5 ? 5 : 3 }}
+                      onChange={(e) => {
+                        const v = Math.min(Number(e.target.value), valorMax);
+                        setDesde(v <= rango.min ? null : v);
+                      }}
+                    />
+                    <input
+                      type="range"
+                      aria-label="Precio máximo"
+                      aria-valuetext={formatMoney({ amount: valorMax, currency: moneda }, pack)}
+                      min={rango.min}
+                      max={rango.max}
+                      step={rango.paso}
+                      value={valorMax}
+                      style={{ zIndex: 4 }}
+                      onChange={(e) => {
+                        const v = Math.max(Number(e.target.value), valorMin);
+                        setHasta(v >= rango.max ? null : v);
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
               {tasas.readings.length > 0 && (
-                <p className="col-span-2 sm:col-span-3 text-[11px] text-slate-500">
+                <p className="sm:col-span-2 text-[11px] text-slate-500">
                   {tasas.readings
                     .map((r) => `${r.currency} de hoy: ${formatMoney({ amount: r.value, currency: pack.baseCurrency }, pack)} · ${r.source} (${diaMes(r.date)})`)
                     .join(' — ')}
