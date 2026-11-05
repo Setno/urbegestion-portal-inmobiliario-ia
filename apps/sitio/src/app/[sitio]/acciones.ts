@@ -3,6 +3,7 @@
 import { cookies, headers } from 'next/headers';
 import { COOKIE_ATRIBUCION, deCookie } from '@portal/sitio-datos/atribucion';
 import { resolverVisita } from '../../lib/direccion';
+import { permitirEnvio } from '../../lib/limiteEnvios';
 import { getFunciones, type FuncionesDelSitio } from '../../lib/getFunciones';
 import type { SiteEnv } from '../../lib/getSite';
 import { enviarSolicitudChat } from '../../lib/solicitudChat';
@@ -28,6 +29,8 @@ async function atribucionDelVisitante() {
 // Contacto que deja una persona al conversar con el asistente.
 export async function solicitarContactoChat(datos: DatosChat): Promise<ResultadoChat> {
   try {
+    // Límite por dirección IP (H-063): demasiados envíos seguidos se rechazan sin tocar la base.
+    if (!permitirEnvio(await headers())) return { ok: false, error: 'conexion' };
     return await enviarSolicitudChat(datos, await entornoConHerramienta('chat'), new Date(), process.env.GHL_WEBHOOK_URL, await atribucionDelVisitante());
   } catch {
     console.warn('[sitio] No se pudo guardar un contacto del asistente');
@@ -38,6 +41,7 @@ export async function solicitarContactoChat(datos: DatosChat): Promise<Resultado
 // Solicitud de tasación de un propietario.
 export async function solicitarTasacion(datos: DatosTasacion): Promise<ResultadoTasacion> {
   try {
+    if (!permitirEnvio(await headers())) return { ok: false, error: 'conexion' };
     return await enviarSolicitudTasacion(datos, await entornoConHerramienta('valorizador'), new Date(), process.env.GHL_WEBHOOK_URL, await atribucionDelVisitante());
   } catch {
     console.warn('[sitio] No se pudo guardar una solicitud de tasación');

@@ -1,6 +1,7 @@
 import { buildPrivacyNotice } from '@portal/sitio-datos/privacidad';
 import { conAtribucion, type Atribucion } from '@portal/sitio-datos/atribucion';
 import { getSite, type SiteEnv } from './getSite';
+import { crearLeadEnBase } from './crearLead';
 import { getPropiedad } from './getPropiedad';
 import { HORARIOS, type DatosVisita, type ErrorVisita, type ResultadoVisita } from './visita';
 
@@ -145,17 +146,8 @@ export async function enviarSolicitudVisita(
       privacy_notice: buildPrivacyNotice(ahora),
       ...conAtribucion(atribucion),
     };
-    const response = await fetch(`${env.url}/rest/v1/rpc/create_site_lead`, {
-      method: 'POST',
-      headers: { apikey: env.key, 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(ESPERA_MS),
-      // El lead se crea con una función de la base que valida la corredora, los campos y los topes de envío (H-052).
-      body: JSON.stringify({ p_tenant: env.tenantId, p_lead: fila }),
-    });
-    if (!response.ok) {
-      console.warn(`[sitio] La base rechazó una solicitud de visita (${response.status})`);
-      return { ok: false, error: 'conexion' };
-    }
+    // El lead se crea con una función de la base que valida la corredora, los campos y los topes de envío (H-052, H-063).
+    if (!(await crearLeadEnBase(env, fila))) return { ok: false, error: 'conexion' };
     if (webhookUrl) await avisarWebhook(webhookUrl, env, fila, ahora);
     return { ok: true };
   } catch {

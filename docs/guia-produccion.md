@@ -43,6 +43,7 @@ Esta guía separa lo que **hace Claude en el repositorio** de lo que **debes hac
 | --- | --- |
 | `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY` | Producción (el sitio acepta también los nombres `VITE_...`) |
 | `SITIO_DOMINIO_BASE` | El dominio de la plataforma (`docs/guia-dominios.md`), por ejemplo `miplataforma.cl` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio de producción (H-063): con ella el servidor del sitio crea los leads. Sin ella el sitio no guarda solicitudes. **Solo en el servidor**, nunca con prefijo `NEXT_PUBLIC_` |
 | `GHL_WEBHOOK_URL` | Opcional |
 
 No cargues `SITIO_TENANT_ID` en producción: sirve solo para `localhost` y los previews.
@@ -60,7 +61,9 @@ El límite por IP del código es "mejor esfuerzo" (cada instancia lleva su propi
 - En el proyecto del sitio, método `POST`: máximo 30 por 10 minutos por IP (cubre las acciones de visita, chat y tasación).
 - Activa "Attack Challenge Mode" solo si sufres un ataque.
 
-**Lo que este firewall no cubre:** la clave pública de Supabase es pública, así que cualquiera puede llamar a la función `create_site_lead` directamente en Supabase, sin pasar por el sitio ni por Vercel. Esa llamada queda limitada solo por los topes de la propia función (60 leads por corredora cada 10 minutos y 3 por teléfono o correo por hora, y se exige un teléfono o un correo válido). Un atacante decidido podría llenar el cupo de una corredora y dejarla sin recibir leads reales por unos minutos, y cada lead falso dispara avisos (el aviso por corredora está limitado a 20 cada 10 minutos). Para cerrarlo del todo haría falta un captcha (por ejemplo Cloudflare Turnstile) o que el sitio firme cada envío con un secreto de servidor; la landing de la consola no puede guardar secretos, por lo que quedó como mejora futura (H-063). Si se detecta un abuso, ver "Alertas frecuentes" del runbook para apagar la función.
+- Ruta que contiene `/api/crear-lead` (proyecto de la consola): máximo 10 solicitudes por 10 minutos por IP (landing y chat de la consola, H-063).
+
+**Cerrado en H-063:** la función `create_site_lead` ya no se puede llamar con la clave pública de Supabase (que cualquiera ve): solo la llaman los servidores con la clave de servicio, es decir, el sitio (acciones de visita, chat y tasación) y `api/crear-lead` de la consola. Ambos limitan por dirección IP (6 envíos cada 10 minutos); los topes por corredora (60 cada 10 minutos) y por teléfono o correo (3 por hora) siguen en la base. **Lo que queda:** quien automatice envíos desde varias direcciones IP al sitio sigue pudiendo llenar el cupo de una corredora por unos minutos; para eso están las reglas de firewall de arriba y, si hiciera falta, un captcha (Cloudflare Turnstile), que se puede sumar después sin cambiar esta estructura. Si se detecta un abuso, ver "Alertas frecuentes" del runbook.
 
 ## 4. Lista de despliegue (H-013) — solo con tu orden explícita
 

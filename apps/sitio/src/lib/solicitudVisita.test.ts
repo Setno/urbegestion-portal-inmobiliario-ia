@@ -1,5 +1,9 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { enviarSolicitudVisita, validarSolicitud, type DatosVisita } from './solicitudVisita';
+
+// Desde H-063 los leads se crean con la clave de servicio del servidor, nunca con la clave pública.
+beforeEach(() => vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'clave-de-servicio'));
+afterEach(() => vi.unstubAllEnvs());
 
 const env = { url: 'https://proyecto.supabase.co', key: 'clave-publicable', tenantId: 'tenant-1' };
 const ID = '11111111-1111-4111-8111-111111111111';
@@ -260,6 +264,23 @@ describe('enviarSolicitudVisita: creación por función (H-052)', () => {
     expect(String(llamada[0])).toBe('https://proyecto.supabase.co/rest/v1/rpc/create_site_lead');
     expect(JSON.parse(String((llamada[1] as RequestInit).body)).p_tenant).toBe('tenant-1');
     expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/rest/v1/leads'))).toBe(false);
+  });
+
+  it('usa la clave de servicio del servidor y nunca la clave pública (H-063)', async () => {
+    const { fetchMock } = baseFalsa();
+    await enviarSolicitudVisita(ID, datos(), env, AHORA);
+    const llamada = fetchMock.mock.calls.find(([url]) => String(url).includes('/rpc/create_site_lead'))!;
+    const cabeceras = (llamada[1] as RequestInit).headers as Record<string, string>;
+    expect(cabeceras.apikey).toBe('clave-de-servicio');
+    expect(cabeceras.Authorization).toBe('Bearer clave-de-servicio');
+  });
+
+  it('sin clave de servicio no guarda nada y la persona ve un error (H-063)', async () => {
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', '');
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { fetchMock } = baseFalsa();
+    expect(await enviarSolicitudVisita(ID, datos(), env, AHORA)).toEqual({ ok: false, error: 'conexion' });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/rpc/create_site_lead'))).toBe(false);
   });
 
   it('si la base rechaza el envío por el tope, la persona ve un error y no se avisa al webhook', async () => {

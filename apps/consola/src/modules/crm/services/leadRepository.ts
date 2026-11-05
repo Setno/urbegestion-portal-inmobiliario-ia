@@ -91,6 +91,19 @@ export function createLocalLeadRepository(): LeadRepository {
   return createLocalRepository<Lead>('urbe_leads', 'lead', newId);
 }
 
+// Un visitante crea su lead por el servidor (H-063): la función de la base ya no acepta la clave pública, así que
+// nadie puede saltarse el formulario. El servidor limita los envíos por dirección IP y la base pone los demás topes.
+async function createLeadViaServer(tenantId: string, lead: Row): Promise<void> {
+  const response = await fetch('/api/crear-lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tenantId, lead }),
+  });
+  if (response.ok) return;
+  const body = (await response.json().catch(() => null)) as { error?: string } | null;
+  throw new Error(body?.error ?? `crear-lead_${response.status}`);
+}
+
 export function createRemoteLeadRepository(client: SupabaseClient, tenantId: string): LeadRepository {
   return {
     mode: 'remote',
@@ -119,8 +132,7 @@ export function createRemoteLeadRepository(client: SupabaseClient, tenantId: str
           return;
         }
       }
-      const { error } = await client.rpc('create_site_lead', { p_tenant: tenantId, p_lead: row });
-      throwIfError(error);
+      await createLeadViaServer(tenantId, row);
     },
     update: async (id, patch) => {
       const { data, error } = await client.from('leads').update(toRow(patch, true)).eq('id', id).select('id');

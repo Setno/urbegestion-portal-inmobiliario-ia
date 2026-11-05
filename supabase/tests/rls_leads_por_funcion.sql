@@ -29,6 +29,8 @@ begin
   exception when insufficient_privilege then null;
   end;
 
+  -- Desde H-063 la función solo la llama el servidor (clave de servicio), no la clave pública.
+  set local role service_role;
   v := public.create_site_lead('a1a1a1a1-0000-0000-0000-0000000000a1',
     '{"full_name":"Ana Pérez","email":"ana@x.cl","phone":"+56 9 1111 2222","operation_interest":"compra","source":"ficha_propiedad","notes":["hola"]}'::jsonb);
   if v is null then raise exception 'FALLO: la función no devolvió el id'; end if;
@@ -83,7 +85,7 @@ begin
 end $$;
 
 -- 2. Tope por teléfono: el cuarto envío en una hora se rechaza --------------------------------------
-set local role anon;
+set local role service_role;
 do $$
 begin
   perform public.create_site_lead('a1a1a1a1-0000-0000-0000-0000000000a1', '{"full_name":"Eva 1","phone":"+56 9 5555 0001","operation_interest":"compra","source":"ficha_propiedad"}'::jsonb);
@@ -101,7 +103,7 @@ reset role;
 -- 3. Tope por corredora: 60 en 10 minutos --------------------------------------------------------
 insert into public.leads (tenant_id, full_name, operation_interest, source)
   select 'b2b2b2b2-0000-0000-0000-0000000000b2', 'Masivo ' || g, 'compra', 'ficha_propiedad' from generate_series(1, 60) g;
-set local role anon;
+set local role service_role;
 do $$
 begin
   begin
@@ -131,7 +133,7 @@ reset role;
 
 
 -- 5. Endurecimiento (migración 20261104180000) -----------------------------------------------------
-set local role anon;
+set local role service_role;
 do $$
 declare v uuid;
 begin

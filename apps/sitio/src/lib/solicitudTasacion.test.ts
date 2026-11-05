@@ -1,6 +1,10 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { enviarSolicitudTasacion, validarTasacion } from './solicitudTasacion';
 import type { DatosTasacion } from './tasacion';
+
+// Desde H-063 los leads se crean con la clave de servicio del servidor, nunca con la clave pública.
+beforeEach(() => vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'clave-de-servicio'));
+afterEach(() => vi.unstubAllEnvs());
 
 const env = { url: 'https://proyecto.supabase.co', key: 'clave-publicable', tenantId: 'tenant-1' };
 const AHORA = new Date('2026-11-04T12:00:00Z');

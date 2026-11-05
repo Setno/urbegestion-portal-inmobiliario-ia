@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createFakeSupabase } from '../../../core/data/fakeSupabase';
 import { createRemoteLeadRepository, createLocalLeadRepository } from './leadRepository';
@@ -270,39 +270,70 @@ describe('leadRepository remoto: hora exacta de registro (H-060)', () => {
   });
 });
 
-describe('leadRepository remoto: visitantes crean leads por función (H-052)', () => {
-  it('sin sesión llama a create_site_lead con la corredora y no inserta en la tabla', async () => {
-    const fake = createFakeSupabase({ data: 'uuid', error: null }, { signedIn: false });
+describe('leadRepository remoto: visitantes crean leads por el servidor (H-052, H-063)', () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('sin sesión envía el lead a /api/crear-lead con la corredora y no toca la base directo', async () => {
+    const fake = createFakeSupabase(undefined, { signedIn: false });
     await createRemoteLeadRepository(fake.client, 'tenant-1').create({ ...lead }, []);
-    expect(fake.calls[0].table).toBe('rpc:create_site_lead');
-    const args = fake.argsOf(0, 'rpc')![0] as { p_tenant: string; p_lead: Record<string, unknown> };
-    expect(args.p_tenant).toBe('tenant-1');
-    expect(args.p_lead.full_name).toBe('Ana Prueba');
-    expect(fake.calls.some((c) => c.table === 'leads')).toBe(false);
+    expect(fake.calls).toEqual([]);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/crear-lead');
+    expect(init.method).toBe('POST');
+    const cuerpo = JSON.parse(init.body) as { tenantId: string; lead: Record<string, unknown> };
+    expect(cuerpo.tenantId).toBe('tenant-1');
+    expect(cuerpo.lead.full_name).toBe('Ana Prueba');
   });
 
   it('con sesión inserta directo en la tabla', async () => {
     const fake = createFakeSupabase();
     await createRemoteLeadRepository(fake.client, 'tenant-1').create({ ...lead }, []);
     expect(fake.calls[0].table).toBe('leads');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('si la función rechaza el envío, se propaga el error', async () => {
-    const fake = createFakeSupabase({ data: null, error: { message: 'limite_contacto' } }, { signedIn: false });
-    await expect(createRemoteLeadRepository(fake.client, 't').create({ ...lead }, [])).rejects.toThrow('limite_contacto');
+  it('si el servidor rechaza el envío, se propaga el error con su código', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ error: 'too_many_requests' }), { status: 429 }));
+    const fake = createFakeSupabase(undefined, { signedIn: false });
+    await expect(createRemoteLeadRepository(fake.client, 't').create({ ...lead }, [])).rejects.toThrow('too_many_requests');
+  });
+
+  it('si no se puede llegar al servidor, falla y no da el lead por creado', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('sin red'));
+    const fake = createFakeSupabase(undefined, { signedIn: false });
+    await expect(createRemoteLeadRepository(fake.client, 't').create({ ...lead }, [])).rejects.toThrow('sin red');
   });
 });
 
-describe('leadRepository remoto: sesión de otra corredora (H-052)', () => {
-  it('si la base rechaza el insert directo por permisos, crea el lead con la función', async () => {
+describe('leadRepository remoto: sesión de otra corredora (H-052, H-063)', () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('si la base rechaza el insert directo por permisos, crea el lead por el servidor', async () => {
     const fake = createFakeSupabase({ data: null, error: { message: 'new row violates row-level security policy', code: '42501' } as never });
-    // el insert falla con 42501; la llamada a la función responde lo mismo en este simulador, así que se comprueba el orden de las llamadas
-    await createRemoteLeadRepository(fake.client, 'tenant-1').create({ ...lead }, []).catch(() => undefined);
-    expect(fake.calls.map((c) => c.table)).toEqual(['leads', 'rpc:create_site_lead']);
+    await createRemoteLeadRepository(fake.client, 'tenant-1').create({ ...lead }, []);
+    expect(fake.calls.map((c) => c.table)).toEqual(['leads']);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/crear-lead');
   });
   it('otros errores del insert directo no se reintentan', async () => {
     const fake = createFakeSupabase({ data: null, error: { message: 'boom', code: '23505' } as never });
     await expect(createRemoteLeadRepository(fake.client, 't').create({ ...lead }, [])).rejects.toThrow('boom');
     expect(fake.calls.map((c) => c.table)).toEqual(['leads']);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

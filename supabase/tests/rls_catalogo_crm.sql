@@ -41,8 +41,11 @@ begin
   if n <> 0 then raise exception 'FALLO: el visitante lee % leads (debería ver 0)', n; end if;
 
   -- Desde H-052 el visitante crea leads con la función de la base, no insertando directo.
+  -- Desde H-063 la función solo la llama el servidor.
+  set local role service_role;
   perform public.create_site_lead('a1a1a1a1-0000-0000-0000-0000000000a1',
     '{"phone":"+56 9 7000 0000","full_name":"Visita web","operation_interest":"compra","source":"ficha_propiedad"}'::jsonb);
+  set local role anon;
 
   begin
     insert into public.leads (tenant_id, full_name, operation_interest, source)
@@ -51,12 +54,14 @@ begin
   exception when insufficient_privilege then null;
   end;
 
+  set local role service_role;
   begin
     perform public.create_site_lead('a1a1a1a1-0000-0000-0000-0000000000a1',
       '{"phone":"+56 9 7000 0000","full_name":"Intruso","operation_interest":"compra","source":"ficha_propiedad","status":"cerrado"}'::jsonb);
     raise exception 'FALLO: el visitante pudo crear un lead con estado distinto de nuevo';
   exception when sqlstate 'P0001' then null;
   end;
+  set local role anon;
 
   begin
     insert into public.properties (tenant_id, title, operation, property_type, price_amount, commune)
