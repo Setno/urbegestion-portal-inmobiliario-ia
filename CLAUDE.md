@@ -1,4 +1,4 @@
-# Portal Inmobiliario IA (landing-ventas)
+# Portal Inmobiliario IA
 
 Plataforma web para corredores de propiedades: sitio con catálogo, asistente de IA y consola de gestión de leads (CRM). Hoy es un prototipo de frontend para una corredora (UrbeGestión) que evoluciona hacia una plataforma SaaS multi-tenant (Captación, CRM, Gestión). PRD: docs/prd.md · Avance: docs/avance.md · Estado: docs/estado.md · Backlog: docs/backlog.md · Visión: `BLUEPRINT Inmobiliario.md` · Decisiones: DECISIONES.md y docs/adr/ · Mapa del código: ESTRUCTURA.md
 
@@ -27,6 +27,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 | Probar producción local | `npm run preview` → http://localhost:4173 (el panel admin aparece solo si hay claves de Supabase y siempre pide login) |
 | E2E | no existen |
 | Verificar Supabase | `npm run verificar:supabase` (imprime solo estados, nunca claves) |
+| Cambiar de entorno | `npm run entorno -- desarrollo` o `-- produccion`: copia `.env.desarrollo` / `.env.produccion` a `.env.local` sin mostrar claves (docs/entornos.md). Desarrollo = cuenta B, producción = cuenta A |
 
 Las rutas `api/*` no existen bajo `npm run dev`; requieren `vercel dev` o un despliegue (el chat cae al motor local y el webhook responde "sin conexión").
 

@@ -104,7 +104,7 @@ Se pueden enviar claves nuevas antes de que el SaaS las use: se guardan y espera
 
 ## Texto para pegar en la sesión de ventas
 
-> Estoy construyendo un SaaS inmobiliario (proyecto "landing-ventas") y este proyecto de ventas debe conectarse con él por un contrato versionado (v1). Reglas: ventas es dueña de planes, precios, cobros, clientes y métricas del negocio; el SaaS nunca depende de ventas para funcionar.
+> Estoy construyendo un SaaS inmobiliario (proyecto "portal-inmobiliario") y este proyecto de ventas debe conectarse con él por un contrato versionado (v1). Reglas: ventas es dueña de planes, precios, cobros, clientes y métricas del negocio; el SaaS nunca depende de ventas para funcionar.
 >
 > Lo que ventas debe hacer: (1) guardar por cada corredora cliente su `tenantRef`, su `tenantId` del SaaS, su plan, sus ajustes particulares, el estado de suscripción (`trial`, `active`, `past_due`, `suspended`, `cancelled`) y sus fechas; (2) definir los planes como conjuntos de funciones (sí/no) y cupos (número o vacío = sin límite) con las claves del contrato; (3) enviar avisos firmados al SaaS en `POST /api/platform/tenant-sync` cada vez que cambie el plan o el estado, con `updatedAt` siempre creciente (firma HMAC-SHA256 hexadecimal de `"<X-Timestamp>.<cuerpo>"` con `PLATFORM_SYNC_SECRET`, encabezados `X-Timestamp` en milisegundos y `X-Signature: sha256=<hex>`); (4) consultar a diario `GET /api/platform/metrics` con `Authorization: Bearer <PLATFORM_METRICS_TOKEN>` y guardar el historial (devuelve solo cantidades y fechas por corredora).
 >

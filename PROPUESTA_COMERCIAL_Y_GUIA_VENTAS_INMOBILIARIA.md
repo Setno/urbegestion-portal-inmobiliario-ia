@@ -79,6 +79,6 @@ sequenceDiagram
 
 ## 4. 🖨️ Cómo Generar el PDF Listo para Enviar:
 1. Abre en tu navegador:  
-   👉 `file:///B:/OneDrive/Desarrollo-IA/software/landing-ventas/public/propuesta_comercial_pdf.html`
+   👉 `file:///B:/OneDrive/Desarrollo-IA/software/portal-inmobiliario/public/propuesta_comercial_pdf.html`
 2. Presiona el botón superior **"🖨️ Guardar o Imprimir en PDF"** (o `Ctrl + P`).
 3. Selecciona **"Guardar como PDF"**. El diseño ejecutivo se ajusta de inmediato sin desconfiguraciones.
