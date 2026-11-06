@@ -14,7 +14,7 @@ const json = (body: unknown, status = 200) =>
 
 function fail(code: string, status: number, cause?: unknown): Response {
   const c = cause as { code?: string; status?: number; message?: string } | null | undefined;
-  console.warn(`[api/platform/tenant-sync] ${code}:`, c?.code ?? c?.status ?? c?.message ?? '');
+  console.warn("[api/platform/tenant-sync]", code, c?.code ?? c?.status ?? c?.message ?? '');
   return json({ error: code }, status);
 }
 

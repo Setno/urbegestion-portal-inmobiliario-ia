@@ -113,7 +113,7 @@ const leadsStorage = createLocalStore<Lead[]>('urbe_leads');
 
 // Un fallo al guardar no rompe la pantalla: el dato queda en memoria y se avisa por consola.
 const warnOnFail = (promise: Promise<void>, action: string) => {
-  promise.catch((err) => console.warn(`[useLeadStore] No se pudo ${action}:`, err));
+  promise.catch((err) => console.warn("[useLeadStore] No se pudo", action, err));
 };
 
 export const useLeadStore = create<LeadStore>((set, get) => {

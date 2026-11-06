@@ -39,6 +39,7 @@ export default async function Page({ params }: Props) {
   const Ficha = resolveFicha(site.templateId);
   return (
     <>
+      {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml -- JSON-LD generado por nosotros; jsonEnScript escapa "<" (seo.ts) */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: datosDeLaFicha(site, ficha, direccion.canonico) }} />
       <Ficha site={site} propiedad={ficha.propiedad} marketId={ficha.marketId} enviarVisita={solicitarVisita} />
     </>

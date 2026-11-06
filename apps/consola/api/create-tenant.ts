@@ -15,7 +15,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function fail(code: string, status: number, cause?: unknown): Response {
   const c = cause as { code?: string; status?: number; message?: string } | null | undefined;
-  console.warn(`[api/create-tenant] ${code}:`, c?.code ?? c?.status ?? c?.message ?? '');
+  console.warn("[api/create-tenant]", code, c?.code ?? c?.status ?? c?.message ?? '');
   return json({ error: code }, status);
 }
 

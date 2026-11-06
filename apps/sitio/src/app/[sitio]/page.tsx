@@ -50,6 +50,7 @@ export default async function Page({ params }: Props) {
   const Plantilla = resolvePlantilla(site.templateId);
   return (
     <>
+      {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml -- JSON-LD generado por nosotros; jsonEnScript escapa "<" (seo.ts) */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: datosDeLaCorredora(site, direccion.canonico) }} />
       <Plantilla site={site} catalogo={catalogo} enviarTasacion={funciones.valorizador ? solicitarTasacion : undefined}
         enviarContacto={funciones.chat ? solicitarContactoChat : undefined}

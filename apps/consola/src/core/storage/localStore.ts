@@ -13,7 +13,7 @@ export function createLocalStore<T>(key: string): LocalStore<T> {
         const raw = localStorage.getItem(key);
         return raw ? (JSON.parse(raw) as T) : null;
       } catch (e) {
-        console.warn(`[localStore] No se pudo leer "${key}":`, e);
+        console.warn("[localStore] No se pudo leer", key, e);
         return null;
       }
     },
@@ -21,14 +21,14 @@ export function createLocalStore<T>(key: string): LocalStore<T> {
       try {
         localStorage.setItem(key, JSON.stringify(value));
       } catch (e) {
-        console.warn(`[localStore] No se pudo guardar "${key}":`, e);
+        console.warn("[localStore] No se pudo guardar", key, e);
       }
     },
     clear: () => {
       try {
         localStorage.removeItem(key);
       } catch (e) {
-        console.warn(`[localStore] No se pudo borrar "${key}":`, e);
+        console.warn("[localStore] No se pudo borrar", key, e);
       }
     },
   };

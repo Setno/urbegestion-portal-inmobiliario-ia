@@ -51,7 +51,7 @@ const propertiesStorage = createLocalStore<Property[]>('urbe_properties');
 
 // Un fallo al guardar no rompe la pantalla: el dato queda en memoria y se avisa por consola.
 const warnOnFail = (promise: Promise<void>, action: string) => {
-  promise.catch((err) => console.warn(`[usePropertyStore] No se pudo ${action}:`, err));
+  promise.catch((err) => console.warn("[usePropertyStore] No se pudo", action, err));
 };
 
 export const usePropertyStore = create<PropertyStore>((set, get) => {

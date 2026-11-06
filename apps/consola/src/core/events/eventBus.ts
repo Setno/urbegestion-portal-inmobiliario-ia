@@ -22,7 +22,7 @@ export function createEventBus<Events extends Record<string, unknown>>(): EventB
         try {
           (handler as (p: typeof payload) => void)(payload);
         } catch (err) {
-          console.warn(`[eventBus] Falló un suscriptor de ${String(name)}:`, err);
+          console.warn("[eventBus] Falló un suscriptor de", String(name), err);
         }
       }
     },

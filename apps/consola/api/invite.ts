@@ -21,7 +21,7 @@ const STATUS: Record<string, number> = { server_error: 500, invite_failed: 502, 
 // Registra el motivo (sin datos personales) para poder diagnosticar y responde con un código genérico.
 function fail(code: string, cause: unknown): Response {
   const c = cause as { code?: string; status?: number; message?: string } | null;
-  console.warn(`[api/invite] ${code}:`, c?.code ?? c?.status ?? c?.message ?? '');
+  console.warn("[api/invite]", code, c?.code ?? c?.status ?? c?.message ?? '');
   return json({ error: code }, STATUS[code] ?? 500);
 }
 
