@@ -13,7 +13,7 @@ import { Footer } from './site/components/Footer';
 import { MobileQuickBar } from './site/components/MobileQuickBar';
 import { AiChatWidget } from './modules/captacion/components/AiChatWidget';
 import { AdminDashboard } from './core/admin/AdminDashboard';
-import { ADMIN_ENABLED } from './core/config/adminAccess';
+import { ADMIN_ENABLED, PANEL_ONLY } from './core/config/adminAccess';
 import { useBrandStore } from './core/brand/useBrandStore';
 import { useAuthStore } from './core/auth/useAuthStore';
 import { usePropertyStore } from './modules/catalogo/stores/usePropertyStore';
@@ -63,6 +63,11 @@ export const App: React.FC = () => {
   const handleRequestAdminAccess = () => {
     if (ADMIN_ENABLED) setIsAdminOpen(true);
   };
+
+  // Consola de producción: solo el panel (inicio de sesión y, con sesión, el CRM)
+  if (PANEL_ONLY) {
+    return <AdminDashboard isOpen onClose={() => undefined} canClose={false} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-900 font-sans selection:bg-urbe-accent/30 selection:text-urbe-primary">

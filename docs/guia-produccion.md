@@ -30,6 +30,7 @@ Esta guía separa lo que **hace Claude en el repositorio** de lo que **debes hac
 | --- | --- |
 | `VITE_SUPABASE_URL` | Dirección del proyecto de producción |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Clave pública (empieza con `sb_publishable_`) |
+| `VITE_MODO_PANEL` | Poner `1` en producción: la dirección de la consola abre directo el inicio de sesión del panel, sin la portada de demostración. En desarrollo y previews no se pone |
 | `VITE_TENANT_ID` | Solo si esta instalación atiende a una sola corredora (modo actual del sitio de demostración) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio: **solo en el servidor**, nunca con prefijo `VITE_` |
 | `PLATFORM_OWNER_EMAILS` | Correos del dueño del producto, separados por comas |

@@ -35,11 +35,13 @@ import { LanguageToggle } from '../ui/LanguageToggle';
 interface AdminDashboardProps {
   isOpen: boolean;
   onClose: () => void;
+  // En la consola de producción el panel es la aplicación entera: no hay a dónde volver, así que no se muestra "cerrar".
+  canClose?: boolean;
 }
 
 const ROLE_LABEL: Record<'admin' | 'agente', MessageKey> = { admin: 'admin.role.admin', agente: 'admin.role.agente' };
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose, canClose = true }) => {
   const { leads } = useLeadStore();
   const { properties } = usePropertyStore();
   const { status, email, membership, signOut } = useAuthStore();
@@ -132,13 +134,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
               </button>
             )}
 
-            <button
-              onClick={onClose}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
-              aria-label={t('admin.close')}
-            >
-              <X className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
+            {canClose && (
+              <button
+                onClick={onClose}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
+                aria-label={t('admin.close')}
+              >
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            )}
           </div>
         </div>
 
