@@ -11,9 +11,10 @@ Esta guía separa lo que **hace Claude en el repositorio** de lo que **debes hac
 ## 1. Base de datos de producción (tú)
 
 1. En Supabase, crea un proyecto nuevo (nombre sugerido: `portal-produccion`), en la región más cercana a Chile. Anota la contraseña de la base en tu gestor de claves.
-2. Aplica **todas las migraciones, en orden** de `supabase/migrations/` (hay 24; el orden es el del nombre del archivo, de la más antigua a la más nueva). Dos formas:
+2. Aplica **todas las migraciones, en orden** de `supabase/migrations/` (hay 27; el orden es el del nombre del archivo, de la más antigua a la más nueva). Dos formas:
    - Con la CLI de Supabase: `supabase link --project-ref <ref>` y `supabase db push`.
    - O pegando cada archivo en el editor SQL, uno por uno, en orden. Tras cada uno debe decir "Success".
+2b. **Si reutilizas el proyecto de la cuenta A (ex desarrollo, renombrado "CRM producción")**: no hace falta aplicar migraciones de nuevo, pero sí vaciarlo de datos de prueba. En `supabase/mantenimiento/`: pega `1-ver-que-hay.sql` (solo lectura: confirma las migraciones y cuenta los datos); haz un respaldo; pega `2-vaciar-datos-de-prueba.sql` (escribe antes tu correo; termina en `rollback`, revisa el resultado y cámbialo a `commit` para confirmar); borra a mano las fotos en Storage → property-images; vuelve a pegar `1-ver-que-hay.sql` y comprueba que todo da 0 salvo tus usuarios. Revisa también que el secreto `lead_alert_url` del Vault apunte a las funciones de esta cuenta.
 3. Verifica con las pruebas de seguridad de `supabase/tests/` **en un proyecto de desarrollo o de prueba con las mismas migraciones, nunca en producción** (crean usuarios y leads falsos y se apoyan en un `rollback` final). Cada archivo `rls_*.sql` debe terminar con un mensaje que empieza por `RLS OK`; si alguna dice `FALLO`, **no sigas**. En producción solo se comprueba que las migraciones se aplicaron sin error y se hacen los pasos de humo de la sección 4.
 4. En Authentication → URL Configuration, pon la dirección del panel como "Site URL" y agrégala a las URL permitidas de redirección. Desactiva "Allow new users to sign up" (las cuentas se crean por invitación).
 5. En Authentication → Providers → Email, deja activa la confirmación de correo.
