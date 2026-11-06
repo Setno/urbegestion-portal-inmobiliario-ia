@@ -25,7 +25,7 @@ Este proyecto sigue la metodología del plugin metodo-apps (modo adoptado).
 | Tipos | `npx tsc --noEmit` |
 | Build | `npm run build` (ejecuta `tsc && vite build` en `apps/consola`; el resultado queda en `apps/consola/dist`) |
 | Probar producción local | `npm run preview` → http://localhost:4173 (el panel admin aparece solo si hay claves de Supabase y siempre pide login) |
-| E2E | no existen |
+| E2E | `npm run test:e2e` (Playwright, H-023): levanta consola y sitio contra la base de desarrollo (cuenta B); claves en `e2e/credenciales.local`, plantilla `e2e/credenciales.ejemplo` |
 | Verificar Supabase | `npm run verificar:supabase` (imprime solo estados, nunca claves) |
 | Cambiar de entorno | `npm run entorno -- desarrollo` o `-- produccion`: copia `.env.desarrollo` / `.env.produccion` a `.env.local` sin mostrar claves (docs/entornos.md). Desarrollo = cuenta B, producción = cuenta A |
 
