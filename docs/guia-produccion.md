@@ -31,7 +31,7 @@ Esta guía separa lo que **hace Claude en el repositorio** de lo que **debes hac
 | `VITE_SUPABASE_URL` | Dirección del proyecto de producción |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Clave pública (empieza con `sb_publishable_`) |
 | `VITE_MODO_PANEL` | Poner `1` en producción: la dirección de la consola abre directo el inicio de sesión del panel, sin la portada de demostración. En desarrollo y previews no se pone |
-| `VITE_TENANT_ID` | Solo si esta instalación atiende a una sola corredora (modo actual del sitio de demostración) |
+| `VITE_TENANT_ID` | **Obligatoria hoy**: el id de la corredora que atiende este despliegue; sin ella leads y propiedades quedan en el navegador (H-064 lo cambiará para que salga de la sesión) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio: **solo en el servidor**, nunca con prefijo `VITE_` |
 | `PLATFORM_OWNER_EMAILS` | Correos del dueño del producto, separados por comas |
 | `PLATFORM_SYNC_SECRET`, `PLATFORM_METRICS_TOKEN` | Claves largas al azar para hablar con el proyecto de ventas (`docs/integracion-ventas.md`) |
@@ -48,7 +48,7 @@ Esta guía separa lo que **hace Claude en el repositorio** de lo que **debes hac
 | `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio de producción (H-063): con ella el servidor del sitio crea los leads. Sin ella el sitio no guarda solicitudes. **Solo en el servidor**, nunca con prefijo `NEXT_PUBLIC_` |
 | `GHL_WEBHOOK_URL` | Opcional |
 
-No cargues `SITIO_TENANT_ID` en producción: sirve solo para `localhost` y los previews.
+`SITIO_TENANT_ID` sirve para `localhost`, los previews y las direcciones `*.vercel.app` (producción provisoria, 2026-11-06). Cuando haya dominio de la plataforma, se retira.
 
 ### Supabase → Edge Functions → Secrets
 
