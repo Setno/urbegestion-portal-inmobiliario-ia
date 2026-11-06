@@ -2,7 +2,7 @@
 
 - Modo: adoptado
 - Fase actual: A6 Adopción (documentos listos; faltan tests de caracterización y CI real)
-- Última actualización: 2026-11-03
+- Última actualización: 2026-11-06
 
 ## Puertas
 
@@ -22,6 +22,8 @@
 
 ## Siguiente paso
 El 2026-11-03 el responsable eligió para avanzar: cerrar el sitio y unirlo a `main`, el proyecto de Vercel del sitio, H-030 (dirección por corredora), H-031 (SEO), H-032 (editor de textos) y H-048 (vendidas, arrendadas y reservadas). El resto de la lista de pendientes no se descarta: el responsable decide después qué más entra al MVP.
+
+Actualización 2026-11-06: H-023 hecha (prueba E2E con Playwright del flujo visitante → lead en el CRM, contra la base de desarrollo; `npm run test:e2e`, claves en `e2e/credenciales.local`). Suite 1099 pruebas, lint, tipos y build en verde. No cambia el avance al MVP (79 %).
 
 Actualización 2026-11-04 (cierre): H-063 hecha (la función `create_site_lead` solo la llama el servidor; migración aplicada en desarrollo, cuenta B). Los avisos por correo ya salen del subdominio verificado `avisos.bontes.cl` (remitente "Avisos InteliProp"), de modo que llegan a cualquier correo; los leads del sitio y de tasación llegan en el preview. Avance 79 %.
 

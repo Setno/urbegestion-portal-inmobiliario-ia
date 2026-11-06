@@ -1,0 +1,10 @@
+# Copia este archivo como e2e/credenciales.local (queda fuera de Git) y completa los valores de la cuenta B (desarrollo).
+# Usuario de prueba con rol agente en la corredora de prueba (BontesDev).
+E2E_EMAIL=
+E2E_PASSWORD=
+# Proyecto de Supabase de DESARROLLO (nunca producción).
+E2E_SUPABASE_URL=
+E2E_SUPABASE_PUBLISHABLE_KEY=
+E2E_TENANT_ID=
+# Clave secreta (sb_secret_...) de ese proyecto: la usa el servidor del sitio para guardar los leads.
+E2E_SUPABASE_SERVICE_ROLE_KEY=

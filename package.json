@@ -13,15 +13,17 @@
     "preview": "npm run preview --workspace=@portal/consola --",
     "dev:sitio": "npm run dev --workspace=@portal/sitio --",
     "build:sitio": "npm run build --workspace=@portal/sitio",
-    "lint": "eslint . apps/consola/src apps/consola/api apps/consola/tests packages/plataforma/src packages/mercados/src packages/dinero/src packages/sitio-datos/src apps/sitio/src supabase/functions",
+    "lint": "eslint . apps/consola/src apps/consola/api apps/consola/tests packages/plataforma/src packages/mercados/src packages/dinero/src packages/sitio-datos/src apps/sitio/src supabase/functions e2e playwright.config.ts",
     "entorno": "node scripts/cambiar-entorno.mjs",
     "verificar:supabase": "node --env-file=.env.local scripts/verificar-supabase.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
     "@vitest/coverage-v8": "^5.0.5",
     "axe-core": "^4.14.0",
     "eslint": "^10.14.0",

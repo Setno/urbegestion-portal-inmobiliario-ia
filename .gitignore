@@ -61,3 +61,7 @@ Thumbs.db
 # Next.js (lo genera al compilar)
 next-env.d.ts
 *.tsbuildinfo
+
+# Prueba E2E (H-023): capturas y trazas de las corridas
+e2e/resultados/
+playwright-report/
