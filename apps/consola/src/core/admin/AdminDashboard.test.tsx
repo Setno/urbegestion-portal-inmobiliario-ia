@@ -15,7 +15,7 @@ const entrar = (role: 'admin' | 'agente') =>
   useAuthStore.setState({
     status: 'con_sesion',
     email: 'ana@ejemplo.cl',
-    membership: { tenantName: 'Casa Sur', role, publicationMode: 'con_aprobacion' },
+    membership: { tenantId: 'tenant-1', tenantName: 'Casa Sur', role, publicationMode: 'con_aprobacion' },
   });
 
 const pestana = (nombre: RegExp | string) => screen.queryByRole('button', { name: nombre });

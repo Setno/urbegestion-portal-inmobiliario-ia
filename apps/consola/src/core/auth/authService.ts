@@ -6,6 +6,8 @@ import type { Role } from './permissions';
 export type PublicationMode = 'con_aprobacion' | 'directa';
 
 export interface Membership {
+  // Con este id se leen y escriben los datos de la corredora (H-064)
+  tenantId: string;
   tenantName: string;
   role: Role;
   publicationMode: PublicationMode;
@@ -74,17 +76,23 @@ export async function getSessionEmail(): Promise<string | null> {
 // para no confundir "sin conexión" con "sin corredora".
 export async function getMembership(): Promise<Membership | null> {
   if (!supabase) return null;
-  const { data, error } = await supabase.from('memberships').select('role, tenants(name, publication_mode)').limit(1).maybeSingle();
+  const { data, error } = await supabase
+    .from('memberships')
+    .select('tenant_id, role, tenants(name, publication_mode)')
+    // Orden estable: si hubiera más de una membresía, siempre la más antigua (decide dónde se escriben los datos)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return null;
   type TenantRow = { name: string; publication_mode?: string };
-  const row = data as unknown as { role: string; tenants: TenantRow | TenantRow[] | null };
+  const row = data as unknown as { tenant_id?: string; role: string; tenants: TenantRow | TenantRow[] | null };
   const tenant = Array.isArray(row.tenants) ? row.tenants[0] : row.tenants;
-  if (!VALID_ROLES.includes(row.role as Role) || !tenant?.name) return null;
+  if (!row.tenant_id || !VALID_ROLES.includes(row.role as Role) || !tenant?.name) return null;
   const mode = VALID_MODES.includes(tenant.publication_mode as PublicationMode)
     ? (tenant.publication_mode as PublicationMode)
     : 'con_aprobacion';
-  return { tenantName: tenant.name, role: row.role as Role, publicationMode: mode };
+  return { tenantId: row.tenant_id, tenantName: tenant.name, role: row.role as Role, publicationMode: mode };
 }
 
 // Siempre informa éxito si Supabase acepta la petición, exista o no el correo (no se revela quién tiene cuenta).

@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-const { auth, consulta, from } = vi.hoisted(() => {
+const { auth, consulta, from, orden } = vi.hoisted(() => {
   const consulta = { maybeSingle: vi.fn() };
+  const orden = vi.fn();
   return {
     auth: {
       signInWithPassword: vi.fn(),
@@ -12,7 +13,15 @@ const { auth, consulta, from } = vi.hoisted(() => {
       updateUser: vi.fn(),
     },
     consulta,
-    from: vi.fn(() => ({ select: () => ({ limit: () => consulta }) })),
+    orden,
+    from: vi.fn(() => ({
+      select: () => ({
+        order: (...args: unknown[]) => {
+          orden(...args);
+          return { limit: () => consulta };
+        },
+      }),
+    })),
   };
 });
 
@@ -86,20 +95,31 @@ describe('authService', () => {
 
   describe('getMembership', () => {
     it('devuelve la corredora y el rol del usuario', async () => {
+      consulta.maybeSingle.mockResolvedValue({ data: { tenant_id: 'tenant-1', role: 'admin', tenants: { name: 'UrbeGestión' } }, error: null });
+      expect(await getMembership()).toEqual({ tenantId: 'tenant-1', tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' });
+    });
+
+    it('si el usuario tuviera más de una membresía, elige siempre la más antigua (orden estable)', async () => {
+      consulta.maybeSingle.mockResolvedValue({ data: { tenant_id: 'tenant-1', role: 'admin', tenants: { name: 'UrbeGestión' } }, error: null });
+      await getMembership();
+      expect(orden).toHaveBeenCalledWith('created_at', { ascending: true });
+    });
+
+    it('sin el id de la corredora no hay membresía utilizable', async () => {
       consulta.maybeSingle.mockResolvedValue({ data: { role: 'admin', tenants: { name: 'UrbeGestión' } }, error: null });
-      expect(await getMembership()).toEqual({ tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' });
+      expect(await getMembership()).toBeNull();
     });
 
     it('devuelve el modo de publicación directa si la corredora lo tiene activado', async () => {
       consulta.maybeSingle.mockResolvedValue({
-        data: { role: 'agente', tenants: { name: 'Corredora Chica', publication_mode: 'directa' } },
+        data: { tenant_id: 'tenant-1', role: 'agente', tenants: { name: 'Corredora Chica', publication_mode: 'directa' } },
         error: null,
       });
       expect((await getMembership())?.publicationMode).toBe('directa');
     });
 
     it('ante un modo desconocido usa el más estricto (con aprobación)', async () => {
-      consulta.maybeSingle.mockResolvedValue({ data: { role: 'agente', tenants: { name: 'X', publication_mode: 'libre' } }, error: null });
+      consulta.maybeSingle.mockResolvedValue({ data: { tenant_id: 'tenant-1', role: 'agente', tenants: { name: 'X', publication_mode: 'libre' } }, error: null });
       expect((await getMembership())?.publicationMode).toBe('con_aprobacion');
     });
 

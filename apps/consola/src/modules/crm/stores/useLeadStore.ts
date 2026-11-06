@@ -3,6 +3,7 @@ import { Lead, LeadStatus } from '../types/lead';
 import { webhookService } from '../../captacion/services/webhookService';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { getLeadRepository } from '../services/leadRepository';
+import { tenantGuard } from '../../../core/data/dataSource';
 import { isValidDate, localToday } from '../services/leadTasks';
 import { isValidTime } from '../services/leadAgenda';
 import { statusLabel } from '../services/leadTimeline';
@@ -31,6 +32,8 @@ interface LeadStore {
   // Un lead que ya está en la base y llegó en vivo (H-054): se muestra arriba sin volver a guardarlo.
   // Devuelve true si el lead era nuevo en la lista.
   receiveLead: (lead: Lead) => boolean;
+  // Al cambiar de corredora: vacía la lista, el lead seleccionado y los leads recibidos en vivo (H-064).
+  reset: () => void;
 }
 
 // Leads recibidos en vivo (H-054): si llegan mientras load() lee la lista, se conservan.
@@ -244,11 +247,19 @@ export const useLeadStore = create<LeadStore>((set, get) => {
       return true;
     },
 
+    reset: () => {
+      liveLeadIds.clear();
+      set({ leads: [], selectedLead: null });
+    },
+
     load: async () => {
       const repo = getLeadRepository();
       if (repo.mode !== 'remote') return;
+      const stale = tenantGuard();
       try {
         const leads = await repo.list();
+        // Si la corredora cambió mientras se leía, la respuesta es de la anterior
+        if (stale()) return;
         // Un lead que llegó en vivo mientras se leía la lista no se pierde
         if (leads) {
           const ids = new Set(leads.map((l) => l.id));

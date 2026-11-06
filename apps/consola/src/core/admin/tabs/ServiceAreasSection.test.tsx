@@ -6,7 +6,7 @@ import { useMarketStore } from '../../market/useMarketStore';
 import { useLocaleStore } from '../../i18n/i18n';
 
 const entrar = (role: 'admin' | 'agente') =>
-  useAuthStore.setState({ membership: { tenantName: 'Corredora de prueba', role, publicationMode: 'con_aprobacion' } });
+  useAuthStore.setState({ membership: { tenantId: 'tenant-1', tenantName: 'Corredora de prueba', role, publicationMode: 'con_aprobacion' } });
 
 const casilla = (nombre: string) => screen.getByRole('checkbox', { name: nombre }) as HTMLInputElement;
 

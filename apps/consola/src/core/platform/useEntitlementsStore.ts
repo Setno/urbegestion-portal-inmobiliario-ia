@@ -12,6 +12,7 @@ import {
   type TenantEntitlements,
 } from '@portal/plataforma/contract';
 import { fetchEntitlements, fetchPublicEntitlements } from './entitlementsService';
+import { tenantGuard } from '../data/dataSource';
 
 interface EntitlementsStore {
   entitlements: TenantEntitlements;
@@ -35,13 +36,16 @@ export const useEntitlementsStore = create<EntitlementsStore>((set, get) => ({
   },
 
   load: async () => {
+    const stale = tenantGuard();
     const raw = await fetchEntitlements();
-    if (raw) get().apply(raw);
+    // Si la corredora cambió mientras se leía, son los derechos de la anterior
+    if (raw && !stale()) get().apply(raw);
   },
 
   loadPublic: async () => {
+    const stale = tenantGuard();
     const raw = await fetchPublicEntitlements();
-    if (raw) get().apply(raw);
+    if (raw && !stale()) get().apply(raw);
   },
 
   reset: () => set({ entitlements: { ...DEFAULT_ENTITLEMENTS } }),

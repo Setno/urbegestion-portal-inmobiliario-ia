@@ -36,7 +36,7 @@ describe('AdminDashboard (marco del panel)', () => {
     useAuthStore.setState({
       status: 'con_sesion',
       email: 'ana@ejemplo.cl',
-      membership: { tenantName: 'Casa Sur', role: 'admin', publicationMode: 'con_aprobacion' },
+      membership: { tenantId: 'tenant-1', tenantName: 'Casa Sur', role: 'admin', publicationMode: 'con_aprobacion' },
     });
 
   beforeEach(() => {

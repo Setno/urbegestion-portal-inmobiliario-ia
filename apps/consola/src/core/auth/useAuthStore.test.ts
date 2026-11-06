@@ -33,12 +33,12 @@ describe('useAuthStore', () => {
 
     it('con sesión y corredora queda en "con_sesion" con correo y rol', async () => {
       s.getSessionEmail.mockResolvedValue('ana@ejemplo.test');
-      s.getMembership.mockResolvedValue({ tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' });
+      s.getMembership.mockResolvedValue({ tenantId: 'tenant-1', tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' });
       await useAuthStore.getState().init();
       const st = useAuthStore.getState();
       expect(st.status).toBe('con_sesion');
       expect(st.email).toBe('ana@ejemplo.test');
-      expect(st.membership).toEqual({ tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' });
+      expect(st.membership).toEqual({ tenantId: 'tenant-1', tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' });
     });
 
     it('con sesión pero sin corredora queda en "sin_membresia"', async () => {
@@ -61,7 +61,7 @@ describe('useAuthStore', () => {
   describe('signIn', () => {
     it('con credenciales correctas y corredora entra al panel', async () => {
       s.signInWithPassword.mockResolvedValue({ ok: true, email: 'ana@ejemplo.test' });
-      s.getMembership.mockResolvedValue({ tenantName: 'UrbeGestión', role: 'agente', publicationMode: 'con_aprobacion' });
+      s.getMembership.mockResolvedValue({ tenantId: 'tenant-1', tenantName: 'UrbeGestión', role: 'agente', publicationMode: 'con_aprobacion' });
       await useAuthStore.getState().signIn('ana@ejemplo.test', 'clave');
       const st = useAuthStore.getState();
       expect(st.status).toBe('con_sesion');
@@ -97,7 +97,7 @@ describe('useAuthStore', () => {
     useAuthStore.setState({
       status: 'con_sesion',
       email: 'ana@ejemplo.test',
-      membership: { tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' },
+      membership: { tenantId: 'tenant-1', tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' },
     });
     s.signOut.mockResolvedValue(undefined);
     await useAuthStore.getState().signOut();
@@ -145,7 +145,7 @@ describe('useAuthStore', () => {
 
   describe('changePublicationMode', () => {
     it('si la base lo acepta, actualiza el modo en la sesión', async () => {
-      useAuthStore.setState({ membership: { tenantName: 'X', role: 'admin', publicationMode: 'con_aprobacion' } });
+      useAuthStore.setState({ membership: { tenantId: 'tenant-1', tenantName: 'X', role: 'admin', publicationMode: 'con_aprobacion' } });
       s.setPublicationMode.mockResolvedValue({ ok: true });
       await useAuthStore.getState().changePublicationMode('directa');
       expect(s.setPublicationMode).toHaveBeenCalledWith('directa');
@@ -153,7 +153,7 @@ describe('useAuthStore', () => {
     });
 
     it('si falla, deja el modo como estaba', async () => {
-      useAuthStore.setState({ membership: { tenantName: 'X', role: 'admin', publicationMode: 'con_aprobacion' } });
+      useAuthStore.setState({ membership: { tenantId: 'tenant-1', tenantName: 'X', role: 'admin', publicationMode: 'con_aprobacion' } });
       s.setPublicationMode.mockResolvedValue({ ok: false, error: 'conexion' });
       await useAuthStore.getState().changePublicationMode('directa');
       expect(useAuthStore.getState().membership?.publicationMode).toBe('con_aprobacion');

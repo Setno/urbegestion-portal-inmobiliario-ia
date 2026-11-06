@@ -7,6 +7,7 @@ import { priceLabels, type Money } from '@portal/dinero';
 import { currentRates } from '../../../core/money/currentRates';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { getPropertyRepository } from '../services/propertyRepository';
+import { tenantGuard } from '../../../core/data/dataSource';
 
 interface PropertyStore {
   properties: Property[];
@@ -31,7 +32,9 @@ interface PropertyStore {
   rejectProperty: (id: string, reason: string) => void;
   // Trae las propiedades de la base (solo con Supabase; con almacenamiento local no hace nada).
   load: () => Promise<void>;
-  
+  // Al cambiar de corredora: vacía la lista y apaga el indicador de carga (H-064).
+  reset: () => void;
+
   // Helper
   formatPrice: (price: Money) => { display: string; full: string };
 }
@@ -128,17 +131,21 @@ export const usePropertyStore = create<PropertyStore>((set, get) => {
       get().updateProperty(id, { publicationStatus: 'rechazada', rejectionReason: motivo });
     },
 
+    reset: () => set({ properties: [], loading: false }),
+
     load: async () => {
       const repo = getPropertyRepository();
       if (repo.mode !== 'remote') return;
+      const stale = tenantGuard();
       set({ loading: true });
       try {
         const properties = await repo.list();
-        if (properties) set({ properties });
+        // Una respuesta de la corredora anterior ni se muestra ni apaga el indicador de la carga nueva
+        if (properties && !stale()) set({ properties });
       } catch (err) {
         console.warn('[usePropertyStore] No se pudieron cargar las propiedades:', err);
       } finally {
-        set({ loading: false });
+        if (!stale()) set({ loading: false });
       }
     },
 

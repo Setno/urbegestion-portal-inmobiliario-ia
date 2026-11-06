@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { LeadEvent } from '../types/leadEvent';
 import { throwIfError } from '../../../core/data/repository';
-import { remoteContext } from '../../../core/data/dataSource';
+import { createScopedRepository } from '../../../core/data/dataSource';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { newId, newUuid } from '../../../core/utils/newId';
 
@@ -80,17 +80,14 @@ export function createRemoteLeadEventRepository(client: SupabaseClient, tenantId
   };
 }
 
-let current: LeadEventRepository | null = null;
+const scoped = createScopedRepository<LeadEventRepository>((ctx) => (ctx ? createRemoteLeadEventRepository(ctx.client, ctx.tenantId) : createLocalLeadEventRepository()));
 
+// Un repositorio por corredora (H-064): se rearma cuando la corredora de la sesión cambia.
 export function getLeadEventRepository(): LeadEventRepository {
-  if (!current) {
-    const ctx = remoteContext();
-    current = ctx ? createRemoteLeadEventRepository(ctx.client, ctx.tenantId) : createLocalLeadEventRepository();
-  }
-  return current;
+  return scoped.get();
 }
 
 // Solo para pruebas.
 export function setLeadEventRepository(repo: LeadEventRepository | null): void {
-  current = repo;
+  scoped.set(repo);
 }

@@ -3,6 +3,7 @@ import { RealEstateBrandConfig, agencyConfig as defaultAgencyConfig } from '../c
 import { demoSiteContent } from '../config/demoSiteContent';
 import { createLocalStore } from '../storage/localStore';
 import { remoteContext } from '../data/dataSource';
+import { PANEL_ONLY } from '../config/adminAccess';
 import { fetchPublicSite, saveSiteBrand, saveSiteContent, type SiteSaveResult } from './siteService';
 import {
   DEFAULT_LAYOUT,
@@ -33,6 +34,8 @@ export interface BrandStore {
 
   // Con Supabase lee los datos públicos de la corredora; sin Supabase no hace nada.
   load: () => Promise<void>;
+  // Al cambiar de corredora (H-064): vuelve al estado de partida y exige una lectura nueva antes de poder guardar.
+  reset: () => void;
   // Guarda lo editado en el panel: con Supabase en la base (y solo si la base lo acepta), sin Supabase en el navegador.
   saveBrand: (brand: Partial<RealEstateBrandConfig>, colors: Partial<ThemeColors>, layout: Partial<BrandLayoutConfig>) => Promise<SiteSaveResult>;
   // Guarda solo los textos del sitio (H-032), con las mismas reglas que la marca.
@@ -121,131 +124,157 @@ function applySite(site: SiteData): Pick<BrandStore, 'config' | 'themeColors' | 
   return { config, themeColors: site.theme, layoutConfig: site.layout, content: site.content, templateId: site.templateId };
 }
 
-export const useBrandStore = create<BrandStore>((set, get) => {
-  const ctx = remoteContext();
-
-  if (ctx) {
-    // Nunca se parte con la marca de ejemplo escrita en el código: sería mostrar los datos de otra corredora.
-    const stored = siteCache(ctx.tenantId).load();
-    const initial: SiteData = (stored && parseSiteData({ ...stored, tenantName: stored.brand?.brandName })) ?? {
+// Estado de partida de una corredora real: nunca la marca de ejemplo escrita en el código, que sería mostrar los datos de otra corredora.
+function remoteInitialSite(tenantId: string | undefined): SiteData {
+  const stored = tenantId ? siteCache(tenantId).load() : null;
+  return (
+    (stored && parseSiteData({ ...stored, tenantName: stored.brand?.brandName })) ?? {
       templateId: DEFAULT_TEMPLATE_ID,
       brand: neutralBrand(''),
       theme: DEFAULT_THEME,
       layout: DEFAULT_LAYOUT,
       content: NEUTRAL_CONTENT,
+    }
+  );
+}
+
+export const useBrandStore = create<BrandStore>((set, get) => {
+  // La corredora puede aparecer después de cargar el módulo (H-064: sale de la sesión del usuario), así que cada
+  // acción vuelve a mirar si hay base remota. Aquí solo se decide el estado de partida.
+  const startsRemote = Boolean(remoteContext()) || PANEL_ONLY;
+  let loadedFor: string | null = null;
+
+  let initialState: Pick<BrandStore, 'config' | 'themeColors' | 'layoutConfig' | 'content' | 'templateId'>;
+  if (startsRemote) {
+    initialState = applySite(remoteInitialSite(remoteContext()?.tenantId));
+  } else {
+    let initialConfig = { ...defaultAgencyConfig };
+    let initialColors = { ...defaultThemeColors };
+    let initialLayout = { ...defaultLayoutConfig };
+    let storedContent: SiteContent | null = null;
+
+    if (typeof window !== 'undefined') {
+      initialConfig = { ...defaultAgencyConfig, ...brandConfigStorage.load() };
+      initialColors = { ...defaultThemeColors, ...themeColorsStorage.load() };
+      initialLayout = { ...defaultLayoutConfig, ...layoutConfigStorage.load() };
+      storedContent = siteContentStorage.load();
+
+      applyCssVariables(initialColors);
+    }
+    initialState = {
+      config: initialConfig,
+      themeColors: initialColors,
+      layoutConfig: initialLayout,
+      content: storedContent ? cleanContent(storedContent) : demoSiteContent,
+      templateId: DEFAULT_TEMPLATE_ID,
     };
-    return {
-      ...applySite(initial),
-      loadStatus: 'idle',
-      load: async () => {
-        const site = await fetchPublicSite(ctx.tenantId);
-        if (!site) {
-          set({ loadStatus: 'error' });
-          return;
-        }
-        siteCache(ctx.tenantId).save(site);
-        set({ ...applySite(site), loadStatus: 'ok' });
-      },
-      saveBrand: async (brand, colors, layout) => {
-        const state = get();
-        // Sin una lectura correcta se borrarían los datos que el formulario no muestra.
-        if (state.loadStatus !== 'ok') return { ok: false, error: 'sin_datos' };
-        const merged = {
-          ...state.config,
-          ...brand,
-          contact: { ...state.config.contact, ...(brand.contact || {}) },
-          stats: { ...state.config.stats, ...(brand.stats || {}) },
-        };
-        const logoUrl = normalizeUrl(merged.logoUrl);
-        const logoWhiteUrl = normalizeUrl(merged.logoWhiteUrl);
-        const brokerPhotoUrl = normalizeUrl(merged.brokerPhotoUrl);
-        const instagram = normalizeUrl(merged.contact.instagram);
-        if (logoUrl === null || logoWhiteUrl === null || brokerPhotoUrl === null || instagram === null) {
-          return { ok: false, error: 'enlace_invalido' };
-        }
-        merged.logoUrl = logoUrl;
-        merged.logoWhiteUrl = logoWhiteUrl;
-        merged.brokerPhotoUrl = brokerPhotoUrl;
-        merged.contact.instagram = instagram;
-        // Se guarda lo mismo que después leerá el sitio: pasa por el mismo lector, que descarta enlaces peligrosos y colores raros.
-        const clean = parseSiteData({
-          tenantName: state.config.brandName,
-          templateId: state.templateId,
-          brand: serializeBrand(merged),
-          theme: { ...state.themeColors, ...colors },
-          layout: { ...state.layoutConfig, ...layout },
-        });
-        if (!clean) return { ok: false, error: 'conexion' };
-        const result = await saveSiteBrand(ctx.tenantId, clean.brand, clean.theme, clean.layout);
-        if (!result.ok) return result;
-        const site: SiteData = { ...clean, content: state.content };
-        siteCache(ctx.tenantId).save(site);
-        set({ ...applySite(site), loadStatus: 'ok' });
-        return result;
-      },
-      saveContent: async (content) => {
-        const state = get();
-        if (state.loadStatus !== 'ok') return { ok: false, error: 'sin_datos' };
-        const clean = cleanContent(content);
-        const result = await saveSiteContent(ctx.tenantId, clean);
-        if (!result.ok) return result;
-        siteCache(ctx.tenantId).save({
-          templateId: state.templateId,
-          brand: serializeBrand(state.config),
-          theme: state.themeColors,
-          layout: state.layoutConfig,
-          content: clean,
-        });
-        set({ content: clean });
-        return result;
-      },
-      // Con datos remotos no hay marca "original" a la cual volver
-      updateBrandConfig: () => undefined,
-      updateThemeColors: () => undefined,
-      updateLayoutConfig: () => undefined,
-      resetToDefault: () => undefined,
-    };
-  }
-
-  let initialConfig = { ...defaultAgencyConfig };
-  let initialColors = { ...defaultThemeColors };
-  let initialLayout = { ...defaultLayoutConfig };
-  let storedContent: SiteContent | null = null;
-
-  if (typeof window !== 'undefined') {
-    initialConfig = { ...defaultAgencyConfig, ...brandConfigStorage.load() };
-    initialColors = { ...defaultThemeColors, ...themeColorsStorage.load() };
-    initialLayout = { ...defaultLayoutConfig, ...layoutConfigStorage.load() };
-    storedContent = siteContentStorage.load();
-
-    applyCssVariables(initialColors);
   }
 
   return {
-    config: initialConfig,
-    themeColors: initialColors,
-    layoutConfig: initialLayout,
-    content: storedContent ? cleanContent(storedContent) : demoSiteContent,
-    templateId: DEFAULT_TEMPLATE_ID,
-    loadStatus: 'ok',
+    ...initialState,
+    loadStatus: startsRemote ? 'idle' : 'ok',
 
-    load: async () => undefined,
+    reset: () => {
+      loadedFor = null;
+      Object.assign(defaultAgencyConfig, initialState.config);
+      applyCssVariables(initialState.themeColors);
+      set({ ...initialState, loadStatus: startsRemote ? 'idle' : 'ok' });
+    },
+
+    load: async () => {
+      const ctx = remoteContext();
+      if (!ctx) return;
+      // Si cambió la corredora, se parte de lo último que se leyó de ESA corredora (o neutro), nunca de la anterior.
+      if (loadedFor !== ctx.tenantId) {
+        loadedFor = ctx.tenantId;
+        set({ ...applySite(remoteInitialSite(ctx.tenantId)), loadStatus: 'idle' });
+      }
+      const site = await fetchPublicSite(ctx.tenantId);
+      // La sesión pudo cambiar mientras se leía: no se pinta la marca de otra corredora.
+      if (remoteContext()?.tenantId !== ctx.tenantId) return;
+      if (!site) {
+        set({ loadStatus: 'error' });
+        return;
+      }
+      siteCache(ctx.tenantId).save(site);
+      set({ ...applySite(site), loadStatus: 'ok' });
+    },
 
     saveBrand: async (brand, colors, layout) => {
-      get().updateBrandConfig(brand);
-      get().updateThemeColors(colors);
-      get().updateLayoutConfig(layout);
-      return { ok: true };
+      const ctx = remoteContext();
+      // En una instalación de corredoras remotas, sin corredora no hay dónde guardar: nada se escribe en el navegador.
+      if (!ctx && startsRemote) return { ok: false, error: 'sin_datos' };
+      if (!ctx) {
+        get().updateBrandConfig(brand);
+        get().updateThemeColors(colors);
+        get().updateLayoutConfig(layout);
+        return { ok: true };
+      }
+      const state = get();
+      // Sin una lectura correcta se borrarían los datos que el formulario no muestra.
+      if (state.loadStatus !== 'ok') return { ok: false, error: 'sin_datos' };
+      const merged = {
+        ...state.config,
+        ...brand,
+        contact: { ...state.config.contact, ...(brand.contact || {}) },
+        stats: { ...state.config.stats, ...(brand.stats || {}) },
+      };
+      const logoUrl = normalizeUrl(merged.logoUrl);
+      const logoWhiteUrl = normalizeUrl(merged.logoWhiteUrl);
+      const brokerPhotoUrl = normalizeUrl(merged.brokerPhotoUrl);
+      const instagram = normalizeUrl(merged.contact.instagram);
+      if (logoUrl === null || logoWhiteUrl === null || brokerPhotoUrl === null || instagram === null) {
+        return { ok: false, error: 'enlace_invalido' };
+      }
+      merged.logoUrl = logoUrl;
+      merged.logoWhiteUrl = logoWhiteUrl;
+      merged.brokerPhotoUrl = brokerPhotoUrl;
+      merged.contact.instagram = instagram;
+      // Se guarda lo mismo que después leerá el sitio: pasa por el mismo lector, que descarta enlaces peligrosos y colores raros.
+      const clean = parseSiteData({
+        tenantName: state.config.brandName,
+        templateId: state.templateId,
+        brand: serializeBrand(merged),
+        theme: { ...state.themeColors, ...colors },
+        layout: { ...state.layoutConfig, ...layout },
+      });
+      if (!clean) return { ok: false, error: 'conexion' };
+      const result = await saveSiteBrand(ctx.tenantId, clean.brand, clean.theme, clean.layout);
+      if (!result.ok) return result;
+      const site: SiteData = { ...clean, content: state.content };
+      siteCache(ctx.tenantId).save(site);
+      set({ ...applySite(site), loadStatus: 'ok' });
+      return result;
     },
 
     saveContent: async (content) => {
+      const ctx = remoteContext();
+      if (!ctx && startsRemote) return { ok: false, error: 'sin_datos' };
+      if (!ctx) {
+        const clean = cleanContent(content);
+        siteContentStorage.save(clean);
+        set({ content: clean });
+        return { ok: true };
+      }
+      const state = get();
+      if (state.loadStatus !== 'ok') return { ok: false, error: 'sin_datos' };
       const clean = cleanContent(content);
-      siteContentStorage.save(clean);
+      const result = await saveSiteContent(ctx.tenantId, clean);
+      if (!result.ok) return result;
+      siteCache(ctx.tenantId).save({
+        templateId: state.templateId,
+        brand: serializeBrand(state.config),
+        theme: state.themeColors,
+        layout: state.layoutConfig,
+        content: clean,
+      });
       set({ content: clean });
-      return { ok: true };
+      return result;
     },
 
+    // Con datos remotos no hay marca "original" a la cual volver: las acciones locales no hacen nada.
     updateBrandConfig: (partial) => {
+      if (remoteContext() || startsRemote) return;
       set((state) => {
         const updatedConfig = {
           ...state.config,
@@ -272,9 +301,10 @@ export const useBrandStore = create<BrandStore>((set, get) => {
     },
 
     updateThemeColors: (newColors) => {
+      if (remoteContext() || startsRemote) return;
       set((state) => {
         const updatedColors = { ...state.themeColors, ...newColors };
-        
+
         if (typeof window !== 'undefined') {
           themeColorsStorage.save(updatedColors);
           applyCssVariables(updatedColors);
@@ -285,6 +315,7 @@ export const useBrandStore = create<BrandStore>((set, get) => {
     },
 
     updateLayoutConfig: (layout) => {
+      if (remoteContext() || startsRemote) return;
       set((state) => {
         const updatedLayout = { ...state.layoutConfig, ...layout };
         if (typeof window !== 'undefined') {
@@ -295,6 +326,7 @@ export const useBrandStore = create<BrandStore>((set, get) => {
     },
 
     resetToDefault: () => {
+      if (remoteContext() || startsRemote) return;
       if (typeof window !== 'undefined') {
         brandConfigStorage.clear();
         themeColorsStorage.clear();

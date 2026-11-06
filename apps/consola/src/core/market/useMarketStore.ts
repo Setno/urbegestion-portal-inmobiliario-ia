@@ -11,6 +11,8 @@ interface MarketStore {
   loaded: boolean;
   // Con Supabase lee el mercado y las zonas de la corredora del sitio; sin Supabase deja los valores por defecto.
   load: () => Promise<void>;
+  // Al cambiar de corredora vuelve a los valores por defecto (H-064).
+  reset: () => void;
   // Solo el administrador (lo exige la base). Sin Supabase solo cambia en memoria.
   setServiceAreas: (areas: string[]) => Promise<SimpleResult>;
 }
@@ -19,9 +21,13 @@ export const useMarketStore = create<MarketStore>((set) => ({
   ...DEFAULT_SETTINGS,
   loaded: false,
 
+  reset: () => set({ ...DEFAULT_SETTINGS, loaded: false }),
+
   load: async () => {
     const ctx = remoteContext();
     const settings = ctx ? await fetchPublicSettings(ctx.tenantId) : null;
+    // Si la corredora cambió mientras se leía, la respuesta es de la anterior
+    if (remoteContext()?.tenantId !== ctx?.tenantId) return;
     set({ ...(settings ?? DEFAULT_SETTINGS), loaded: true });
   },
 

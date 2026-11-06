@@ -3,12 +3,15 @@ import { BellRing, X } from 'lucide-react';
 import type { Lead } from '../types/lead';
 import { useLeadStore } from '../stores/useLeadStore';
 import { subscribeNewLeads } from '../services/leadRealtime';
+import { useAuthStore } from '../../../core/auth/useAuthStore';
 
 const VISIBLE_MS = 10000;
 
 // Con el panel abierto y sesión iniciada, avisa de cada lead nuevo y lo suma a la lista del CRM (H-054).
 export const NewLeadNotice: React.FC<{ active: boolean; onOpenCrm: () => void }> = ({ active, onOpenCrm }) => {
   const [lead, setLead] = useState<Lead | null>(null);
+  // La suscripción es de una corredora: si la sesión pasa a otra, se rehace (H-064)
+  const tenantId = useAuthStore((s) => s.membership?.tenantId);
 
   useEffect(() => {
     if (!active) return;
@@ -16,7 +19,7 @@ export const NewLeadNotice: React.FC<{ active: boolean; onOpenCrm: () => void }>
       // Un lead que ya estaba en la lista (por ejemplo, uno que creó esta misma persona) no se avisa
       if (useLeadStore.getState().receiveLead(incoming)) setLead(incoming);
     });
-  }, [active]);
+  }, [active, tenantId]);
 
   useEffect(() => {
     if (!lead) return;

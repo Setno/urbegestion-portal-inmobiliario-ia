@@ -20,6 +20,7 @@ import { usePropertyStore } from './modules/catalogo/stores/usePropertyStore';
 import { useMarketStore } from './core/market/useMarketStore';
 import { Property } from './modules/catalogo/types/property';
 import { hasAbout, hasTestimonials } from '@portal/sitio-datos';
+import { registerTenantReload } from './core/data/tenantReload';
 
 export const App: React.FC = () => {
   // Lo que el plan de la corredora incluye (ADR-009): sin datos de ventas todo está prendido
@@ -45,6 +46,9 @@ export const App: React.FC = () => {
     void useEntitlementsStore.getState().loadPublic();
     void useBrandStore.getState().load();
   }, []);
+
+  // H-064: al entrar o salir cambia la corredora de los datos; las tiendas se recargan o se vacían
+  useEffect(() => registerTenantReload(), []);
 
   // Restaura la sesión al cargar y escucha cambios (ingreso, salida, enlace de recuperación de clave)
   useEffect(() => {

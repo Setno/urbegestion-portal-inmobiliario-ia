@@ -3,6 +3,7 @@ import type { LeadEvent, LeadEventKind } from '../types/leadEvent';
 import { MANUAL_KINDS, sortEvents } from '../services/leadTimeline';
 import { eventStorage, getLeadEventRepository, LIMITE_REPORTES } from '../services/leadEventRepository';
 import { useAuthStore } from '../../../core/auth/useAuthStore';
+import { tenantGuard } from '../../../core/data/dataSource';
 
 interface TimelineStore {
   // Historial por lead, del más reciente al más antiguo.
@@ -19,6 +20,8 @@ interface TimelineStore {
   add: (leadId: string, kind: LeadEventKind, text: string, system?: boolean) => boolean;
   // Borra el historial de un lead que se eliminó (en la base lo hace la cascada).
   removeForLead: (leadId: string) => void;
+  // Al cambiar de corredora: vacía el historial y los avisos (H-064).
+  reset: () => void;
 }
 
 const group = (list: LeadEvent[]): Record<string, LeadEvent[]> => {
@@ -38,12 +41,18 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
     saveError: null,
     allStatus: 'idle',
 
+    reset: () => {
+      pending.clear();
+      set({ events: {}, saveError: null, allStatus: 'idle' });
+    },
+
     load: async (leadId) => {
       const repo = getLeadEventRepository();
       if (repo.mode !== 'remote') return;
+      const stale = tenantGuard();
       try {
         const list = await repo.listForLead(leadId);
-        if (!list) return;
+        if (!list || stale()) return;
         const ids = new Set(list.map((e) => e.id));
         const unconfirmed = (get().events[leadId] ?? []).filter((e) => pending.has(e.id) && !ids.has(e.id));
         set({ events: { ...get().events, [leadId]: sortEvents([...unconfirmed, ...list]) } });
@@ -59,8 +68,10 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
         return;
       }
       set({ allStatus: 'loading' });
+      const stale = tenantGuard();
       try {
         const list = await repo.listAll();
+        if (stale()) return;
         if (!list) {
           set({ allStatus: 'ok' });
           return;
@@ -70,7 +81,7 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
         set({ events: group([...unconfirmed, ...list]), allStatus: list.length >= LIMITE_REPORTES ? 'truncated' : 'ok' });
       } catch (err) {
         console.warn('[useTimelineStore] No se pudo cargar el historial completo:', err);
-        set({ allStatus: 'error' });
+        if (!stale()) set({ allStatus: 'error' });
       }
     },
 

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Lead } from '../types/lead';
 import { createLocalRepository, throwIfError, throwIfNoRows, type Repository } from '../../../core/data/repository';
-import { remoteContext } from '../../../core/data/dataSource';
+import { createScopedRepository } from '../../../core/data/dataSource';
 import { limpiarAtribucion } from '@portal/sitio-datos/atribucion';
 import { isUuid, newId, newUuid } from '../../../core/utils/newId';
 
@@ -151,17 +151,14 @@ export function createRemoteLeadRepository(client: SupabaseClient, tenantId: str
   };
 }
 
-let current: LeadRepository | null = null;
+const scoped = createScopedRepository<LeadRepository>((ctx) => (ctx ? createRemoteLeadRepository(ctx.client, ctx.tenantId) : createLocalLeadRepository()));
 
+// Un repositorio por corredora (H-064): se rearma cuando la corredora de la sesión cambia.
 export function getLeadRepository(): LeadRepository {
-  if (!current) {
-    const ctx = remoteContext();
-    current = ctx ? createRemoteLeadRepository(ctx.client, ctx.tenantId) : createLocalLeadRepository();
-  }
-  return current;
+  return scoped.get();
 }
 
 // Solo para pruebas: cambia el repositorio que usa la tienda.
 export function setLeadRepository(repo: LeadRepository | null): void {
-  current = repo;
+  scoped.set(repo);
 }

@@ -15,7 +15,7 @@ vi.mock('../../alerts/leadAlertService', async (original) => ({
 }));
 
 const entrar = (role: 'admin' | 'agente') =>
-  useAuthStore.setState({ membership: { tenantName: 'Corredora de prueba', role, publicationMode: 'con_aprobacion' } });
+  useAuthStore.setState({ membership: { tenantId: 'tenant-1', tenantName: 'Corredora de prueba', role, publicationMode: 'con_aprobacion' } });
 
 const sinAvisos = { emails: [], emailEnabled: false, telegramConnected: false, telegramEnabled: false };
 const guardar = () => fireEvent.click(screen.getByRole('button', { name: 'Guardar avisos' }));

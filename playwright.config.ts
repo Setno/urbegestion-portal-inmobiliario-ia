@@ -45,7 +45,8 @@ export default defineConfig({
       env: {
         VITE_SUPABASE_URL: c.E2E_SUPABASE_URL ?? '',
         VITE_SUPABASE_PUBLISHABLE_KEY: c.E2E_SUPABASE_PUBLISHABLE_KEY ?? '',
-        VITE_TENANT_ID: c.E2E_TENANT_ID ?? '',
+        // Sin VITE_TENANT_ID a propósito (H-064): la consola toma la corredora de la sesión del usuario.
+        VITE_TENANT_ID: '',
       },
     },
     {

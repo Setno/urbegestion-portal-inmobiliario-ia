@@ -19,7 +19,7 @@ const conEstado = (id: string, title: string, publicationStatus?: PublicationSta
 });
 
 const entrar = (role: Role, publicationMode: PublicationMode) =>
-  useAuthStore.setState({ membership: { tenantName: 'Corredora de prueba', role, publicationMode } });
+  useAuthStore.setState({ membership: { tenantId: 'tenant-1', tenantName: 'Corredora de prueba', role, publicationMode } });
 
 const abrirNueva = () => fireEvent.click(screen.getByRole('button', { name: /Publicar Nueva Propiedad|Crear borrador/ }));
 

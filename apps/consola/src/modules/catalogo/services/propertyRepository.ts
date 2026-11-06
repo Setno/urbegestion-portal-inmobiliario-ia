@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Property } from '../types/property';
 import { createLocalRepository, throwIfError, throwIfNoRows, type Repository } from '../../../core/data/repository';
-import { remoteContext } from '../../../core/data/dataSource';
+import { createScopedRepository } from '../../../core/data/dataSource';
 import { newId, newUuid } from '../../../core/utils/newId';
 
 export type PropertyRepository = Repository<Property>;
@@ -144,17 +144,14 @@ export function createRemotePropertyRepository(client: SupabaseClient, tenantId:
   };
 }
 
-let current: PropertyRepository | null = null;
+const scoped = createScopedRepository<PropertyRepository>((ctx) => (ctx ? createRemotePropertyRepository(ctx.client, ctx.tenantId) : createLocalPropertyRepository()));
 
+// Un repositorio por corredora (H-064): se rearma cuando la corredora de la sesión cambia.
 export function getPropertyRepository(): PropertyRepository {
-  if (!current) {
-    const ctx = remoteContext();
-    current = ctx ? createRemotePropertyRepository(ctx.client, ctx.tenantId) : createLocalPropertyRepository();
-  }
-  return current;
+  return scoped.get();
 }
 
 // Solo para pruebas: cambia el repositorio que usa la tienda.
 export function setPropertyRepository(repo: PropertyRepository | null): void {
-  current = repo;
+  scoped.set(repo);
 }

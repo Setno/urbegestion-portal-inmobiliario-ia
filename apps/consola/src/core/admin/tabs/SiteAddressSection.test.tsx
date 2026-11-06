@@ -13,7 +13,7 @@ vi.mock('../../brand/siteAddressService', async (original) => ({
 }));
 
 const entrar = (role: 'admin' | 'agente') =>
-  useAuthStore.setState({ membership: { tenantName: 'Corredora de prueba', role, publicationMode: 'con_aprobacion' } });
+  useAuthStore.setState({ membership: { tenantId: 'tenant-1', tenantName: 'Corredora de prueba', role, publicationMode: 'con_aprobacion' } });
 
 const subdominio = () => screen.getByLabelText('Subdominio') as HTMLInputElement;
 const dominio = () => screen.getByLabelText('Dominio propio (opcional)') as HTMLInputElement;

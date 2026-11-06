@@ -25,7 +25,7 @@ vi.mock('../../auth/platformService', async (importOriginal) => ({
 }));
 
 const entrar = (role: 'admin' | 'agente') =>
-  useAuthStore.setState({ membership: { tenantName: 'Corredora de prueba', role, publicationMode: 'con_aprobacion' } });
+  useAuthStore.setState({ membership: { tenantId: 'tenant-1', tenantName: 'Corredora de prueba', role, publicationMode: 'con_aprobacion' } });
 
 describe('secciones del panel (equipo, plataforma, publicación, exportación, métricas)', () => {
   beforeEach(() => {
