@@ -111,8 +111,8 @@ export const LeadsTab: React.FC = () => {
 
   return (
     <>
-      {/* Sin shrink-0 los bloques con desplazamiento propio se aplastan cuando el contenido supera la pantalla (celular) y el Kanban o la lista desaparecen. */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-slate-100/80 flex flex-col space-y-4 [&>*]:shrink-0">
+      {/* Con flex-none cada bloque mantiene su alto natural: si no, los que tienen desplazamiento propio o `flex-1` (la tarjeta de la lista) se colapsan a 0 cuando el contenido supera la pantalla (celular) y el Kanban o la lista desaparecen. */}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-slate-100/80 flex flex-col space-y-4 [&>*]:flex-none">
         
         <TodayPanel leads={leads} onOpen={setSelectedLead} />
 
