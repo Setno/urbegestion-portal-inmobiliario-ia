@@ -188,9 +188,9 @@ export const LeadsTab: React.FC = () => {
         </div>
 
         {/* High-Volume Filter Toolbar */}
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-3">
+        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-x-3 gap-y-2.5">
           {/* Search input */}
-          <div className="relative w-full md:w-80">
+          <div className="relative w-full md:w-64 md:flex-none">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -210,7 +210,7 @@ export const LeadsTab: React.FC = () => {
           </div>
 
           {/* Property Filter Dropdown */}
-          <div className="w-full md:w-64">
+          <div className="w-full md:w-56 md:flex-none">
             <select
               aria-label="Filtrar por propiedad"
               value={leadPropertyFilter}
@@ -227,7 +227,7 @@ export const LeadsTab: React.FC = () => {
           </div>
 
           {/* Priority / Alarm Quick Filters */}
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-[11px] font-bold">
+          <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto text-[11px] font-bold">
             <button
               type="button"
               onClick={() => setLeadPriorityFilter('all')}
@@ -277,8 +277,8 @@ export const LeadsTab: React.FC = () => {
             </button>
           </div>
 
-          {/* Etapa del proceso: sirve en el Kanban, la tabla y la lista */}
-          <div role="group" aria-label="Filtrar por etapa" className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-[11px] font-bold md:basis-full">
+          {/* Etapa del proceso: sirve en el Kanban, la tabla y la lista. Los botones pasan a otra línea si no caben. */}
+          <div role="group" aria-label="Filtrar por etapa" className="flex flex-wrap items-center gap-1.5 w-full pt-2.5 border-t border-slate-100 text-[11px] font-bold">
             {([{ id: 'all', label: 'Todas las etapas' }, ...kanbanColumns.map((c) => ({ id: c.id, label: c.shortTitle }))] as { id: 'all' | LeadStatus; label: string }[]).map((s) => {
               const count = s.id === 'all' ? leads.length : leads.filter((l) => l.status === s.id).length;
               return (
