@@ -441,13 +441,14 @@ export const LeadsTab: React.FC = () => {
             </div>
 
             {/* Desktop Kanban 5 Columns */}
-            <div className="hidden md:grid md:grid-cols-6 gap-3.5 flex-1 min-h-[500px] overflow-x-auto pb-4">
+            {/* En celular se ve solo la columna de la etapa elegida arriba; desde tablet, todas. */}
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-3.5 md:flex-1 md:min-h-[500px] overflow-x-auto pb-4">
               {kanbanColumns.map((col) => {
                 const columnLeads = filteredLeads.filter((l) => l.status === col.id);
                 return (
                   <div
                     key={col.id}
-                    className="flex flex-col bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden min-w-[210px]"
+                    className={`${col.id === mobileActiveStage ? 'flex' : 'hidden md:flex'} flex-col bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden md:min-w-[210px]`}
                   >
                     <div className={`p-3 border-b ${col.bg} flex items-center justify-between`}>
                       <span className={`font-bold text-xs ${col.color}`}>{col.title}</span>

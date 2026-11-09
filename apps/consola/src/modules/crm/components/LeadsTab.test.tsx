@@ -77,6 +77,19 @@ describe('LeadsTab (CRM)', () => {
       expect(within(columna).getByText('Dora Descartada')).toBeTruthy();
     });
 
+    it('en celular el Kanban muestra la columna de la etapa elegida (las demás solo desde tablet)', () => {
+      useLeadStore.setState({ leads: [ana, descartado] });
+      render(<LeadsTab />);
+      const columna = (nombre: string) => screen.getByText(nombre, { selector: 'span.font-bold' }).closest('div')!.parentElement!;
+      const oculta = (nombre: string) => columna(nombre).classList.contains('hidden'); // clase suelta, no "overflow-hidden"
+      expect(oculta('Nuevos Prospectos')).toBe(false);
+      expect(oculta('Descartados')).toBe(true);
+      // Pestaña de etapa del celular (la otra "Descartados (1)" es el filtro de la tabla, que no está abierta).
+      fireEvent.click(screen.getByText('Descartados', { selector: 'button > span' }).closest('button')!);
+      expect(oculta('Descartados')).toBe(false);
+      expect(oculta('Nuevos Prospectos')).toBe(true);
+    });
+
     it('los botones de etapa filtran en la tabla y vuelven a mostrar todo', () => {
       useLeadStore.setState({ leads: [ana, beto, descartado] });
       render(<LeadsTab />);
