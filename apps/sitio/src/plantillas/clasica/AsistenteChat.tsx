@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, Bot, Send, Sparkles, X } from 'lucide-react';
 import { formatMoney } from '@portal/dinero';
-import { getMarketPack } from '@portal/mercados';
+import { getMarketPack, normalizePhone } from '@portal/mercados';
 import type { PublicProperty } from '@portal/sitio-datos/propiedades';
 import { bienvenida, responder, sugerencias, type ContextoAsistente } from '../../lib/asistente';
 import type { EnviarContactoChat, ErrorChat } from '../../lib/chat';
@@ -12,7 +12,7 @@ import { AvisoPrivacidad } from './AvisoPrivacidad';
 
 const MENSAJES: Record<ErrorChat, string> = {
   nombre: 'Escribe tu nombre completo.',
-  telefono: 'Revisa tu teléfono: debe tener entre 8 y 15 dígitos.',
+  telefono: `Revisa tu teléfono. Ejemplo: ${getMarketPack().phoneExample}.`,
   fecha: 'Elige una fecha de hoy en adelante o déjala en blanco.',
   hora: 'Elige uno de los horarios de la lista.',
   conexion: 'No pudimos enviar tus datos. Inténtalo de nuevo o escríbenos directamente.',
@@ -162,7 +162,7 @@ export function AsistenteChat({ propiedades, contexto, enviarContacto }: Asisten
             </div>
             <div>
               <label htmlFor="chat-telefono" className="block text-xs font-bold text-slate-700 mb-1">Teléfono</label>
-              <input id="chat-telefono" type="tel" required maxLength={30} autoComplete="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className={campo} />
+              <input id="chat-telefono" type="tel" inputMode="tel" required maxLength={30} autoComplete="tel" placeholder={getMarketPack().phoneExample} value={telefono} onChange={(e) => setTelefono(e.target.value)} onBlur={() => setTelefono((t) => normalizePhone(t) ?? t)} className={campo} />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>

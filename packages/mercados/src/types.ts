@@ -44,6 +44,7 @@ export interface MarketPack {
   messages: Record<string, Record<string, string>>;
   phonePrefix: string;
   phoneExample: string; // cómo se ve un teléfono en los formularios
+  phoneNationalDigits: number; // dígitos del número sin el prefijo del país (Chile: 9)
   privacyLaw: string;
   baseCurrency: string; // moneda en la que se convierten las demás ('CLP')
   defaultCurrency: string; // moneda con la que se muestran y cargan los precios por defecto ('UF')

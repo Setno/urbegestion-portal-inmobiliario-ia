@@ -1,8 +1,9 @@
+import { normalizePhone } from '@portal/mercados';
 import { buildPrivacyNotice } from '@portal/sitio-datos/privacidad';
 import { conAtribucion, type Atribucion } from '@portal/sitio-datos/atribucion';
 import type { SiteEnv } from './getSite';
 import { crearLeadEnBase } from './crearLead';
-import { avisarWebhook, CORREO, TELEFONO } from './solicitudVisita';
+import { avisarWebhook, CORREO } from './solicitudVisita';
 import { OPERACIONES_TASACION, TIPOS_TASACION, type DatosTasacion, type ErrorTasacion, type ResultadoTasacion } from './tasacion';
 
 export type { DatosTasacion } from './tasacion';
@@ -26,8 +27,7 @@ export function validarTasacion(datos: DatosTasacion): ErrorTasacion | null {
   if (dormitorios && (!/^\d{1,2}$/.test(dormitorios) || Number(dormitorios) > DORMITORIOS_MAXIMOS)) return 'dormitorios';
   const nombre = datos.nombre.trim();
   if (nombre.length < 2 || nombre.length > 120) return 'nombre';
-  const digitos = datos.telefono.replace(/\D/g, '').length;
-  if (digitos < 8 || digitos > 15 || datos.telefono.length > 30 || !TELEFONO.test(datos.telefono)) return 'telefono';
+  if (!normalizePhone(datos.telefono)) return 'telefono';
   const correo = datos.correo.trim();
   if (correo && (correo.length > 200 || !CORREO.test(correo))) return 'correo';
   return null;
@@ -68,7 +68,7 @@ export async function enviarSolicitudTasacion(
       tenant_id: env.tenantId,
       full_name: datos.nombre.trim(),
       email: datos.correo.trim(),
-      phone: datos.telefono.trim(),
+      phone: normalizePhone(datos.telefono) ?? datos.telefono.trim(),
       property_title: `${tipo} en ${comuna} (${superficie} m²)`,
       operation_interest: 'venta_propietario',
       status: 'nuevo',

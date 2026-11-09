@@ -1,3 +1,4 @@
+import { normalizePhone } from '@portal/mercados';
 import { buildPrivacyNotice } from '@portal/sitio-datos/privacidad';
 import { conAtribucion, type Atribucion } from '@portal/sitio-datos/atribucion';
 import { getSite, type SiteEnv } from './getSite';
@@ -9,7 +10,6 @@ export type { DatosVisita } from './visita';
 
 // Sin separadores ni signos de fórmula: estos datos los escribe cualquier visitante y terminan en planillas del CRM.
 export const CORREO = /^[^\s@?&;"'=|<>,]+@[^\s@?&;"'=|<>,]+\.[^\s@?&;"'=|<>,]+$/;
-export const TELEFONO = /^[+\d\s()-]+$/;
 const UN_DIA_MS = 24 * 60 * 60 * 1000;
 const ESPERA_MS = 8000;
 
@@ -26,8 +26,7 @@ function fechaValida(fecha: string, ahora: Date): boolean {
 export function validarSolicitud(datos: DatosVisita, ahora: Date = new Date()): ErrorVisita | null {
   const nombre = datos.nombre.trim();
   if (nombre.length < 2 || nombre.length > 120) return 'nombre';
-  const digitos = datos.telefono.replace(/\D/g, '').length;
-  if (digitos < 8 || digitos > 15 || datos.telefono.length > 30 || !TELEFONO.test(datos.telefono)) return 'telefono';
+  if (!normalizePhone(datos.telefono)) return 'telefono';
   const correo = datos.correo.trim();
   if (correo && (correo.length > 200 || !CORREO.test(correo))) return 'correo';
   if (datos.fecha && !fechaValida(datos.fecha, ahora)) return 'fecha';
@@ -132,7 +131,7 @@ export async function enviarSolicitudVisita(
       tenant_id: env.tenantId,
       full_name: datos.nombre.trim(),
       email: datos.correo.trim(),
-      phone: datos.telefono.trim(),
+      phone: normalizePhone(datos.telefono) ?? datos.telefono.trim(),
       property_id: propiedad.id,
       property_title: propiedad.title,
       operation_interest: propiedad.operation === 'venta' ? 'compra' : 'arriendo',

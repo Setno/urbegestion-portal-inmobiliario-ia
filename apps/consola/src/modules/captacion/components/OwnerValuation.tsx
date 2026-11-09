@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { normalizePhone } from '@portal/mercados';
 import { 
   X, 
   Building2, 
@@ -558,6 +559,7 @@ export const OwnerValuation: React.FC<OwnerValuationProps> = ({ isOpen, onClose 
                         placeholder={pack.phoneExample}
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
+                    onBlur={() => setPhone((t) => normalizePhone(t, pack) ?? t)}
                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-urbe-primary"
                       />
                     </div>

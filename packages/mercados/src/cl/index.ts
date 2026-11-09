@@ -10,6 +10,7 @@ export const CHILE: MarketPack = {
   messages: CHILE_MESSAGES,
   phonePrefix: '+56',
   phoneExample: '+56 9 1234 5678',
+  phoneNationalDigits: 9,
   privacyLaw: 'Ley 21.719',
   baseCurrency: 'CLP',
   defaultCurrency: 'UF',

@@ -1,3 +1,4 @@
+import { normalizePhone } from '@portal/mercados';
 import { buildPrivacyNotice } from '@portal/sitio-datos/privacidad';
 import { conAtribucion, type Atribucion } from '@portal/sitio-datos/atribucion';
 import type { SiteEnv } from './getSite';
@@ -47,7 +48,7 @@ export async function enviarSolicitudChat(
       tenant_id: env.tenantId,
       full_name: datos.nombre.trim(),
       email: '',
-      phone: datos.telefono.trim(),
+      phone: normalizePhone(datos.telefono) ?? datos.telefono.trim(),
       property_title: 'Consulta general desde el asistente',
       operation_interest: 'compra',
       status: conCita ? 'visita_agendada' : 'nuevo',

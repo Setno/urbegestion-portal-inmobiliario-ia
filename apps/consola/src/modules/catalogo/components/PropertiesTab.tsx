@@ -8,7 +8,7 @@ import {
   Video
 } from 'lucide-react';
 import { usePropertyStore } from '../stores/usePropertyStore';
-import { uploadIfRemote } from '../services/imageStorage';
+import { IMAGE_GUIDE, uploadIfRemote } from '../services/imageStorage';
 import { useAuthStore } from '../../../core/auth/useAuthStore';
 import {
   PUBLICATION_LABEL,
@@ -629,6 +629,7 @@ export const PropertiesTab: React.FC = () => {
                   <p className="text-[10px] text-slate-400 mt-0.5">
                     Formatos JPG, PNG, WEBP, MP4, MOV (Múltiple selección permitida)
                   </p>
+                  <p className="text-[10px] text-slate-500 mt-0.5 font-semibold">{IMAGE_GUIDE}</p>
                 </div>
 
                 {/* Alternativa: Pegar URL Web */}

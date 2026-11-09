@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { getMarketPack, normalizePhone } from '@portal/mercados';
 import { CheckCircle2 } from 'lucide-react';
 import { OPERACIONES_TASACION, TIPOS_TASACION, type EnviarTasacion, type ErrorTasacion } from '../../lib/tasacion';
 import { AvisoPrivacidad } from './AvisoPrivacidad';
@@ -12,7 +13,7 @@ const MENSAJES: Record<ErrorTasacion, string> = {
   superficie: 'Revisa la superficie: debe ser un número de metros cuadrados mayor que cero.',
   dormitorios: 'Revisa los dormitorios: debe ser un número o quedar en blanco.',
   nombre: 'Escribe tu nombre completo.',
-  telefono: 'Revisa tu teléfono: debe tener entre 8 y 15 dígitos.',
+  telefono: `Revisa tu teléfono. Ejemplo: ${getMarketPack().phoneExample}.`,
   correo: 'Revisa tu correo o déjalo en blanco.',
   conexion: 'No pudimos enviar tu solicitud. Inténtalo de nuevo o escríbenos directamente.',
 };
@@ -109,7 +110,7 @@ export function FormularioTasacion({ enviarTasacion }: { enviarTasacion: EnviarT
         </div>
         <div>
           <label htmlFor="tasacion-telefono" className={etiqueta}>Teléfono</label>
-          <input id="tasacion-telefono" type="tel" required maxLength={30} autoComplete="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className={campo} />
+          <input id="tasacion-telefono" type="tel" inputMode="tel" required maxLength={30} autoComplete="tel" placeholder={getMarketPack().phoneExample} value={telefono} onChange={(e) => setTelefono(e.target.value)} onBlur={() => setTelefono((t) => normalizePhone(t) ?? t)} className={campo} />
         </div>
         <div>
           <label htmlFor="tasacion-correo" className={etiqueta}>Correo (opcional)</label>

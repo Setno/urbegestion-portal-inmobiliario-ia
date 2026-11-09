@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { getMarketPack, normalizePhone } from '@portal/mercados';
 import { CheckCircle2 } from 'lucide-react';
 import { HORARIO_INICIAL, HORARIOS, type EnviarVisita, type ErrorVisita } from '../../lib/visita';
 import { AvisoPrivacidad } from './AvisoPrivacidad';
 
 const MENSAJES: Record<ErrorVisita, string> = {
   nombre: 'Escribe tu nombre completo.',
-  telefono: 'Revisa tu teléfono: debe tener entre 8 y 15 dígitos.',
+  telefono: `Revisa tu teléfono. Ejemplo: ${getMarketPack().phoneExample}.`,
   correo: 'Revisa tu correo o déjalo en blanco.',
   fecha: 'Elige una fecha de hoy en adelante o déjala en blanco.',
   hora: 'Elige uno de los horarios de la lista.',
@@ -77,7 +78,7 @@ export function FormularioVisita({ propiedadId, enviarVisita }: FormularioVisita
         </div>
         <div>
           <label htmlFor="visita-telefono" className={etiqueta}>Teléfono</label>
-          <input id="visita-telefono" type="tel" required maxLength={30} autoComplete="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className={campo} />
+          <input id="visita-telefono" type="tel" inputMode="tel" required maxLength={30} autoComplete="tel" placeholder={getMarketPack().phoneExample} value={telefono} onChange={(e) => setTelefono(e.target.value)} onBlur={() => setTelefono((t) => normalizePhone(t) ?? t)} className={campo} />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

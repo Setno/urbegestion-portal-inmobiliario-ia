@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { normalizePhone } from '@portal/mercados';
 import { 
   
   X, 
@@ -253,6 +254,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({ onOpenPropertyModal 
                     placeholder={t('form.phone')}
                     value={leadPhone}
                     onChange={(e) => setLeadPhone(e.target.value)}
+                    onBlur={() => setLeadPhone((t) => normalizePhone(t) ?? t)}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-urbe-primary"
                   />
                   <div className="grid grid-cols-2 gap-2">

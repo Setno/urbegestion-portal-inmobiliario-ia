@@ -38,6 +38,18 @@ describe('formulario de visita', () => {
     expect(document.activeElement).toBe(screen.getByRole('status'));
   });
 
+  it('H-067: muestra un ejemplo de teléfono y lo ordena al salir del campo', () => {
+    render(<FormularioVisita propiedadId="p1" enviarVisita={vi.fn()} />);
+    const campo = screen.getByLabelText('Teléfono') as HTMLInputElement;
+    expect(campo.placeholder).toBe('+56 9 1234 5678');
+    fireEvent.change(campo, { target: { value: '9 1111-2222' } });
+    fireEvent.blur(campo);
+    expect(campo.value).toBe('+56 9 1111 2222');
+    fireEvent.change(campo, { target: { value: '12ab' } });
+    fireEvent.blur(campo);
+    expect(campo.value).toBe('12ab'); // lo que no es un número se deja para que la persona lo corrija
+  });
+
   it('si el dato está malo lo dice, conserva lo escrito y deja corregir', async () => {
     const enviarVisita = vi.fn().mockResolvedValueOnce({ ok: false, error: 'telefono' }).mockResolvedValueOnce({ ok: true });
     render(<FormularioVisita propiedadId="p1" enviarVisita={enviarVisita} />);

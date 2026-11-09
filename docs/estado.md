@@ -2,7 +2,7 @@
 
 - Modo: adoptado
 - Fase actual: A6 Adopción (documentos listos; faltan tests de caracterización y CI real)
-- Última actualización: 2026-11-06
+- Última actualización: 2026-11-08
 
 ## Puertas
 
@@ -22,6 +22,8 @@
 
 ## Siguiente paso
 El 2026-11-03 el responsable eligió para avanzar: cerrar el sitio y unirlo a `main`, el proyecto de Vercel del sitio, H-030 (dirección por corredora), H-031 (SEO), H-032 (editor de textos) y H-048 (vendidas, arrendadas y reservadas). El resto de la lista de pendientes no se descarta: el responsable decide después qué más entra al MVP.
+
+Actualización 2026-11-08 (pendientes sin dominio): H-050 (comunas con nombre parecido ya no se confunden), H-067 (teléfono guiado y en un solo formato) y H-065 (medidas recomendadas y recorte de fotos nuevas a 16:10) hechas en código; H-066 no se reproduce en el código (queda una prueba que fija el comportamiento). Suite 1153 pruebas, lint, tipos y ambos builds en verde. Sin migraciones ni despliegues; no cambia el avance al MVP (79 %). Lo que sigue pendiente y no es del dominio: reglas de Firewall en el panel de Vercel, secretos de Resend en las funciones de la cuenta A, CMF para la UF (H-051), plantilla 2 (H-029), widget (H-034), panel del dueño (H-036), alta desde ventas (H-043.3) y dashboard (H-061).
 
 Actualización 2026-11-06: H-023 hecha (prueba E2E con Playwright del flujo visitante → lead en el CRM, contra la base de desarrollo; `npm run test:e2e`, claves en `e2e/credenciales.local`). Suite 1099 pruebas, lint, tipos y build en verde. No cambia el avance al MVP (79 %).
 nActualización 2026-11-06 (consola H-064 en producción provisoria): se quitó `VITE_TENANT_ID` de Production en la consola y se redesplegó con el commit d338450 (https://portal-inmobiliario-ia.vercel.app). Prueba de humo en verde: carga el ingreso sin marca de ninguna corredora, las 7 funciones de `api/` responden (200, 401, 405) y no hay errores en la consola del navegador. Pendiente de prueba a mano por el responsable: entrar con su correo y ver su corredora ("Corredora de Prueba"), crear y publicar una propiedad, enviar una visita desde el sitio y ver el lead en el CRM.

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { normalizePhone } from '@portal/mercados';
 import { 
   X, 
   Calendar, 
@@ -238,6 +239,7 @@ export const CalBookingModal: React.FC<CalBookingModalProps> = ({
                     placeholder={pack.phoneExample}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    onBlur={() => setPhone((t) => normalizePhone(t, pack) ?? t)}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                   />
                 </div>

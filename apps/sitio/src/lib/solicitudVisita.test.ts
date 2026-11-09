@@ -107,6 +107,19 @@ describe('enviarSolicitudVisita', () => {
     expect(insertados[0].privacy_notice).toMatchObject({ purpose: 'contacto_por_consulta', shownAt: AHORA.toISOString() });
   });
 
+  it('H-067: guarda el teléfono en un solo formato, escrito como se escriba', async () => {
+    const { insertados } = baseFalsa();
+    await enviarSolicitudVisita(ID, datos({ telefono: '9 1111-2222' }), env, AHORA);
+    await enviarSolicitudVisita(ID, datos({ telefono: '+1 (415) 555-2671' }), env, AHORA);
+    expect(insertados.map((l) => l.phone)).toEqual(['+56 9 1111 2222', '+14155552671']);
+  });
+
+  it('H-067: un teléfono de Chile incompleto no crea el lead', async () => {
+    const { insertados } = baseFalsa();
+    expect(await enviarSolicitudVisita(ID, datos({ telefono: '9 1111 222' }), env, AHORA)).toEqual({ ok: false, error: 'telefono' });
+    expect(insertados).toHaveLength(0);
+  });
+
   it('guarda exactamente las columnas previstas, aunque el navegador mande de más', async () => {
     const { insertados } = baseFalsa();
     const recibidos = {

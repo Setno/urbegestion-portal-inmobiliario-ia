@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ESTADOS_VISIBLES, filtrarPropiedades, ordenarDestacadas, parsePublicProperties, parsePublicSettings, SIN_FILTROS, type PublicProperty } from './propiedades';
+import { dentroDeZonas, ESTADOS_VISIBLES, filtrarPropiedades, ordenarDestacadas, parsePublicProperties, parsePublicSettings, SIN_FILTROS, type PublicProperty } from './propiedades';
 
 const fila = (extra: Record<string, unknown> = {}) => ({
   id: 'p1',
@@ -132,5 +132,26 @@ describe('ordenarDestacadas', () => {
       fila({ id: 'c', featured: false }),
     ]);
     expect(ordenarDestacadas(lista).map((p) => p.id)).toEqual(['b', 'a', 'c']);
+  });
+});
+
+describe('dentroDeZonas (H-066)', () => {
+  const props = parsePublicProperties([
+    fila({ id: 'a', commune: 'Providencia' }),
+    fila({ id: 'b', commune: 'Viña del Mar' }),
+    fila({ id: 'c', commune: 'Comuna que no está en la lista' }),
+    fila({ id: 'd', commune: '' }),
+  ]);
+
+  it('sin ninguna zona marcada el sitio muestra todas las propiedades', () => {
+    expect(dentroDeZonas(props, { marketId: 'cl', serviceAreas: [] }).map((p) => p.id)).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('con ids de zona que no existen tampoco oculta nada', () => {
+    expect(dentroDeZonas(props, { marketId: 'cl', serviceAreas: ['XX'] })).toHaveLength(4);
+  });
+
+  it('con una región marcada solo muestra lo de esa región', () => {
+    expect(dentroDeZonas(props, { marketId: 'cl', serviceAreas: ['CL-VS'] }).map((p) => p.id)).toEqual(['b']);
   });
 });

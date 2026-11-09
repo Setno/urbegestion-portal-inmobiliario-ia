@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getMarketPack, selectedAreas, zonesForAreas, localitiesForAreas, DEFAULT_MARKET_ID, matchesCommune } from './index';
+import { normalizePhone, getMarketPack, selectedAreas, zonesForAreas, localitiesForAreas, DEFAULT_MARKET_ID, matchesCommune } from './index';
 import { CHILE } from './cl';
 
 describe('paquete de mercado Chile', () => {
@@ -88,5 +88,44 @@ describe('matchesCommune', () => {
   it('acepta nombres más largos o más cortos que el guardado', () => {
     expect(matchesCommune('Lo Barnechea', 'Lo Barnechea (La Dehesa / Los Trapenses)', CHILE)).toBe(true);
     expect(matchesCommune('Providencia', 'Ñuñoa', CHILE)).toBe(false);
+  });
+
+  it('H-050: un nombre contenido dentro de otro comuna no coincide (Pinto no es María Pinto)', () => {
+    expect(matchesCommune('María Pinto', 'Pinto', CHILE)).toBe(false);
+    expect(matchesCommune('Pinto', 'María Pinto', CHILE)).toBe(false);
+    expect(matchesCommune('Las Cabras', 'Cabras', CHILE)).toBe(false);
+  });
+
+  it('H-050: sigue aceptando el nombre principal seguido de sector entre paréntesis o con barra', () => {
+    expect(matchesCommune('Melipilla (Agrícola / Parcelas)', 'Melipilla', CHILE)).toBe(true);
+    expect(matchesCommune('Pirque / Paine (Agrícola)', 'Pirque', CHILE)).toBe(true);
+    expect(matchesCommune('pinto', 'Pinto', CHILE)).toBe(true);
+  });
+
+  it('H-050: una comuna vacía no coincide con nada', () => {
+    expect(matchesCommune('', 'Providencia', CHILE)).toBe(false);
+    expect(matchesCommune('Providencia', '', CHILE)).toBe(false);
+    expect(matchesCommune('  ', 'Providencia', CHILE)).toBe(false);
+  });
+});
+
+describe('normalizePhone (H-067)', () => {
+  it('lleva los números de Chile al formato +56 9 1234 5678, escritos como se escriban', () => {
+    for (const escrito of ['+56 9 1234 5678', '+56912345678', '56912345678', '912345678', '9 1234 5678', '(9) 1234-5678', '+56 (9) 1234 5678']) {
+      expect(normalizePhone(escrito, CHILE)).toBe('+56 9 1234 5678');
+    }
+    expect(normalizePhone('22 345 6789', CHILE)).toBe('+56 2 2345 6789');
+  });
+
+  it('rechaza lo que no es un número: letras, muy corto, muy largo o incompleto', () => {
+    for (const malo of ['', 'abc', '12345678', '9 1234 567', '+56 9 1234 56789', 'llámame al 912345678', '9123-45678x']) {
+      expect(normalizePhone(malo, CHILE)).toBeNull();
+    }
+  });
+
+  it('acepta un número de otro país con su + y lo deja sin espacios', () => {
+    expect(normalizePhone('+1 (415) 555-2671', CHILE)).toBe('+14155552671');
+    expect(normalizePhone('+54 9 11 2345 6789', CHILE)).toBe('+5491123456789');
+    expect(normalizePhone('+1 23', CHILE)).toBeNull();
   });
 });
