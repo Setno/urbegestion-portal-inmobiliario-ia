@@ -1,6 +1,7 @@
 import type { Lead, LeadStatus } from '../types/lead';
 import type { LeadEvent } from '../types/leadEvent';
 import { sourceLabel, attributionLabel } from './leadSource';
+import { actionState } from './leadTasks';
 
 // Reportes básicos del CRM (H-060). Todo se calcula con lo que el lead es hoy y con su historial de contactos.
 
@@ -94,3 +95,83 @@ export const inPeriod = (leads: Lead[], days: number | null, now: Date = new Dat
   const limit = new Date(now.getTime() - days * 24 * HOUR).toISOString().slice(0, 10);
   return leads.filter((l) => l.createdAt >= limit);
 };
+
+// ---- Dashboard de gestión (H-061) ----
+
+const DAY = 24 * HOUR;
+const isoDay = (t: number): string => new Date(t).toISOString().slice(0, 10);
+
+// Los `days` días justo antes del período actual, para comparar. "Todo el tiempo" no tiene anterior.
+export const previousPeriod = (leads: Lead[], days: number | null, now: Date = new Date()): Lead[] | null => {
+  if (days === null) return null;
+  const to = isoDay(now.getTime() - days * DAY);
+  const from = isoDay(now.getTime() - 2 * days * DAY);
+  return leads.filter((l) => l.createdAt >= from && l.createdAt < to);
+};
+
+// De los contactos activos (sin descartados), cuántos llegaron a visita agendada o más lejos.
+export const leadToVisit = (leads: Lead[]): { reached: number; total: number; rate: number | null } => {
+  const active = leads.filter((l) => l.status !== 'descartado');
+  const reached = active.filter((l) => PATH.indexOf(l.status) >= PATH.indexOf('visita_agendada')).length;
+  return { reached, total: active.length, rate: active.length === 0 ? null : pct(reached, active.length) };
+};
+
+// Bajo dos horas se muestra en minutos: la velocidad de respuesta se mide en minutos, no en horas.
+export const formatHours = (hours: number | null): string => {
+  if (hours === null) return 'sin datos';
+  if (hours < 2) return `${Math.round(hours * 60)} min`;
+  return `${String(Math.round(hours * 10) / 10).replace('.', ',')} h`;
+};
+
+export type Change = { kind: 'sube' | 'baja' | 'igual' | 'sin_base'; pct: number | null };
+
+// Variación respecto del período anterior; sin base (anterior vacío o sin dato) no se inventa un porcentaje.
+export const change = (current: number | null, previous: number | null): Change => {
+  if (current === null || previous === null || previous === 0) return { kind: 'sin_base', pct: null };
+  if (current === previous) return { kind: 'igual', pct: 0 };
+  const p = Math.round((Math.abs(current - previous) / previous) * 100);
+  return { kind: current > previous ? 'sube' : 'baja', pct: p };
+};
+
+export interface WeekRow {
+  weekStart: string; // lunes, AAAA-MM-DD
+  total: number;
+  bySource: Record<string, number>;
+}
+
+const mondayOf = (isoDate: string): number => {
+  const t = Date.parse(`${isoDate}T00:00:00Z`);
+  const dow = (new Date(t).getUTCDay() + 6) % 7; // lunes = 0
+  return t - dow * DAY;
+};
+
+// Leads que entran por semana (lunes a domingo) y su origen, de las últimas `weeks` semanas contando la actual.
+export const weeklyLeads = (leads: Lead[], weeks: number, now: Date = new Date()): WeekRow[] => {
+  const last = mondayOf(isoDay(now.getTime()));
+  const rows: WeekRow[] = Array.from({ length: weeks }, (_, i) => ({
+    weekStart: isoDay(last - (weeks - 1 - i) * 7 * DAY), total: 0, bySource: {},
+  }));
+  const byStart = new Map(rows.map((r) => [r.weekStart, r]));
+  for (const l of leads) {
+    const row = byStart.get(isoDay(mondayOf(l.createdAt)));
+    if (!row) continue;
+    const label = sourceLabel(l.source);
+    row.total += 1;
+    row.bySource[label] = (row.bySource[label] ?? 0) + 1;
+  }
+  return rows;
+};
+
+// Disciplina de seguimiento hoy: de los contactos abiertos, cuántos tienen la acción vencida o ninguna.
+export const followUp = (leads: Lead[], today: string): { overdue: number; withoutAction: number; open: number } => {
+  const open = leads.filter((l) => l.status !== 'cerrado' && l.status !== 'descartado');
+  return {
+    open: open.length,
+    overdue: open.filter((l) => actionState(l, today) === 'vencida').length,
+    withoutAction: open.filter((l) => actionState(l, today) === 'sin_accion').length,
+  };
+};
+
+// Visitas con fecha entre `from` y `to` (inclusive).
+export const visitsIn = (leads: Lead[], from: string, to: string): number =>
+  leads.filter((l) => l.status !== 'descartado' && l.appointmentDate && l.appointmentDate >= from && l.appointmentDate <= to).length;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { funnel, bySource, byCampaign, responseStats, inPeriod } from './leadReports';
+import { funnel, bySource, byCampaign, responseStats, inPeriod, previousPeriod, leadToVisit, formatHours, change, weeklyLeads, followUp, visitsIn } from './leadReports';
 import type { Lead } from '../types/lead';
 import type { LeadEvent } from '../types/leadEvent';
 
@@ -93,5 +93,74 @@ describe('inPeriod', () => {
     const leads = [lead({ id: 'a', createdAt: '2026-11-08' }), lead({ id: 'b', createdAt: '2026-09-01' })];
     expect(inPeriod(leads, 7, now).map((l) => l.id)).toEqual(['a']);
     expect(inPeriod(leads, null, now)).toHaveLength(2);
+  });
+});
+
+describe('dashboard de leads (H-061)', () => {
+  const NOW = new Date('2026-11-10T12:00:00Z'); // martes
+
+  it('previousPeriod toma los días justo antes del período actual', () => {
+    const ls = [lead({ id: 'a', createdAt: '2026-11-08' }), lead({ id: 'b', createdAt: '2026-11-04' }), lead({ id: 'c', createdAt: '2026-10-30' }), lead({ id: 'd', createdAt: '2026-10-01' })];
+    expect(inPeriod(ls, 7, NOW).map((l) => l.id)).toEqual(['a', 'b']);
+    expect(previousPeriod(ls, 7, NOW).map((l) => l.id)).toEqual(['c']);
+    expect(previousPeriod(ls, null, NOW)).toBeNull(); // "todo el tiempo" no tiene período anterior
+  });
+
+  it('leadToVisit cuenta los que llegaron a visita o más y dice si no hay datos', () => {
+    const r = leadToVisit([
+      lead({ id: '1', status: 'nuevo' }), lead({ id: '2', status: 'visita_agendada' }),
+      lead({ id: '3', status: 'cerrado' }), lead({ id: '4', status: 'descartado' }),
+    ]);
+    expect(r).toEqual({ reached: 2, total: 3, rate: 67 }); // el descartado no cuenta
+    expect(leadToVisit([])).toEqual({ reached: 0, total: 0, rate: null });
+  });
+
+  it('formatHours muestra minutos bajo dos horas', () => {
+    expect(formatHours(null)).toBe('sin datos');
+    expect(formatHours(0.75)).toBe('45 min');
+    expect(formatHours(1.9)).toBe('114 min');
+    expect(formatHours(3.5)).toBe('3,5 h');
+    expect(formatHours(30)).toBe('30 h');
+  });
+
+  it('change compara con el período anterior y no inventa un porcentaje sin base', () => {
+    expect(change(12, 10)).toEqual({ kind: 'sube', pct: 20 });
+    expect(change(5, 10)).toEqual({ kind: 'baja', pct: 50 });
+    expect(change(10, 10)).toEqual({ kind: 'igual', pct: 0 });
+    expect(change(4, 0)).toEqual({ kind: 'sin_base', pct: null });
+    expect(change(4, null)).toEqual({ kind: 'sin_base', pct: null });
+    expect(change(null, 3)).toEqual({ kind: 'sin_base', pct: null });
+  });
+
+  it('weeklyLeads agrupa por semana (lunes a domingo) con el origen de cada una, incluyendo semanas vacías', () => {
+    const ls = [
+      lead({ id: '1', createdAt: '2026-11-09', source: 'ficha_propiedad' }), // lunes de esta semana
+      lead({ id: '2', createdAt: '2026-11-10', source: 'asistente_ia' }),
+      lead({ id: '3', createdAt: '2026-11-01', source: 'ficha_propiedad' }), // domingo de la semana del 26-oct
+    ];
+    const w = weeklyLeads(ls, 3, NOW);
+    expect(w.map((x) => x.weekStart)).toEqual(['2026-10-26', '2026-11-02', '2026-11-09']);
+    expect(w.map((x) => x.total)).toEqual([1, 0, 2]);
+    expect(Object.values(w[2].bySource).reduce((a, b) => a + b, 0)).toBe(2);
+    expect(Object.keys(w[2].bySource)).toHaveLength(2);
+  });
+
+  it('followUp cuenta acciones vencidas y contactos abiertos sin acción, ignorando cerrados y descartados', () => {
+    const r = followUp([
+      lead({ id: '1', nextActionText: 'llamar', nextActionDue: '2026-11-05' }),
+      lead({ id: '2', nextActionText: 'llamar', nextActionDue: '2026-11-10' }),
+      lead({ id: '3' }),
+      lead({ id: '4', status: 'cerrado' }),
+      lead({ id: '5', status: 'descartado' }),
+    ], '2026-11-10');
+    expect(r).toEqual({ overdue: 1, withoutAction: 1, open: 3 });
+  });
+
+  it('visitsIn cuenta las visitas con fecha dentro de un rango, sin descartados', () => {
+    const ls = [
+      lead({ id: '1', appointmentDate: '2026-11-12' }), lead({ id: '2', appointmentDate: '2026-11-03' }),
+      lead({ id: '3', appointmentDate: '2026-11-12', status: 'descartado' }), lead({ id: '4' }),
+    ];
+    expect(visitsIn(ls, '2026-11-10', '2026-11-16')).toBe(1);
   });
 });

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTimelineStore } from '../stores/useTimelineStore';
 import { bySource, byCampaign, funnel, inPeriod, responseStats, type GroupRow } from '../services/leadReports';
+import { DashboardSummary } from './DashboardSummary';
 import { statusLabel } from '../services/leadTimeline';
 import type { Lead } from '../types/lead';
 
@@ -47,7 +48,8 @@ export const Reports: React.FC<{ leads: Lead[] }> = ({ leads }) => {
   const scoped = useMemo(() => inPeriod(leads, days), [leads, days]);
   const flow = useMemo(() => funnel(scoped), [scoped]);
   const unmeasured = scoped.filter((l) => !l.createdAtIso).length;
-  const response = useMemo(() => responseStats(scoped, Object.values(events).flat()), [scoped, events]);
+  const allEvents = useMemo(() => Object.values(events).flat(), [events]);
+  const response = useMemo(() => responseStats(scoped, allEvents), [scoped, allEvents]);
 
   return (
     <div className="space-y-4">
@@ -65,11 +67,13 @@ export const Reports: React.FC<{ leads: Lead[] }> = ({ leads }) => {
         </select>
       </div>
 
+      <DashboardSummary leads={leads} scoped={scoped} days={days} events={allEvents} weeks={days !== null && days <= 30 ? 8 : 13} />
+
       <section aria-label="Embudo por etapa" className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <h4 className="text-xs font-bold text-slate-800 mb-2">Embudo por etapa</h4>
         <table className="w-full text-xs text-left">
           <thead className="text-slate-500">
-            <tr><th className="py-1 font-bold">Etapa</th><th className="py-1 font-bold">Hoy en la etapa</th><th className="py-1 font-bold">Llegaron</th><th className="py-1 font-bold">Pasaron de la anterior</th></tr>
+            <tr><th className="py-1 font-bold">Etapa</th><th className="py-1 font-bold">Hoy en la etapa</th><th className="py-1 font-bold">Llegaron</th><th className="py-1 font-bold">Pasaron de la anterior</th><th className="py-1 w-1/3"><span className="sr-only">Barra</span></th></tr>
           </thead>
           <tbody>
             {flow.stages.map((s) => (
@@ -78,6 +82,7 @@ export const Reports: React.FC<{ leads: Lead[] }> = ({ leads }) => {
                 <td>{s.current}</td>
                 <td>{s.reached}</td>
                 <td>{s.conversion === null ? '—' : `${s.conversion} %`}</td>
+                <td aria-hidden="true"><div className="h-2 rounded bg-urbe-primary/70" style={{ width: `${(s.reached / Math.max(1, flow.stages[0].reached)) * 100}%` }} /></td>
               </tr>
             ))}
           </tbody>

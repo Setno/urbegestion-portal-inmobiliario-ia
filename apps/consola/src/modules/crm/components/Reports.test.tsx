@@ -80,3 +80,60 @@ describe('Reportes: avisos de datos incompletos (H-060)', () => {
     expect(screen.getByText('2 leads sin hora exacta de registro no se midieron.')).toBeTruthy();
   });
 });
+
+describe('Dashboard de gestión (H-061)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useTimelineStore.setState({ events: {} });
+  });
+  afterEach(cleanup);
+
+  const tarjeta = (nombre: string) => screen.getByRole('group', { name: nombre });
+
+  it('arriba muestra las tarjetas con los números clave del período', () => {
+    render(<Reports leads={[
+      lead({ id: 'a', status: 'cerrado' }), lead({ id: 'b', status: 'visita_agendada' }),
+      lead({ id: 'c', status: 'nuevo' }), lead({ id: 'd', status: 'descartado' }),
+    ]} />);
+    const clave = screen.getByRole('region', { name: 'Números clave' });
+    expect(within(clave).getAllByRole('group')).toHaveLength(6);
+    expect(within(tarjeta('Leads nuevos')).getByText('4')).toBeTruthy();
+    expect(within(tarjeta('De lead a visita')).getByText('67 %')).toBeTruthy(); // 2 de 3 activos
+  });
+
+  it('compara con el período anterior y, sin base, lo dice en vez de inventar un porcentaje', () => {
+    const antes = new Date(Date.now() - 40 * 86_400_000).toISOString().slice(0, 10);
+    const { rerender } = render(<Reports leads={[lead({ id: 'a' })]} />);
+    expect(within(tarjeta('Leads nuevos')).getByText(/sin período anterior para comparar/i)).toBeTruthy();
+    rerender(<Reports leads={[lead({ id: 'a' }), lead({ id: 'b' }), lead({ id: 'p', createdAt: antes })]} />);
+    expect(within(tarjeta('Leads nuevos')).getByText(/100 % más que el período anterior/)).toBeTruthy();
+  });
+
+  it('un indicador sin datos explica por qué en vez de mostrar cero', () => {
+    render(<Reports leads={[lead({ id: 'a' })]} />);
+    const t = tarjeta('Primer contacto');
+    expect(within(t).getByText('sin datos')).toBeTruthy();
+    expect(within(t).getByText(/ningún contacto registrado/i)).toBeTruthy();
+    cleanup();
+    render(<Reports leads={[]} />);
+    expect(within(tarjeta('De lead a visita')).getByText(/no hay contactos en el período/i)).toBeTruthy();
+  });
+
+  it('el seguimiento cuenta acciones vencidas y contactos sin próxima acción', () => {
+    render(<Reports leads={[
+      lead({ id: 'a', nextActionText: 'llamar', nextActionDue: '2020-01-01' }),
+      lead({ id: 'b' }),
+    ]} />);
+    const t = tarjeta('Seguimiento');
+    expect(within(t).getByText('1 vencida')).toBeTruthy();
+    expect(within(t).getByText(/1 sin próxima acción/)).toBeTruthy();
+  });
+
+  it('muestra los leads por semana con barras', () => {
+    render(<Reports leads={[lead({ id: 'a' }), lead({ id: 'b', source: 'asistente_ia' })]} />);
+    const sem = screen.getByRole('region', { name: 'Leads por semana' });
+    const barras = within(sem).getAllByRole('img');
+    expect(barras.length).toBeGreaterThanOrEqual(4);
+    expect(barras[barras.length - 1].getAttribute('aria-label')).toMatch(/2 leads/);
+  });
+});
