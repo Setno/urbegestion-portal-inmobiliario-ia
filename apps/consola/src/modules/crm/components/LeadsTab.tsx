@@ -45,6 +45,7 @@ export const LeadsTab: React.FC = () => {
   const [crmViewMode, setCrmViewMode] = useState<'kanban' | 'table' | 'agenda' | 'reports'>('kanban');
   const [leadSearchQuery, setLeadSearchQuery] = useState('');
   const [leadPropertyFilter, setLeadPropertyFilter] = useState('all');
+  const [leadStageFilter, setLeadStageFilter] = useState<'all' | LeadStatus>('all');
   const [leadPriorityFilter, setLeadPriorityFilter] = useState<'all' | 'today' | 'appointment' | 'attachments'>('all');
 
   const filteredLeads = leads.filter((lead) => {
@@ -66,6 +67,9 @@ export const LeadsTab: React.FC = () => {
         return false;
       }
     }
+
+    // 2b. Etapa del proceso
+    if (leadStageFilter !== 'all' && lead.status !== leadStageFilter) return false;
 
     // 3. Priority / Alarm Filter
     if (leadPriorityFilter === 'today') {
@@ -94,6 +98,7 @@ export const LeadsTab: React.FC = () => {
     { id: 'visita_agendada', title: 'Visita Agendada', shortTitle: 'Visitas', color: 'text-purple-700', bg: 'bg-purple-50 border-purple-200' },
     { id: 'en_negociacion', title: 'En Negociación', shortTitle: 'Negociación', color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200' },
     { id: 'cerrado', title: 'Cierre Ganado', shortTitle: 'Cerrados', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
+    { id: 'descartado', title: 'Descartados', shortTitle: 'Descartados', color: 'text-slate-700', bg: 'bg-slate-100 border-slate-300' },
   ];
 
   const handleAddNote = (leadId: string) => {
@@ -271,6 +276,26 @@ export const LeadsTab: React.FC = () => {
               <span>De Hoy ({leads.filter(l => l.createdAt.includes(new Date().toISOString().slice(0, 10))).length})</span>
             </button>
           </div>
+
+          {/* Etapa del proceso: sirve en el Kanban, la tabla y la lista */}
+          <div role="group" aria-label="Filtrar por etapa" className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 text-[11px] font-bold md:basis-full">
+            {([{ id: 'all', label: 'Todas las etapas' }, ...kanbanColumns.map((c) => ({ id: c.id, label: c.shortTitle }))] as { id: 'all' | LeadStatus; label: string }[]).map((s) => {
+              const count = s.id === 'all' ? leads.length : leads.filter((l) => l.status === s.id).length;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  aria-pressed={leadStageFilter === s.id}
+                  onClick={() => setLeadStageFilter(s.id)}
+                  className={`px-3 py-1.5 rounded-xl whitespace-nowrap border transition-all ${
+                    leadStageFilter === s.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {s.label} ({count})
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Vista tabla de alta densidad (para 100 o más leads) */}
@@ -415,7 +440,7 @@ export const LeadsTab: React.FC = () => {
             </div>
 
             {/* Desktop Kanban 5 Columns */}
-            <div className="hidden md:grid md:grid-cols-5 gap-3.5 flex-1 min-h-[500px] overflow-x-auto pb-4">
+            <div className="hidden md:grid md:grid-cols-6 gap-3.5 flex-1 min-h-[500px] overflow-x-auto pb-4">
               {kanbanColumns.map((col) => {
                 const columnLeads = filteredLeads.filter((l) => l.status === col.id);
                 return (

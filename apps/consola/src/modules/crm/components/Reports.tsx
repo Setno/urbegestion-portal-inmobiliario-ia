@@ -82,7 +82,7 @@ export const Reports: React.FC<{ leads: Lead[] }> = ({ leads }) => {
                 <td>{s.current}</td>
                 <td>{s.reached}</td>
                 <td>{s.conversion === null ? '—' : `${s.conversion} %`}</td>
-                <td aria-hidden="true"><div className="h-2 rounded bg-urbe-primary/70" style={{ width: `${(s.reached / Math.max(1, flow.stages[0].reached)) * 100}%` }} /></td>
+                <td aria-hidden="true"><div className="h-2 rounded bg-urbe-primary opacity-70" style={{ width: `${(s.reached / Math.max(1, flow.stages[0].reached)) * 100}%` }} /></td>
               </tr>
             ))}
           </tbody>

@@ -123,7 +123,7 @@ export const DashboardSummary: React.FC<Props> = ({ leads, scoped, days, events,
             return (
               <div key={w.weekStart} className="flex-1 flex flex-col items-center justify-end h-full min-w-0">
                 <span className="text-[10px] text-slate-600 font-semibold">{w.total}</span>
-                <div role="img" aria-label={label} title={label} className="w-full rounded-t bg-urbe-primary/80" style={{ height: `${(w.total / max) * 100}%`, minHeight: w.total ? 4 : 1 }} />
+                <div role="img" aria-label={label} title={label} className="w-full rounded-t bg-urbe-primary opacity-80" style={{ height: w.total ? Math.max(4, Math.round((w.total / max) * 72)) : 1 }} />
                 <span className="text-[9px] text-slate-400 mt-1">{WEEK_LABEL(w.weekStart)}</span>
               </div>
             );

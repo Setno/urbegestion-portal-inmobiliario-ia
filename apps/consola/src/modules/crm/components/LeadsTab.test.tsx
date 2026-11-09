@@ -67,6 +67,29 @@ describe('LeadsTab (CRM)', () => {
     });
   });
 
+  describe('etapas y descartados', () => {
+    const descartado = lead({ id: 'd', fullName: 'Dora Descartada', status: 'descartado' });
+
+    it('el Kanban tiene una columna de Descartados con sus contactos', () => {
+      useLeadStore.setState({ leads: [ana, descartado] });
+      render(<LeadsTab />);
+      const columna = screen.getByText('Descartados', { selector: 'span.font-bold' }).closest('div')!.parentElement!;
+      expect(within(columna).getByText('Dora Descartada')).toBeTruthy();
+    });
+
+    it('los botones de etapa filtran en la tabla y vuelven a mostrar todo', () => {
+      useLeadStore.setState({ leads: [ana, beto, descartado] });
+      render(<LeadsTab />);
+      abrirTabla();
+      const grupo = screen.getByRole('group', { name: 'Filtrar por etapa' });
+      fireEvent.click(within(grupo).getByRole('button', { name: /^Descartados \(1\)/ }));
+      expect(filas()).toHaveLength(1);
+      expect(screen.getByText('1 de 3 leads')).toBeTruthy();
+      fireEvent.click(within(grupo).getByRole('button', { name: /^Todas las etapas \(3\)/ }));
+      expect(filas()).toHaveLength(3);
+    });
+  });
+
   describe('vista Tabla', () => {
     it('lista una fila por lead con su contacto y el enlace a WhatsApp', () => {
       render(<LeadsTab />);
