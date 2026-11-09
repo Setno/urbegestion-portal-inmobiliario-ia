@@ -1,4 +1,4 @@
-import type { Lead, LeadStatus } from '../types/lead';
+import type { DiscardReason, Lead, LeadStatus } from '../types/lead';
 import type { LeadEvent } from '../types/leadEvent';
 import { sourceLabel, attributionLabel } from './leadSource';
 import { actionState } from './leadTasks';
@@ -175,3 +175,45 @@ export const followUp = (leads: Lead[], today: string): { overdue: number; witho
 // Visitas con fecha entre `from` y `to` (inclusive).
 export const visitsIn = (leads: Lead[], from: string, to: string): number =>
   leads.filter((l) => l.status !== 'descartado' && l.appointmentDate && l.appointmentDate >= from && l.appointmentDate <= to).length;
+
+export const DISCARD_LABELS: Record<DiscardReason, string> = {
+  no_respondio: 'No respondió',
+  compro_en_otro_lado: 'Compró en otro lado',
+  sin_presupuesto: 'Sin presupuesto',
+  ya_no_le_interesa: 'Ya no le interesa',
+  otro: 'Otro motivo',
+};
+
+// Días promedio entre el registro del contacto y su cierre. Los cerrados antes de que se guardara la fecha no se miden.
+export const timeToClose = (leads: Lead[]): { measured: number; averageDays: number | null; closedWithoutDate: number } => {
+  let measured = 0;
+  let totalMs = 0;
+  let without = 0;
+  for (const l of leads) {
+    if (l.status !== 'cerrado') continue;
+    const start = l.createdAtIso ? Date.parse(l.createdAtIso) : NaN;
+    const end = l.closedAtIso ? Date.parse(l.closedAtIso) : NaN;
+    if (Number.isNaN(start) || Number.isNaN(end) || end < start) {
+      without += 1;
+      continue;
+    }
+    measured += 1;
+    totalMs += end - start;
+  }
+  return { measured, averageDays: measured === 0 ? null : Math.round((totalMs / measured / DAY) * 10) / 10, closedWithoutDate: without };
+};
+
+// Por qué se descartan los contactos, de lo más frecuente a lo menos.
+export const discardReasons = (
+  leads: Lead[],
+): { rows: { reason: DiscardReason; label: string; count: number }[]; withoutReason: number; total: number } => {
+  const discarded = leads.filter((l) => l.status === 'descartado');
+  const counts = new Map<DiscardReason, number>();
+  let withoutReason = 0;
+  for (const l of discarded) {
+    if (l.discardReason && l.discardReason in DISCARD_LABELS) counts.set(l.discardReason, (counts.get(l.discardReason) ?? 0) + 1);
+    else withoutReason += 1;
+  }
+  const rows = [...counts.entries()].map(([reason, count]) => ({ reason, label: DISCARD_LABELS[reason], count })).sort((a, b) => b.count - a.count);
+  return { rows, withoutReason, total: discarded.length };
+};

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Lead, LeadStatus } from '../types/lead';
+import { Lead, LeadStatus, DiscardReason } from '../types/lead';
 import { webhookService } from '../../captacion/services/webhookService';
 import { createLocalStore } from '../../../core/storage/localStore';
 import { getLeadRepository } from '../services/leadRepository';
@@ -16,6 +16,8 @@ interface LeadStore {
   // Actions
   addLead: (lead: Omit<Lead, 'id' | 'createdAt'>) => string;
   updateLeadStatus: (id: string, status: LeadStatus) => void;
+  // Motivo del descarte (H-061). Solo vale para contactos descartados.
+  setDiscardReason: (id: string, reason: DiscardReason | undefined) => void;
   addNoteToLead: (id: string, note: string) => void;
   // Próxima acción del contacto (H-056). Devuelve false si falta el texto o la fecha no es válida.
   setNextAction: (id: string, text: string, due: string) => boolean;
@@ -152,16 +154,31 @@ export const useLeadStore = create<LeadStore>((set, get) => {
     updateLeadStatus: (id, status) => {
       const before = get().leads.find((l) => l.id === id);
       const changed = Boolean(before && before.status !== status);
-      const updated = get().leads.map((l) => (l.id === id ? { ...l, status } : l));
+      // La fecha de cierre se guarda al pasar a Cerrado y se borra al salir; el motivo solo vive mientras esté descartado.
+      const extra: Partial<Lead> = {};
+      if (changed) {
+        extra.closedAtIso = status === 'cerrado' ? new Date().toISOString() : undefined;
+        if (status !== 'descartado') extra.discardReason = undefined;
+      }
+      const patch: Partial<Lead> = { status, ...extra };
+      const updated = get().leads.map((l) => (l.id === id ? { ...l, ...patch } : l));
       set({ leads: updated });
       const repo = getLeadRepository();
-      const saved = repo.update(id, { status }, updated);
+      const saved = repo.update(id, patch, updated);
       warnOnFail(saved, 'cambiar el estado del lead');
       if (!changed) return;
       const record = () => useTimelineStore.getState().add(id, 'estado', `Pasó a ${statusLabel(status)}`, true);
       // Con la base, el historial anota el cambio solo si quedó guardado; en el navegador se anota de inmediato.
       if (repo.mode === 'remote') saved.then(record, () => undefined);
       else record();
+    },
+
+    setDiscardReason: (id, reason) => {
+      const lead = get().leads.find((l) => l.id === id);
+      if (!lead || lead.status !== 'descartado') return;
+      const updated = get().leads.map((l) => (l.id === id ? { ...l, discardReason: reason } : l));
+      set({ leads: updated });
+      warnOnFail(getLeadRepository().update(id, { discardReason: reason }, updated), 'guardar el motivo del descarte');
     },
 
     addNoteToLead: (id, note) => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { funnel, bySource, byCampaign, responseStats, inPeriod, previousPeriod, leadToVisit, formatHours, change, weeklyLeads, followUp, visitsIn } from './leadReports';
+import { funnel, bySource, byCampaign, responseStats, inPeriod, previousPeriod, leadToVisit, formatHours, change, weeklyLeads, followUp, visitsIn, timeToClose, discardReasons, DISCARD_LABELS } from './leadReports';
 import type { Lead } from '../types/lead';
 import type { LeadEvent } from '../types/leadEvent';
 
@@ -162,5 +162,37 @@ describe('dashboard de leads (H-061)', () => {
       lead({ id: '3', appointmentDate: '2026-11-12', status: 'descartado' }), lead({ id: '4' }),
     ];
     expect(visitsIn(ls, '2026-11-10', '2026-11-16')).toBe(1);
+  });
+});
+
+describe('cierre y descarte (H-061)', () => {
+  it('timeToClose promedia los días entre el registro y el cierre, y cuenta los cerrados sin fecha', () => {
+    const r = timeToClose([
+      lead({ id: '1', status: 'cerrado', createdAtIso: '2026-11-01T10:00:00Z', closedAtIso: '2026-11-11T10:00:00Z' }), // 10 días
+      lead({ id: '2', status: 'cerrado', createdAtIso: '2026-11-01T10:00:00Z', closedAtIso: '2026-11-05T10:00:00Z' }), // 4 días
+      lead({ id: '3', status: 'cerrado' }), // sin fecha de cierre
+      lead({ id: '4', status: 'nuevo' }),
+    ]);
+    expect(r).toEqual({ measured: 2, averageDays: 7, closedWithoutDate: 1 });
+  });
+
+  it('timeToClose sin cierres medidos no inventa un promedio', () => {
+    expect(timeToClose([lead({ id: '1' })])).toEqual({ measured: 0, averageDays: null, closedWithoutDate: 0 });
+  });
+
+  it('discardReasons cuenta los motivos, de más a menos, y los descartados sin motivo', () => {
+    const r = discardReasons([
+      lead({ id: '1', status: 'descartado', discardReason: 'no_respondio' }),
+      lead({ id: '2', status: 'descartado', discardReason: 'no_respondio' }),
+      lead({ id: '3', status: 'descartado', discardReason: 'sin_presupuesto' }),
+      lead({ id: '4', status: 'descartado' }),
+      lead({ id: '5', status: 'nuevo', discardReason: 'otro' }),
+    ]);
+    expect(r.rows).toEqual([
+      { reason: 'no_respondio', label: DISCARD_LABELS.no_respondio, count: 2 },
+      { reason: 'sin_presupuesto', label: DISCARD_LABELS.sin_presupuesto, count: 1 },
+    ]);
+    expect(r.withoutReason).toBe(1);
+    expect(r.total).toBe(4);
   });
 });

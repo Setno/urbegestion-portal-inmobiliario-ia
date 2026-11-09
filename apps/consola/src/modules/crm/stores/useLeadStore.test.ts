@@ -209,4 +209,34 @@ describe('reagendar visita: historial y sin cambios (H-059)', () => {
     expect(useTimelineStore.getState().events['l1']).toBeUndefined();
     expect(useLeadStore.getState().leads[0].status).toBe('contactado');
   });
+
+  describe('cierre y descarte (H-061)', () => {
+    it('al pasar a Cerrado guarda la fecha de cierre y al salir de Cerrado la borra', () => {
+      const id = useLeadStore.getState().addLead(nuevoLead());
+      useLeadStore.getState().updateLeadStatus(id, 'cerrado');
+      const cerrado = guardados().find((l) => l.id === id) as Lead;
+      expect(Number.isNaN(Date.parse(cerrado.closedAtIso ?? ''))).toBe(false);
+      useLeadStore.getState().updateLeadStatus(id, 'en_negociacion');
+      expect((guardados().find((l) => l.id === id) as Lead).closedAtIso).toBeUndefined();
+    });
+
+    it('volver a marcar el mismo estado no cambia la fecha de cierre', () => {
+      const id = useLeadStore.getState().addLead(nuevoLead());
+      useLeadStore.getState().updateLeadStatus(id, 'cerrado');
+      const antes = (guardados().find((l) => l.id === id) as Lead).closedAtIso;
+      useLeadStore.getState().updateLeadStatus(id, 'cerrado');
+      expect((guardados().find((l) => l.id === id) as Lead).closedAtIso).toBe(antes);
+    });
+
+    it('el motivo de descarte solo se guarda si el contacto está descartado y se borra al reactivarlo', () => {
+      const id = useLeadStore.getState().addLead(nuevoLead());
+      useLeadStore.getState().setDiscardReason(id, 'sin_presupuesto');
+      expect((guardados().find((l) => l.id === id) as Lead).discardReason).toBeUndefined();
+      useLeadStore.getState().updateLeadStatus(id, 'descartado');
+      useLeadStore.getState().setDiscardReason(id, 'sin_presupuesto');
+      expect((guardados().find((l) => l.id === id) as Lead).discardReason).toBe('sin_presupuesto');
+      useLeadStore.getState().updateLeadStatus(id, 'contactado');
+      expect((guardados().find((l) => l.id === id) as Lead).discardReason).toBeUndefined();
+    });
+  });
 });

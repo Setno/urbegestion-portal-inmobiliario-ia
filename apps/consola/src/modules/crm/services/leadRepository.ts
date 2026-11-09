@@ -37,6 +37,8 @@ function toRow(l: Partial<Lead>, clear = false): Row {
   put('notes', 'notes', l.notes);
   put('next_action_text', 'nextActionText', l.nextActionText);
   put('next_action_due', 'nextActionDue', l.nextActionDue);
+  put('closed_at', 'closedAtIso', l.closedAtIso);
+  put('discard_reason', 'discardReason', l.discardReason);
   put('source', 'source', l.source);
   put('attachments', 'attachments', l.attachments);
   put('property_specs', 'propertySpecs', l.propertySpecs);
@@ -84,6 +86,8 @@ export function fromRow(r: Row): Lead {
   // Lo guarda quien llame a la base con la clave pública: se limpia al leer, no se confía en su forma.
   set('attribution', limpiarAtribucion(r.attribution) ?? undefined);
   set('convertedPropertyId', opt<string>(r.converted_property_id));
+  set('closedAtIso', opt<string>(r.closed_at));
+  set('discardReason', opt(r.discard_reason));
   return lead;
 }
 

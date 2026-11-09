@@ -34,6 +34,9 @@ export interface LeadAttribution {
   campana?: string;
 }
 
+// Por qué se descartó un contacto (H-061).
+export type DiscardReason = 'no_respondio' | 'compro_en_otro_lado' | 'sin_presupuesto' | 'ya_no_le_interesa' | 'otro';
+
 export interface Lead {
   id: string;
   fullName: string;
@@ -64,6 +67,8 @@ export interface Lead {
   privacyNotice?: LeadPrivacyNotice;
   attribution?: LeadAttribution; // sin valor = llegó directo
   convertedPropertyId?: string; // propiedad en borrador creada a partir de este lead de propietario
+  closedAtIso?: string; // cuándo pasó a Cerrado (sirve para medir el tiempo hasta el cierre)
+  discardReason?: DiscardReason; // por qué se descartó (solo si está descartado)
   createdAt: string;
   createdAtIso?: string; // fecha y hora exactas del registro (sirve para medir tiempos de respuesta)
 }

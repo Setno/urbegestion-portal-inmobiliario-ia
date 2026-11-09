@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useLeadStore } from '../stores/useLeadStore';
 import { usePropertyStore } from '../../catalogo/stores/usePropertyStore';
-import { Lead, LeadStatus } from '../types/lead';
+import { Lead, LeadStatus, DiscardReason } from '../types/lead';
 import { buildPropertyFromLead } from '../services/leadToProperty';
 import { useCan } from '../../../core/platform/useEntitlementsStore';
 import { downloadFile, exportFileName, leadsToCsv } from '../../../core/export/dataExport';
@@ -27,9 +27,10 @@ import { ActionBadge, NextActionEditor, TodayPanel } from './NextAction';
 import { Timeline } from './Timeline';
 import { Agenda } from './Agenda';
 import { Reports } from './Reports';
+import { DISCARD_LABELS } from '../services/leadReports';
 
 export const LeadsTab: React.FC = () => {
-  const { leads, updateLeadStatus, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
+  const { leads, updateLeadStatus, setDiscardReason, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
   const { properties, addProperty } = usePropertyStore();
   const canExportCsv = useCan('crm.export');
 
@@ -521,6 +522,22 @@ export const LeadsTab: React.FC = () => {
                 <span className="text-slate-500 font-medium">Correo:</span>
                 <span className="font-bold text-slate-800">{displayEmail(selectedLead.email)}</span>
               </div>
+              {leads.find((l) => l.id === selectedLead.id)?.status === 'descartado' && (
+                <div className="flex justify-between items-center gap-2 p-2.5 rounded-xl bg-slate-50">
+                  <label htmlFor="motivo-descarte" className="text-slate-500 font-medium">Motivo del descarte:</label>
+                  <select
+                    id="motivo-descarte"
+                    value={leads.find((l) => l.id === selectedLead.id)?.discardReason ?? ''}
+                    onChange={(e) => setDiscardReason(selectedLead.id, (e.target.value || undefined) as DiscardReason | undefined)}
+                    className="text-xs bg-white border border-slate-200 rounded-lg p-1.5 font-bold text-slate-800"
+                  >
+                    <option value="">Sin indicar</option>
+                    {(Object.keys(DISCARD_LABELS) as DiscardReason[]).map((r) => (
+                      <option key={r} value={r}>{DISCARD_LABELS[r]}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               {selectedLead.propertySpecs && (
                 <div className="p-2.5 rounded-xl bg-cyan-50 border border-cyan-100 text-cyan-900 space-y-1">
                   <div className="font-bold text-[11px] uppercase tracking-wider text-cyan-800">

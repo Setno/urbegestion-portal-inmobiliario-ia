@@ -96,7 +96,7 @@ describe('Dashboard de gestión (H-061)', () => {
       lead({ id: 'c', status: 'nuevo' }), lead({ id: 'd', status: 'descartado' }),
     ]} />);
     const clave = screen.getByRole('region', { name: 'Números clave' });
-    expect(within(clave).getAllByRole('group')).toHaveLength(6);
+    expect(within(clave).getAllByRole('group')).toHaveLength(8);
     expect(within(tarjeta('Leads nuevos')).getByText('4')).toBeTruthy();
     expect(within(tarjeta('De lead a visita')).getByText('67 %')).toBeTruthy(); // 2 de 3 activos
   });
@@ -135,5 +135,22 @@ describe('Dashboard de gestión (H-061)', () => {
     const barras = within(sem).getAllByRole('img');
     expect(barras.length).toBeGreaterThanOrEqual(4);
     expect(barras[barras.length - 1].getAttribute('aria-label')).toMatch(/2 leads/);
+  });
+
+  it('muestra el tiempo hasta el cierre y los motivos de descarte, o por qué no hay datos', () => {
+    const hace = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
+    render(<Reports leads={[
+      lead({ id: 'a', status: 'cerrado', createdAtIso: hace(10), closedAtIso: hace(4) }),
+      lead({ id: 'b', status: 'descartado', discardReason: 'no_respondio' }),
+      lead({ id: 'c', status: 'descartado' }),
+    ]} />);
+    expect(within(tarjeta('Tiempo hasta el cierre')).getByText('6 días')).toBeTruthy();
+    const m = tarjeta('Motivos de descarte');
+    expect(within(m).getByText(/No respondió: 1/)).toBeTruthy();
+    expect(within(m).getByText(/Sin indicar: 1/)).toBeTruthy();
+    cleanup();
+    render(<Reports leads={[lead({ id: 'a' })]} />);
+    expect(within(tarjeta('Tiempo hasta el cierre')).getByText('sin datos')).toBeTruthy();
+    expect(within(tarjeta('Motivos de descarte')).getByText(/no hay contactos descartados/i)).toBeTruthy();
   });
 });

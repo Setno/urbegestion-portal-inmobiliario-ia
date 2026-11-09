@@ -1,5 +1,5 @@
 import React from 'react';
-import { change, followUp, formatHours, leadToVisit, previousPeriod, responseStats, visitsIn, weeklyLeads, type Change } from '../services/leadReports';
+import { change, discardReasons, followUp, timeToClose, formatHours, leadToVisit, previousPeriod, responseStats, visitsIn, weeklyLeads, type Change } from '../services/leadReports';
 import { localToday } from '../services/leadTasks';
 import type { Lead } from '../types/lead';
 import type { LeadEvent } from '../types/leadEvent';
@@ -47,6 +47,9 @@ export const DashboardSummary: React.FC<Props> = ({ leads, scoped, days, events,
   const weekAhead = new Date();
   weekAhead.setDate(weekAhead.getDate() + 7);
   const upcoming = visitsIn(leads, today, localToday(weekAhead));
+  const closing = timeToClose(scoped);
+  const prevClosing = prev ? timeToClose(prev) : null;
+  const discards = discardReasons(scoped);
   const weekly = weeklyLeads(leads, weeks);
   const max = Math.max(1, ...weekly.map((w) => w.total));
 
@@ -87,6 +90,28 @@ export const DashboardSummary: React.FC<Props> = ({ leads, scoped, days, events,
           detail={`${tracking.withoutAction} sin próxima acción, de ${tracking.open} contacto${tracking.open === 1 ? '' : 's'} abierto${tracking.open === 1 ? '' : 's'} (hoy, sin importar el período).`}
         />
         <Card title="Visitas próximos 7 días" value={String(upcoming)} detail="Visitas agendadas desde hoy (sin importar el período)." />
+        <Card
+          title="Tiempo hasta el cierre"
+          value={closing.averageDays === null ? 'sin datos' : `${String(closing.averageDays).replace('.', ',')} días`}
+          detail={
+            closing.averageDays === null
+              ? 'Aún no hay cierres con fecha en el período (la fecha se guarda desde que un contacto pasa a Cerrado).'
+              : `Promedio de ${closing.measured} cierre${closing.measured === 1 ? '' : 's'}${closing.closedWithoutDate > 0 ? `; ${closing.closedWithoutDate} cerrado${closing.closedWithoutDate === 1 ? '' : 's'} antes sin fecha no se midieron` : ''}.`
+          }
+        >
+          {closing.averageDays !== null && <Comparison c={change(closing.averageDays, prevClosing?.averageDays ?? null)} lowerIsBetter />}
+        </Card>
+        <Card
+          title="Motivos de descarte"
+          value={String(discards.total)}
+          detail={
+            discards.total === 0
+              ? 'No hay contactos descartados en el período.'
+              : discards.rows.length === 0
+                ? 'Ningún descarte tiene motivo todavía: indícalo en la ficha del contacto.'
+                : `${discards.rows.map((r) => `${r.label}: ${r.count}`).join(' · ')}${discards.withoutReason > 0 ? ` · Sin indicar: ${discards.withoutReason}` : ''}`
+          }
+        />
       </section>
 
       <section aria-label="Leads por semana" className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
