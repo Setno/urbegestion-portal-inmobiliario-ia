@@ -29,6 +29,8 @@ import { priceOf } from '../services/propertyPrice';
 import { hasRoom, limitOf } from '@portal/plataforma/contract';
 import { useEntitlementsStore } from '../../../core/platform/useEntitlementsStore';
 import { Property, PropertyType, OperationType } from '../types/property';
+import { PortalPublishControl } from './PortalPublishControl';
+import { usePortalListings } from '../hooks/usePortalListings';
 
 const STATUS_STYLE: Record<PublicationStatus, string> = {
   borrador: 'bg-slate-100 text-slate-600',
@@ -44,6 +46,7 @@ export const PropertiesTab: React.FC = () => {
   const role = useAuthStore((s) => s.membership?.role ?? null);
   const mode = useAuthStore((s) => s.membership?.publicationMode);
   const actor = actorFor(role, mode);
+  const portals = usePortalListings();
   const view = useMarket();
   const { pack, zones, localities } = view;
   const { t } = useT();
@@ -342,6 +345,7 @@ export const PropertiesTab: React.FC = () => {
                     </select>
                     {!isOnOffer(p) && <span className="text-[10px] font-semibold text-slate-500">No se muestra en el sitio</span>}
                   </div>
+                  <PortalPublishControl property={p} listing={portals.listings[p.id]} connected={portals.connected} onChanged={() => void portals.reload()} />
                   {p.publicationStatus === 'rechazada' && p.rejectionReason && (
                     <p className="text-[11px] text-rose-600 font-semibold">Motivo del rechazo: {p.rejectionReason}</p>
                   )}

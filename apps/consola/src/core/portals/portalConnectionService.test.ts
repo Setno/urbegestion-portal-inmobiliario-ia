@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-const { rpc, getSession } = vi.hoisted(() => ({ rpc: vi.fn(), getSession: vi.fn() }));
-vi.mock('../data/dataSource', () => ({ remoteContext: () => ({ client: { rpc }, tenantId: 'tenant-1' }) }));
+const { rpc, getSession, from } = vi.hoisted(() => ({ rpc: vi.fn(), getSession: vi.fn(), from: vi.fn() }));
+vi.mock('../data/dataSource', () => ({ remoteContext: () => ({ client: { rpc, from }, tenantId: 'tenant-1' }) }));
 vi.mock('../auth/supabaseClient', () => ({ supabase: { auth: { getSession } } }));
 
 import {
@@ -9,6 +9,8 @@ import {
   startMercadoLibreConnection,
   disconnectPortal,
   consumePortalResult,
+  fetchPortalListings,
+  publishToMercadoLibre,
 } from './portalConnectionService';
 
 describe('portalConnectionService (H-068.2)', () => {
@@ -92,6 +94,72 @@ describe('portalConnectionService (H-068.2)', () => {
       expect(await disconnectPortal('mercadolibre')).toEqual({ ok: false, error: 'permiso' });
       rpc.mockResolvedValue({ error: { code: 'x' } });
       expect(await disconnectPortal('mercadolibre')).toEqual({ ok: false, error: 'conexion' });
+    });
+  });
+
+  describe('fetchPortalListings (H-068.3)', () => {
+    beforeEach(() => from.mockReset());
+
+    it('lee los avisos de la corredora indexados por propiedad, marcando los pendientes', async () => {
+      const eq = vi.fn().mockResolvedValue({
+        data: [
+          { property_id: 'p1', portal: 'mercadolibre', external_id: 'MLC1', permalink: 'https://casa.mercadolibre.cl/MLC1', status: 'activa', last_error: null, updated_at: '2026-11-09T10:00:00Z' },
+          { property_id: 'p2', portal: 'mercadolibre', external_id: 'pendiente', permalink: null, status: 'activa', last_error: 'Revisa', updated_at: '2026-11-09T11:00:00Z' },
+        ],
+        error: null,
+      });
+      from.mockReturnValue({ select: () => ({ eq }) });
+      const r = await fetchPortalListings();
+      expect(from).toHaveBeenCalledWith('portal_listings');
+      expect(eq).toHaveBeenCalledWith('tenant_id', 'tenant-1');
+      expect(r).toEqual({
+        p1: { portal: 'mercadolibre', permalink: 'https://casa.mercadolibre.cl/MLC1', status: 'activa', pending: false, updatedAt: '2026-11-09T10:00:00Z', lastError: null },
+        p2: { portal: 'mercadolibre', permalink: null, status: 'activa', pending: true, updatedAt: '2026-11-09T11:00:00Z', lastError: 'Revisa' },
+      });
+    });
+
+    it('devuelve null si la base falla', async () => {
+      from.mockReturnValue({ select: () => ({ eq: vi.fn().mockResolvedValue({ data: null, error: { code: 'x' } }) }) });
+      expect(await fetchPortalListings()).toBeNull();
+    });
+  });
+
+  describe('publishToMercadoLibre (H-068.3)', () => {
+    const resp = (ok: boolean, status: number, body: unknown) => vi.fn().mockResolvedValue({ ok, status, json: async () => body });
+
+    it('pide publicar con el token de sesión y devuelve el enlace', async () => {
+      const fetchMock = resp(true, 200, { ok: true, permalink: 'https://casa.mercadolibre.cl/MLC1', warning: 'ojo' });
+      vi.stubGlobal('fetch', fetchMock);
+      expect(await publishToMercadoLibre('prop-1')).toEqual({ ok: true, permalink: 'https://casa.mercadolibre.cl/MLC1', warning: 'ojo' });
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toBe('/api/portales/mercadolibre-publicar');
+      expect(init.headers.Authorization).toBe('Bearer tok-sesion');
+      expect(JSON.parse(init.body)).toEqual({ propertyId: 'prop-1' });
+    });
+
+    it('descarta un enlace que no sea de Mercado Libre', async () => {
+      vi.stubGlobal('fetch', resp(true, 200, { ok: true, permalink: 'https://malo.example/x' }));
+      expect(await publishToMercadoLibre('prop-1')).toEqual({ ok: true, permalink: null });
+    });
+
+    it('devuelve el código del servidor y sus mensajes', async () => {
+      vi.stubGlobal('fetch', resp(false, 422, { error: 'datos', messages: ['Falta la superficie (total o construida).'] }));
+      expect(await publishToMercadoLibre('prop-1')).toEqual({ ok: false, error: 'datos', messages: ['Falta la superficie (total o construida).'] });
+    });
+
+    it('un error desconocido o una caída se vuelven "conexion"', async () => {
+      vi.stubGlobal('fetch', resp(false, 500, { error: 'algo-raro' }));
+      expect(await publishToMercadoLibre('prop-1')).toEqual({ ok: false, error: 'conexion', messages: [] });
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('red')));
+      expect(await publishToMercadoLibre('prop-1')).toEqual({ ok: false, error: 'conexion', messages: [] });
+    });
+
+    it('sin sesión no llama al servidor', async () => {
+      getSession.mockResolvedValue({ data: { session: null } });
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+      expect(await publishToMercadoLibre('prop-1')).toEqual({ ok: false, error: 'unauthorized', messages: [] });
+      expect(fetchMock).not.toHaveBeenCalled();
     });
   });
 

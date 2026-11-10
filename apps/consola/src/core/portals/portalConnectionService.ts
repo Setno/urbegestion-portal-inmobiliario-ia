@@ -87,6 +87,102 @@ export async function disconnectPortal(portal: PortalId): Promise<PortalResult> 
   }
 }
 
+// ---- Avisos publicados (H-068.3)
+
+export interface PortalListing {
+  portal: PortalId;
+  permalink: string | null;
+  status: 'activa' | 'pausada' | 'cerrada';
+  pending: boolean; // la reserva se hizo pero el aviso aún no termina de publicarse
+  updatedAt: string;
+  lastError: string | null;
+}
+
+// Misma ventana que usa el servidor: una reserva pendiente más vieja se da por abandonada y se puede reintentar.
+export const STALE_PENDING_MS = 10 * 60_000;
+export const isStalePending = (listing: Pick<PortalListing, 'pending' | 'updatedAt'>, now: number = Date.now()): boolean =>
+  listing.pending && now - Date.parse(listing.updatedAt) >= STALE_PENDING_MS;
+
+// Avisos de la corredora, por id de propiedad. Null si falla o no hay base.
+export async function fetchPortalListings(): Promise<Record<string, PortalListing> | null> {
+  const ctx = remoteContext();
+  if (!ctx) return null;
+  try {
+    const { data, error } = await ctx.client
+      .from('portal_listings')
+      .select('property_id, portal, external_id, permalink, status, last_error, updated_at')
+      .eq('tenant_id', ctx.tenantId);
+    if (error) return null;
+    const out: Record<string, PortalListing> = {};
+    for (const row of (data ?? []) as { property_id: string; portal: PortalId; external_id: string; permalink: string | null; status: PortalListing['status']; last_error: string | null; updated_at: string }[]) {
+      out[row.property_id] = {
+        portal: row.portal,
+        permalink: row.permalink,
+        status: row.status,
+        pending: row.external_id === 'pendiente',
+        updatedAt: row.updated_at,
+        lastError: row.last_error,
+      };
+    }
+    return out;
+  } catch (err) {
+    console.warn('[portales] No se pudieron leer los avisos publicados:', err);
+    return null;
+  }
+}
+
+export type PublishError =
+  | 'unauthorized' | 'not_admin' | 'not_found' | 'not_approved' | 'not_on_offer' | 'not_connected' | 'already_published'
+  | 'in_progress' | 'uncertain' | 'reconnect' | 'datos' | 'rechazado' | 'red' | 'respuesta' | 'not_configured' | 'conexion';
+const PUBLISH_ERRORS: PublishError[] = [
+  'unauthorized', 'not_admin', 'not_found', 'not_approved', 'not_on_offer', 'not_connected', 'already_published',
+  'in_progress', 'uncertain', 'reconnect', 'datos', 'rechazado', 'red', 'respuesta', 'not_configured',
+];
+
+export type PublishOutcome =
+  | { ok: true; permalink: string | null; warning?: string }
+  | { ok: false; error: PublishError; messages: string[] };
+
+const isMercadoLibreLink = (value: unknown): value is string => {
+  if (typeof value !== 'string') return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && /(^|\.)mercadolibre\.(cl|com)$/.test(url.hostname);
+  } catch {
+    return false;
+  }
+};
+
+// Pide al servidor publicar la propiedad en Mercado Libre / Portal Inmobiliario. Solo el administrador puede.
+export async function publishToMercadoLibre(propertyId: string): Promise<PublishOutcome> {
+  const failure = (error: PublishError, messages: string[] = []): PublishOutcome => ({ ok: false, error, messages });
+  if (!supabase) return failure('conexion');
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return failure('unauthorized');
+    const res = await fetch('/api/portales/mercadolibre-publicar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ propertyId }),
+    });
+    const body = (await res.json().catch(() => ({}))) as { ok?: boolean; permalink?: unknown; warning?: unknown; error?: string; messages?: unknown };
+    if (res.ok && body.ok) {
+      return {
+        ok: true,
+        permalink: isMercadoLibreLink(body.permalink) ? body.permalink : null,
+        ...(typeof body.warning === 'string' ? { warning: body.warning } : {}),
+      };
+    }
+    const error = (PUBLISH_ERRORS as string[]).includes(body.error ?? '') ? (body.error as PublishError) : 'conexion';
+    const messages = Array.isArray(body.messages) ? body.messages.filter((m): m is string => typeof m === 'string').slice(0, 5) : [];
+    return failure(error, messages);
+  } catch (err) {
+    console.warn('[portales] No se pudo publicar en Mercado Libre:', err);
+    return failure('conexion');
+  }
+}
+
 export type PortalReturn = 'ml-ok' | 'ml-error' | 'ml-cancelado' | 'ml-no-configurado';
 const RETURNS: PortalReturn[] = ['ml-ok', 'ml-error', 'ml-cancelado', 'ml-no-configurado'];
 
