@@ -35,7 +35,7 @@ Si se cuenta solo lo que hoy está anotado en el backlog, el avance sería 76 %.
 
 **Seguridad y salida a producción:** al 80 % (hechas en código y aplicadas en desarrollo, falta unirlas a `main` y mirarlas en un preview): H-004, H-005, H-047, H-052, H-063 (falta cargar la clave de servicio en el proyecto del sitio en Vercel) y la parte de leads de H-055; H-019 hecha; H-024 a medias (falta Lighthouse). Pendientes: H-013 (preparada, espera tu orden), H-062 (base de producción y variables: pasos tuyos, en `docs/guia-produccion.md`), H-023 (prueba de punta a punta: falta decidir la cuenta de prueba).
 
-**Publicación en portales (pedido 2026-11-09):** H-068 en curso. H-068.1 (traductor del aviso) hecha en código; faltan H-068.2 a H-068.5 y que el responsable registre la app en Mercado Libre. No estaba en el MVP: no cambia el porcentaje hacia el MVP.
+**Publicación en portales (pedido 2026-11-09):** H-068 en curso. H-068.1 (traductor) y H-068.2 (conexión de la cuenta) hechas en código; faltan H-068.3 a H-068.5, y que el responsable registre la app en Mercado Libre (docs/guia-portales.md). No estaba en el MVP: no cambia el porcentaje hacia el MVP.
 
 ## Decisión pendiente
 

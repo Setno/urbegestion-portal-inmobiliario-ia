@@ -7,6 +7,7 @@ import { PublicationModeSection } from './PublicationModeSection';
 import { DataExportSection } from './DataExportSection';
 import { SiteAddressSection } from './SiteAddressSection';
 import { LeadAlertsSection } from './LeadAlertsSection';
+import { PortalsSection } from './PortalsSection';
 
 // Lo que el administrador decide sobre su corredora. Cada sección decide por sí misma si se muestra según el rol.
 export const TenantTab: React.FC = () => {
@@ -22,6 +23,7 @@ export const TenantTab: React.FC = () => {
         <fieldset disabled={mode === 'read_only'} className="space-y-6 min-w-0 border-0 p-0 m-0">
           <TeamSection />
           <LeadAlertsSection />
+          <PortalsSection />
           <ServiceAreasSection />
           <PublicationModeSection />
           <SiteAddressSection />
