@@ -38,8 +38,11 @@ export async function diagnoseMercadoLibre(input: { accessToken: string; clientI
   const userId = typeof meBody.id === 'number' || typeof meBody.id === 'string' ? String(meBody.id) : '';
   const status = isObj(meBody.status) ? meBody.status : {};
   const tags = Array.isArray(meBody.tags) ? meBody.tags.filter((t): t is string => typeof t === 'string').slice(0, 12) : [];
+  const lista = isObj(status.list) ? status.list : {};
+  const codigos = Array.isArray(lista.codes) ? lista.codes.map(corto).slice(0, 8).join(', ') : '';
+  const puede = typeof lista.allow === 'boolean' ? (lista.allow ? 'sí' : 'no') : '?';
   lines.push(
-    `Cuenta: tipo ${corto(meBody.user_type) || '?'}, país ${corto(meBody.country_id) || '?'}, estado ${corto(status.site_status) || '?'}, puede vender: ${String(status.list ? isObj(status.list) && status.list.allow : '?')}.`,
+    `Cuenta: tipo ${corto(meBody.user_type) || '?'}, país ${corto(meBody.country_id) || '?'}, estado ${corto(status.site_status) || '?'}, puede publicar: ${puede}${codigos ? ` (motivos: ${codigos})` : ''}.`,
   );
   if (tags.length) lines.push(`Etiquetas de la cuenta: ${tags.join(', ')}.`);
 

@@ -53,4 +53,10 @@ describe('diagnoseMercadoLibre (solo lectura)', () => {
     const texto = (await diagnoseMercadoLibre({ accessToken: 't', clientId: '', fetcher })).join('\n');
     expect(texto).toMatch(/Paquetes de inmuebles: código 403.*UNAUTHORIZED/);
   });
+
+  it('muestra si la cuenta puede publicar y los motivos cuando no', async () => {
+    const { fetcher } = respuestas({ '/users/me': { status: 200, body: { id: 1, status: { site_status: 'active', list: { allow: false, codes: ['address_pending'] } } } } });
+    const texto = (await diagnoseMercadoLibre({ accessToken: 't', clientId: '', fetcher })).join('\n');
+    expect(texto).toContain('puede publicar: no (motivos: address_pending)');
+  });
 });
