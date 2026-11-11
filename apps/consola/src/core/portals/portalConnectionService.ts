@@ -209,6 +209,23 @@ export async function validateOnMercadoLibre(propertyId: string): Promise<Valida
   }
 }
 
+// Solo previews y desarrollo (el servidor lo rechaza en producción): consulta la cuenta y la aplicación en Mercado Libre, sin cambiar nada.
+export async function diagnoseMercadoLibre(): Promise<{ ok: true; lines: string[] } | { ok: false }> {
+  if (!supabase) return { ok: false };
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { ok: false };
+    const res = await fetch('/api/portales/mercadolibre-diagnostico', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const body = (await res.json().catch(() => ({}))) as { ok?: boolean; lines?: unknown };
+    if (!res.ok || !body.ok || !Array.isArray(body.lines)) return { ok: false };
+    return { ok: true, lines: body.lines.filter((l): l is string => typeof l === 'string').slice(0, 12) };
+  } catch (err) {
+    console.warn('[portales] No se pudo diagnosticar Mercado Libre:', err);
+    return { ok: false };
+  }
+}
+
 export type PortalReturn = 'ml-ok' | 'ml-error' | 'ml-cancelado' | 'ml-no-configurado';
 const RETURNS: PortalReturn[] = ['ml-ok', 'ml-error', 'ml-cancelado', 'ml-no-configurado'];
 

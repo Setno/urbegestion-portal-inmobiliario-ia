@@ -3,8 +3,10 @@ import { Globe2 } from 'lucide-react';
 import { useAuthStore } from '../../auth/useAuthStore';
 import { canInviteAgents } from '../../auth/permissions';
 import { isRemoteData } from '../../data/dataSource';
+import { isPreviewBuild } from '../../portals/previewOnly';
 import {
   consumePortalResult,
+  diagnoseMercadoLibre,
   disconnectPortal,
   fetchPortalConnections,
   startMercadoLibreConnection,
@@ -38,6 +40,8 @@ export const PortalsSection: React.FC<{ navigate?: (url: string) => void }> = ({
   const [connections, setConnections] = useState<PortalConnection[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [diagnosing, setDiagnosing] = useState(false);
+  const [diagnosis, setDiagnosis] = useState<string[] | null>(null);
 
   const reload = async () => {
     const list = await fetchPortalConnections();
@@ -65,6 +69,16 @@ export const PortalsSection: React.FC<{ navigate?: (url: string) => void }> = ({
   if (!isAdmin) return null;
 
   const ml = connections.find((c) => c.portal === 'mercadolibre');
+
+  // Solo previews: consulta de solo lectura para entender por qué Mercado Libre rechaza una publicación.
+  const handleDiagnose = async () => {
+    if (diagnosing) return;
+    setDiagnosing(true);
+    setDiagnosis(null);
+    const result = await diagnoseMercadoLibre();
+    setDiagnosing(false);
+    setDiagnosis(result.ok ? result.lines : ['No se pudo hacer el diagnóstico. Inténtalo de nuevo.']);
+  };
 
   const handleConnect = async () => {
     if (busy) return;
@@ -130,6 +144,20 @@ export const PortalsSection: React.FC<{ navigate?: (url: string) => void }> = ({
               </button>
             )}
           </div>
+          {ml && isPreviewBuild && (
+            <div className="space-y-1">
+              <button type="button" onClick={handleDiagnose} disabled={diagnosing} className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-[11px] font-bold disabled:opacity-50">
+                {diagnosing ? 'Consultando…' : 'Diagnosticar Mercado Libre'}
+              </button>
+              {diagnosis && (
+                <div role="status" className="text-[11px] text-slate-700">
+                  {diagnosis.map((line, i) => (
+                    <p key={i}>{line}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {!ml && (
             <p className="text-[11px] text-slate-500">
               Para publicar en Mercado Libre necesitas tener contratado un paquete de publicaciones de inmuebles en tu cuenta.

@@ -99,7 +99,7 @@ export function parseTokenResponse(json: unknown, now: Date = new Date()): Token
 
 export type TokenFetcher = (
   url: string,
-  init: { method: 'POST'; headers: Record<string, string>; body: string },
+  init: { method: 'POST' | 'GET'; headers: Record<string, string>; body?: string },
 ) => Promise<{ ok: boolean; status: number; json: () => Promise<unknown> }>;
 
 export interface Credentials {

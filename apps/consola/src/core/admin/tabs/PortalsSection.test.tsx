@@ -7,6 +7,7 @@ import {
   startMercadoLibreConnection,
   disconnectPortal,
   consumePortalResult,
+  diagnoseMercadoLibre,
 } from '../../portals/portalConnectionService';
 
 vi.mock('../../data/dataSource', () => ({ isRemoteData: true }));
@@ -15,6 +16,13 @@ vi.mock('../../portals/portalConnectionService', () => ({
   startMercadoLibreConnection: vi.fn(),
   disconnectPortal: vi.fn(),
   consumePortalResult: vi.fn(),
+  diagnoseMercadoLibre: vi.fn(),
+}));
+const preview = vi.hoisted(() => ({ on: true }));
+vi.mock('../../portals/previewOnly', () => ({
+  get isPreviewBuild() {
+    return preview.on;
+  },
 }));
 
 const entrar = (role: 'admin' | 'agente') =>
@@ -31,6 +39,28 @@ describe('PortalsSection (conexión con Mercado Libre, H-068.2)', () => {
   });
 
   afterEach(() => cleanup());
+
+  describe('Diagnosticar Mercado Libre (solo previews)', () => {
+    it('muestra el resultado del diagnóstico', async () => {
+      entrar('admin');
+      preview.on = true;
+      vi.mocked(fetchPortalConnections).mockResolvedValue(conectada);
+      vi.mocked(diagnoseMercadoLibre).mockReset().mockResolvedValue({ ok: true, lines: ['Cuenta: tipo normal.'] });
+      render(<PortalsSection />);
+      fireEvent.click(await screen.findByRole('button', { name: /Diagnosticar Mercado Libre/ }));
+      expect(await screen.findByText('Cuenta: tipo normal.')).toBeTruthy();
+    });
+
+    it('en producción el botón no existe', async () => {
+      entrar('admin');
+      preview.on = false;
+      vi.mocked(fetchPortalConnections).mockResolvedValue(conectada);
+      render(<PortalsSection />);
+      await screen.findByText(/Cuenta 987/);
+      expect(screen.queryByRole('button', { name: /Diagnosticar/ })).toBeNull();
+      preview.on = true;
+    });
+  });
 
   it('el agente no la ve', () => {
     entrar('agente');
