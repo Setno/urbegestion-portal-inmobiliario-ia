@@ -186,4 +186,51 @@ describe('publishToMercadoLibre (H-068.3)', () => {
     const r = await publishToMercadoLibre(base(guion({ ok: true, status: 201, json: { id: 'MLC1' } }, descripcionOk).fetcher));
     expect(r).toMatchObject({ ok: true, listing: { externalId: 'MLC1', permalink: null, status: 'active' } });
   });
+
+  describe('solo validar (dryRun): no crea nada en Mercado Libre', () => {
+    const valido = { ok: true, status: 204, json: undefined as unknown };
+
+    it('llama a /items/validate, no a /items, y no envía la descripción', async () => {
+      const { fetcher, llamadas } = guion(valido);
+      const r = await publishToMercadoLibre(base(fetcher, { dryRun: true }));
+      expect(r).toMatchObject({ ok: true, validated: true });
+      expect(llamadas.map((l) => l.url)).toEqual(['https://api.mercadolibre.com/items/validate']);
+      expect(JSON.parse(llamadas[0].init.body)).toMatchObject({ category_id: 'MLC-VD', currency_id: 'CLP' });
+    });
+
+    it('un 204 sin cuerpo (json que falla) igual cuenta como válido', async () => {
+      const sinCuerpo: TokenFetcher = async () => ({ ok: true, status: 204, json: async () => { throw new Error('vacío'); } });
+      expect(await publishToMercadoLibre(base(sinCuerpo, { dryRun: true }))).toMatchObject({ ok: true, validated: true });
+    });
+
+    it('un rechazo trae los motivos y nunca marca "pudo haberse creado"', async () => {
+      const { fetcher } = guion({ ok: false, status: 400, json: { cause: [{ type: 'error', message: 'Falta el atributo ROOMS' }] } });
+      const r = await publishToMercadoLibre(base(fetcher, { dryRun: true }));
+      expect(r).toMatchObject({ ok: false, kind: 'rechazado', errors: ['Falta el atributo ROOMS'] });
+      expect('maybeCreated' in r && r.maybeCreated).toBeFalsy();
+    });
+
+    it('un corte de red o un 5xx tampoco marcan "pudo haberse creado" (no hay nada que duplicar)', async () => {
+      const caido: TokenFetcher = async () => { throw new Error('corte'); };
+      const a = await publishToMercadoLibre(base(caido, { dryRun: true }));
+      expect(a).toMatchObject({ ok: false, kind: 'red' });
+      expect('maybeCreated' in a && a.maybeCreated).toBeFalsy();
+      const b = await publishToMercadoLibre(base(guion({ ok: false, status: 503, json: {} }).fetcher, { dryRun: true }));
+      expect('maybeCreated' in b && b.maybeCreated).toBeFalsy();
+    });
+
+    it('renueva el token si hace falta y lo devuelve, igual que al publicar', async () => {
+      const { fetcher, llamadas } = guion(tokensNuevos, valido);
+      const r = await publishToMercadoLibre(base(fetcher, { dryRun: true, connection: { accessToken: 'VIEJO', refreshToken: 'REFRESCO', expiresAt: enHoras(0.01) } }));
+      expect(llamadas[1].url).toBe('https://api.mercadolibre.com/items/validate');
+      expect('tokens' in r && r.tokens).toMatchObject({ accessToken: 'NUEVO' });
+    });
+
+    it('si los datos propios no sirven, ni siquiera llama a Mercado Libre', async () => {
+      const { fetcher } = guion();
+      const r = await publishToMercadoLibre(base(fetcher, { dryRun: true, property: { ...propiedad, images: [] } }));
+      expect(r).toMatchObject({ ok: false, kind: 'datos' });
+      expect(fetcher).not.toHaveBeenCalled();
+    });
+  });
 });

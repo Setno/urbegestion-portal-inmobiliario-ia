@@ -165,3 +165,36 @@ export async function publishProperty(propertyId: string, deps: PublishDeps): Pr
     body: { ok: true, permalink: result.listing.permalink, ...(warnings.length > 0 ? { warning: warnings.join(' ') } : {}) },
   };
 }
+
+// Probar sin publicar (solo en previews): arma el aviso y lo valida con Mercado Libre. No reserva cupo, no crea nada ni guarda
+// ningún aviso. Sirve para ver qué falta (categoría, atributos, datos) antes de un aviso real. Los tokens renovados sí se guardan.
+export type ValidateDeps = Pick<PublishDeps, 'loadProperty' | 'isAdminOf' | 'loadConnection' | 'saveTokens' | 'getRates' | 'fetcher' | 'credentials' | 'categories' | 'now'>;
+
+export async function validateProperty(propertyId: string, deps: ValidateDeps): Promise<HandlerResult> {
+  const row = await deps.loadProperty(propertyId);
+  if (!row) return fail(404, 'not_found');
+  if (!(await deps.isAdminOf(row.tenant_id))) return fail(403, 'not_admin');
+  const connection = await deps.loadConnection(row.tenant_id);
+  if (!connection) return fail(409, 'not_connected');
+
+  const property = rowToPortalProperty(row);
+  const currency = property.priceCurrency.trim().toUpperCase();
+  const rates = currency === 'CLP' ? {} : await deps.getRates(currency);
+  const result = await publishToMercadoLibre({
+    property,
+    options: { categories: deps.categories, rates },
+    connection,
+    credentials: deps.credentials,
+    fetcher: deps.fetcher,
+    now: deps.now,
+    dryRun: true,
+  });
+
+  const tokensSaved = result.tokens ? await deps.saveTokens(row.tenant_id, result.tokens) : true;
+  const tokenWarning = tokensSaved ? [] : ['No se pudo guardar la renovación de la conexión con Mercado Libre. Si el panel pide volver a conectar, hazlo en Mi corredora → Portales inmobiliarios.'];
+
+  if ('listing' in result) return { status: 200, body: { ok: true, validated: true, ...(tokenWarning.length > 0 ? { warning: tokenWarning.join(' ') } : {}) } };
+  if (result.kind === 'sesion') return fail(409, 'reconnect', { messages: tokenWarning });
+  if (result.kind === 'datos' || result.kind === 'rechazado') return fail(422, result.kind, { messages: [...result.errors, ...tokenWarning] });
+  return fail(502, result.kind, { messages: [...result.errors, ...tokenWarning] });
+}

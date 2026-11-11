@@ -39,7 +39,8 @@ Sin estas variables el botón "Conectar Mercado Libre" (o "Publicar en Mercado L
 3. Mercado Libre pide autorizar la aplicación; al aceptar, el panel vuelve y muestra "Mercado Libre conectado" con el número de cuenta.
 4. "Desconectar" borra la conexión; los avisos ya publicados quedan en Mercado Libre.
 5. **Publicar una propiedad** (solo el administrador): en **Propiedades**, cada propiedad aprobada y a la venta o arriendo muestra el botón "Publicar en Mercado Libre". Pide confirmación, publica con los datos del momento y deja el enlace "Ver aviso" en la tarjeta. Si Mercado Libre rechaza el aviso (por ejemplo, por falta de paquete de publicaciones), el panel muestra su motivo y se puede reintentar. Una propiedad ya publicada no se vuelve a publicar; sus cambios (precio, estado) se sincronizarán en una historia posterior (H-068.4).
-6. Los precios en UF se convierten a pesos con la UF del día (Banco Central, vía mindicador.cl) al momento de publicar. Si esa fuente no responde, el panel lo dice y no publica.
+6. **Probar sin publicar** (solo en previews y desarrollo, nunca en producción): cada propiedad de una corredora con Mercado Libre conectado muestra el botón "Probar sin publicar". Mercado Libre revisa el aviso con su validador (`/items/validate`) y el panel dice si lo aceptaría o qué le falta, **sin crear nada**. Sirve para verificar categorías, atributos y datos antes del primer aviso real. Doble candado: el botón no existe en el build de producción (la bandera la fija `vite.config.ts` con `VERCEL_ENV=preview`) y además el servidor lo rechaza con `VERCEL_ENV=production`.
+7. Los precios en UF se convierten a pesos con la UF del día (Banco Central, vía mindicador.cl) al momento de publicar. Si esa fuente no responde, el panel lo dice y no publica.
 
 ## Cómo se protege
 

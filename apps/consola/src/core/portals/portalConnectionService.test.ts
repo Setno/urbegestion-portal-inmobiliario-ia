@@ -11,6 +11,7 @@ import {
   consumePortalResult,
   fetchPortalListings,
   publishToMercadoLibre,
+  validateOnMercadoLibre,
 } from './portalConnectionService';
 
 describe('portalConnectionService (H-068.2)', () => {
@@ -159,6 +160,40 @@ describe('portalConnectionService (H-068.2)', () => {
       const fetchMock = vi.fn();
       vi.stubGlobal('fetch', fetchMock);
       expect(await publishToMercadoLibre('prop-1')).toEqual({ ok: false, error: 'unauthorized', messages: [] });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('validateOnMercadoLibre (probar sin publicar)', () => {
+    const resp = (ok: boolean, status: number, body: unknown) => vi.fn().mockResolvedValue({ ok, status, json: async () => body });
+
+    it('pide validar (dryRun) con el token de sesión y confirma', async () => {
+      const fetchMock = resp(true, 200, { ok: true, validated: true });
+      vi.stubGlobal('fetch', fetchMock);
+      expect(await validateOnMercadoLibre('prop-1')).toEqual({ ok: true });
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toBe('/api/portales/mercadolibre-publicar');
+      expect(init.headers.Authorization).toBe('Bearer tok-sesion');
+      expect(JSON.parse(init.body)).toEqual({ propertyId: 'prop-1', dryRun: true });
+    });
+
+    it('devuelve los motivos de Mercado Libre', async () => {
+      vi.stubGlobal('fetch', resp(false, 422, { error: 'rechazado', messages: ['Falta el atributo X'] }));
+      expect(await validateOnMercadoLibre('prop-1')).toEqual({ ok: false, error: 'rechazado', messages: ['Falta el atributo X'] });
+    });
+
+    it('en producción el servidor responde not_available', async () => {
+      vi.stubGlobal('fetch', resp(false, 403, { error: 'not_available' }));
+      expect(await validateOnMercadoLibre('prop-1')).toEqual({ ok: false, error: 'not_available', messages: [] });
+    });
+
+    it('una caída se vuelve "conexion" y sin sesión no llama', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('red')));
+      expect(await validateOnMercadoLibre('prop-1')).toEqual({ ok: false, error: 'conexion', messages: [] });
+      getSession.mockResolvedValue({ data: { session: null } });
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+      expect(await validateOnMercadoLibre('prop-1')).toEqual({ ok: false, error: 'unauthorized', messages: [] });
       expect(fetchMock).not.toHaveBeenCalled();
     });
   });

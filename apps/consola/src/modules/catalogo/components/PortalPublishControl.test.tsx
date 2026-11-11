@@ -2,14 +2,16 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { PortalPublishControl } from './PortalPublishControl';
 import { useAuthStore } from '../../../core/auth/useAuthStore';
-import { publishToMercadoLibre } from '../../../core/portals/portalConnectionService';
+import { publishToMercadoLibre, validateOnMercadoLibre } from '../../../core/portals/portalConnectionService';
 import type { Property } from '../types/property';
 
 vi.mock('../../../core/data/dataSource', () => ({ isRemoteData: true }));
 vi.mock('../../../core/portals/portalConnectionService', async (original) => ({
   ...(await original<typeof import('../../../core/portals/portalConnectionService')>()),
   publishToMercadoLibre: vi.fn(),
+  validateOnMercadoLibre: vi.fn(),
 }));
+vi.mock('../../../core/portals/previewOnly', () => ({ isPreviewBuild: true }));
 
 const entrar = (role: 'admin' | 'agente') =>
   useAuthStore.setState({ membership: { tenantId: 'tenant-1', tenantName: 'Corredora', role, publicationMode: 'con_aprobacion' } });
@@ -30,6 +32,7 @@ const boton = () => screen.getByRole('button', { name: /Publicar en Mercado Libr
 describe('PortalPublishControl (H-068.3)', () => {
   beforeEach(() => {
     vi.mocked(publishToMercadoLibre).mockReset().mockResolvedValue({ ok: true, permalink: 'https://casa.mercadolibre.cl/MLC1' });
+    vi.mocked(validateOnMercadoLibre).mockReset().mockResolvedValue({ ok: true });
     vi.spyOn(window, 'confirm').mockReturnValue(true);
   });
   afterEach(() => {
@@ -45,8 +48,9 @@ describe('PortalPublishControl (H-068.3)', () => {
   it('una propiedad sin aprobar, vendida o arrendada no ofrece publicar', () => {
     entrar('admin');
     for (const extra of [{ publicationStatus: 'borrador' as const }, { status: 'vendida' as const }, { status: 'arrendada' as const }]) {
-      const { container, unmount } = render(<PortalPublishControl property={propiedad(extra)} connected onChanged={() => {}} />);
-      expect(container.querySelector('button')).toBeNull();
+      const { unmount } = render(<PortalPublishControl property={propiedad(extra)} connected onChanged={() => {}} />);
+      // puede quedar el botón de prueba (solo previews), pero nunca el de publicar
+      expect(screen.queryByRole('button', { name: /^Publicar en Mercado Libre/ })).toBeNull();
       unmount();
     }
   });
@@ -154,5 +158,50 @@ describe('PortalPublishControl (H-068.3)', () => {
     entrar('admin');
     render(<PortalPublishControl property={propiedad({ status: 'vendida' })} listing={listing} connected onChanged={() => {}} />);
     expect(screen.getByRole('link', { name: /Ver aviso/ })).toBeTruthy();
+  });
+
+  describe('Probar sin publicar (solo previews)', () => {
+    const probar = () => screen.getByRole('button', { name: /Probar sin publicar/ });
+
+    it('valida con Mercado Libre, sin confirmar ni publicar, y dice que no se publicó nada', async () => {
+      entrar('admin');
+      render(<PortalPublishControl property={propiedad()} connected onChanged={() => {}} />);
+      fireEvent.click(probar());
+      await waitFor(() => expect(validateOnMercadoLibre).toHaveBeenCalledWith('prop-1'));
+      expect(await screen.findByText(/Mercado Libre aceptaría este aviso/)).toBeTruthy();
+      expect(screen.getByText(/No se publicó nada/)).toBeTruthy();
+      expect(publishToMercadoLibre).not.toHaveBeenCalled();
+      expect(window.confirm).not.toHaveBeenCalled();
+    });
+
+    it('muestra los motivos de rechazo', async () => {
+      entrar('admin');
+      vi.mocked(validateOnMercadoLibre).mockResolvedValue({ ok: false, error: 'rechazado', messages: ['Falta el atributo ROOMS'] });
+      render(<PortalPublishControl property={propiedad()} connected onChanged={() => {}} />);
+      fireEvent.click(probar());
+      expect(await screen.findByText(/Falta el atributo ROOMS/)).toBeTruthy();
+      expect(screen.getByText(/Mercado Libre no aceptó el aviso/)).toBeTruthy();
+    });
+
+    it('también se puede probar una propiedad aún sin aprobar', () => {
+      entrar('admin');
+      render(<PortalPublishControl property={propiedad({ publicationStatus: 'borrador' })} connected onChanged={() => {}} />);
+      expect(probar()).toBeTruthy();
+      expect(screen.queryByRole('button', { name: /^Publicar en Mercado Libre/ })).toBeNull();
+    });
+
+    it('sin cuenta conectada o con el aviso ya publicado no aparece', () => {
+      entrar('admin');
+      const a = render(<PortalPublishControl property={propiedad()} connected={false} onChanged={() => {}} />);
+      expect(screen.queryByRole('button', { name: /Probar sin publicar/ })).toBeNull();
+      a.unmount();
+      render(<PortalPublishControl property={propiedad()} listing={listing} connected onChanged={() => {}} />);
+      expect(screen.queryByRole('button', { name: /Probar sin publicar/ })).toBeNull();
+    });
+
+    it('el agente no lo ve', () => {
+      entrar('agente');
+      expect(render(<PortalPublishControl property={propiedad()} connected onChanged={() => {}} />).container.innerHTML).toBe('');
+    });
   });
 });

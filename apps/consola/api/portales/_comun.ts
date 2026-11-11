@@ -5,3 +5,6 @@ declare const process: { env: Record<string, string | undefined> };
 export const redirectUriFor = (request: Request): string =>
   process.env.ML_REDIRECT_URI ||
   `${(process.env.SITE_URL || new URL(request.url).origin).replace(/\/+$/, '')}/api/portales/mercadolibre-retorno`;
+
+// Solo en previews de Vercel (VERCEL_ENV=preview) o desarrollo; producción y cualquier valor desconocido quedan fuera.
+export const validationAllowed = (vercelEnv: string | undefined): boolean => vercelEnv === 'preview' || vercelEnv === 'development';

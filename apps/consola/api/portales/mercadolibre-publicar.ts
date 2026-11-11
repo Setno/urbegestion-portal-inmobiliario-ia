@@ -1,11 +1,11 @@
 // Publicar una propiedad aprobada en Mercado Libre / Portal Inmobiliario (H-068.3).
 // Toda la lógica está en packages/portales (probada); aquí solo se arman la base (clave de servicio) y la red.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { publishProperty, type PropertyRow } from '../../../../packages/portales/src/publicarPropiedad.js';
+import { publishProperty, validateProperty, type PropertyRow } from '../../../../packages/portales/src/publicarPropiedad.js';
 import type { TokenFetcher, TokenSet } from '../../../../packages/portales/src/oauth.js';
 import { parseMindicador } from '../../../../packages/mercados/src/cl/rates.js';
 import { createRateLimiter, clientKey, tooManyRequests } from '../_limiteTasa.js';
-import { redirectUriFor } from './_comun.js';
+import { redirectUriFor, validationAllowed } from './_comun.js';
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -170,9 +170,11 @@ export async function POST(request: Request): Promise<Response> {
   if (!token) return json({ error: 'unauthorized' }, 401);
 
   let propertyId: string;
+  let dryRun: boolean;
   try {
-    const body = (await request.json()) as { propertyId?: unknown };
+    const body = (await request.json()) as { propertyId?: unknown; dryRun?: unknown };
     propertyId = typeof body.propertyId === 'string' ? body.propertyId.trim() : '';
+    dryRun = body.dryRun === true;
   } catch {
     return json({ error: 'invalid_json' }, 400);
   }
@@ -182,11 +184,12 @@ export async function POST(request: Request): Promise<Response> {
   const { data: caller, error: callerError } = await client.auth.getUser(token);
   if (callerError || !caller?.user) return json({ error: 'unauthorized' }, 401);
 
+  // "Probar sin publicar" existe solo en previews y desarrollo: en producción el servidor lo rechaza aunque alguien lo pida a mano.
+  if (dryRun && !validationAllowed(process.env.VERCEL_ENV)) return json({ error: 'not_available' }, 403);
+
   try {
-    const result = await publishProperty(
-      propertyId,
-      buildDeps(client, caller.user.id, { clientId, clientSecret, redirectUri: redirectUriFor(request) }, categories),
-    );
+    const deps = buildDeps(client, caller.user.id, { clientId, clientSecret, redirectUri: redirectUriFor(request) }, categories);
+    const result = dryRun ? await validateProperty(propertyId, deps) : await publishProperty(propertyId, deps);
     return json(result.body, result.status);
   } catch (err) {
     const e = err as { code?: string; message?: string };

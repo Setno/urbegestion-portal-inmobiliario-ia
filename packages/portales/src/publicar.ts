@@ -22,6 +22,8 @@ export interface PublishInput {
   credentials: Credentials;
   fetcher: TokenFetcher;
   now?: Date;
+  // Solo validar con /items/validate: Mercado Libre revisa el aviso y dice qué le falta, sin crear nada.
+  dryRun?: boolean;
 }
 
 export interface PublishedListing {
@@ -33,7 +35,7 @@ export interface PublishedListing {
 export type PublishFailure = 'datos' | 'sesion' | 'rechazado' | 'respuesta' | 'red';
 
 export type PublishResult =
-  | { ok: true; listing: PublishedListing; tokens?: TokenSet; warning?: string }
+  | { ok: true; listing: PublishedListing; tokens?: TokenSet; warning?: string; validated?: boolean }
   // maybeCreated: el aviso pudo haberse creado en Mercado Libre aunque la llamada falló (corte, 5xx, respuesta rara).
   // Quien llama NO debe tratarlo como "no se publicó" ni invitar a reintentar a ciegas: se duplicaría.
   | { ok: false; kind: PublishFailure; errors: string[]; tokens?: TokenSet; maybeCreated?: boolean };
@@ -70,6 +72,7 @@ export async function publishToMercadoLibre(input: PublishInput): Promise<Publis
   let session = input.connection;
   let renewed: TokenSet | undefined;
   let maybeCreated = false;
+  const dry = input.dryRun === true;
 
   const withTokens = <T extends object>(result: T): T & { tokens?: TokenSet } => (renewed ? { ...result, tokens: renewed } : result);
 
@@ -95,13 +98,14 @@ export async function publishToMercadoLibre(input: PublishInput): Promise<Publis
     }
 
     // 3. Crear el aviso; un 401 renueva una sola vez y reintenta.
-    maybeCreated = true;
-    let response = await post(`${API}/items`, built.item);
+    maybeCreated = !dry; // validar no crea nada: no hay nada que duplicar
+    const itemsUrl = `${API}${dry ? '/items/validate' : '/items'}`;
+    let response = await post(itemsUrl, built.item);
     if (response.status === 401 && !renewed) {
       maybeCreated = false; // un 401 es un rechazo claro: no se creó nada
       if (!(await refresh())) return { ok: false, kind: 'sesion', errors: [SESSION_ERROR] };
-      maybeCreated = true;
-      response = await post(`${API}/items`, built.item);
+      maybeCreated = !dry;
+      response = await post(itemsUrl, built.item);
     }
     const json: unknown = await response.json().catch(() => ({}));
     if (response.status === 401) {
@@ -109,11 +113,16 @@ export async function publishToMercadoLibre(input: PublishInput): Promise<Publis
     }
     // Un 5xx no dice si Mercado Libre alcanzó a crear el aviso: es reintentable, pero con reserva.
     if (response.status >= 500) {
-      return withTokens({ ok: false as const, kind: 'red' as const, maybeCreated: true, errors: [NETWORK_ERROR] });
+      return withTokens({ ok: false as const, kind: 'red' as const, ...(dry ? {} : { maybeCreated: true }), errors: [NETWORK_ERROR] });
     }
     if (!response.ok) {
       maybeCreated = false; // rechazo claro (4xx): el aviso no se creó
       return withTokens({ ok: false as const, kind: 'rechazado' as const, errors: extractErrors(json, response.status) });
+    }
+
+    // Validación correcta: Mercado Libre responde 204 sin cuerpo. No se crea ni se guarda nada.
+    if (dry) {
+      return withTokens({ ok: true as const, validated: true as const, listing: { externalId: '', permalink: null, status: 'validado' } });
     }
 
     const item = json && typeof json === 'object' ? (json as { id?: unknown; permalink?: unknown; status?: unknown }) : {};

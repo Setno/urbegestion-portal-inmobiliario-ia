@@ -3,13 +3,15 @@ import { ExternalLink, Globe2 } from 'lucide-react';
 import { useAuthStore } from '../../../core/auth/useAuthStore';
 import { canInviteAgents } from '../../../core/auth/permissions';
 import { isRemoteData } from '../../../core/data/dataSource';
-import { isStalePending, publishToMercadoLibre, type PortalListing, type PublishError } from '../../../core/portals/portalConnectionService';
+import { isStalePending, publishToMercadoLibre, validateOnMercadoLibre, type PortalListing, type PublishError } from '../../../core/portals/portalConnectionService';
+import { isPreviewBuild } from '../../../core/portals/previewOnly';
 import { isOnOffer, isPublished } from '../services/publicationWorkflow';
 import type { Property } from '../types/property';
 
 const ERROR_TEXT: Record<PublishError, string> = {
   unauthorized: 'Tu sesión venció. Vuelve a entrar e inténtalo de nuevo.',
   not_admin: 'Solo el administrador de la corredora puede publicar en portales.',
+  not_available: 'Esta prueba no está disponible en este entorno.',
   not_found: 'No se encontró la propiedad. Recarga la página.',
   not_approved: 'La propiedad debe estar aprobada y publicada en el sitio antes de ir a un portal.',
   not_on_offer: 'Una propiedad vendida o arrendada no se publica en portales.',
@@ -40,6 +42,7 @@ export const PortalPublishControl: React.FC<Props> = ({ property, listing, conne
   const role = useAuthStore((s) => s.membership?.role ?? null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; lines: string[] } | null>(null);
+  const [validating, setValidating] = useState(false);
 
   if (!canInviteAgents(role) || !isRemoteData) return null;
 
@@ -47,6 +50,20 @@ export const PortalPublishControl: React.FC<Props> = ({ property, listing, conne
   // Una reserva pendiente abandonada (más de 10 minutos) no debe dejar la propiedad bloqueada para siempre.
   const abandoned = Boolean(listing && isStalePending(listing));
   const canPublish = (!listing || abandoned) && isPublished(property) && isOnOffer(property);
+
+  // Solo previews: Mercado Libre revisa el aviso y dice qué falta, sin crear nada.
+  const handleValidate = async () => {
+    if (busy || validating) return;
+    setValidating(true);
+    setMessage(null);
+    const result = await validateOnMercadoLibre(property.id);
+    setValidating(false);
+    if (!('error' in result)) {
+      setMessage({ ok: true, lines: ['Mercado Libre aceptaría este aviso. No se publicó nada.', ...(result.warning ? [result.warning] : [])] });
+      return;
+    }
+    setMessage({ ok: false, lines: [ERROR_TEXT[result.error], ...result.messages] });
+  };
 
   const handlePublish = async () => {
     if (busy) return;
@@ -64,7 +81,9 @@ export const PortalPublishControl: React.FC<Props> = ({ property, listing, conne
     if (result.error === 'already_published' || result.error === 'in_progress' || result.error === 'uncertain') onChanged();
   };
 
-  if (!published && !listing && !canPublish) return null;
+  const canValidate = isPreviewBuild && connected && !published && !listing?.pending;
+
+  if (!published && !listing && !canPublish && !canValidate) return null;
 
   return (
     <div className="space-y-1">
@@ -95,6 +114,16 @@ export const PortalPublishControl: React.FC<Props> = ({ property, listing, conne
           className="px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 text-[11px] font-bold flex items-center gap-1 disabled:opacity-50"
         >
           <Globe2 className="w-3 h-3" /> {busy ? 'Publicando…' : 'Publicar en Mercado Libre'}
+        </button>
+      )}
+      {canValidate && (
+        <button
+          type="button"
+          onClick={handleValidate}
+          disabled={busy || validating}
+          className="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-[11px] font-bold flex items-center gap-1 disabled:opacity-50"
+        >
+          {validating ? 'Probando…' : 'Probar sin publicar'}
         </button>
       )}
       {message && (

@@ -133,10 +133,10 @@ export async function fetchPortalListings(): Promise<Record<string, PortalListin
 
 export type PublishError =
   | 'unauthorized' | 'not_admin' | 'not_found' | 'not_approved' | 'not_on_offer' | 'not_connected' | 'already_published'
-  | 'in_progress' | 'uncertain' | 'reconnect' | 'datos' | 'rechazado' | 'red' | 'respuesta' | 'not_configured' | 'conexion';
+  | 'in_progress' | 'not_available' | 'uncertain' | 'reconnect' | 'datos' | 'rechazado' | 'red' | 'respuesta' | 'not_configured' | 'conexion';
 const PUBLISH_ERRORS: PublishError[] = [
   'unauthorized', 'not_admin', 'not_found', 'not_approved', 'not_on_offer', 'not_connected', 'already_published',
-  'in_progress', 'uncertain', 'reconnect', 'datos', 'rechazado', 'red', 'respuesta', 'not_configured',
+  'in_progress', 'not_available', 'uncertain', 'reconnect', 'datos', 'rechazado', 'red', 'respuesta', 'not_configured',
 ];
 
 export type PublishOutcome =
@@ -179,6 +179,32 @@ export async function publishToMercadoLibre(propertyId: string): Promise<Publish
     return failure(error, messages);
   } catch (err) {
     console.warn('[portales] No se pudo publicar en Mercado Libre:', err);
+    return failure('conexion');
+  }
+}
+
+export type ValidateOutcome = { ok: true; warning?: string } | { ok: false; error: PublishError; messages: string[] };
+
+// Solo previews y desarrollo (el servidor lo rechaza en producción): Mercado Libre revisa el aviso y dice qué le falta, sin crear nada.
+export async function validateOnMercadoLibre(propertyId: string): Promise<ValidateOutcome> {
+  const failure = (error: PublishError, messages: string[] = []): ValidateOutcome => ({ ok: false, error, messages });
+  if (!supabase) return failure('conexion');
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return failure('unauthorized');
+    const res = await fetch('/api/portales/mercadolibre-publicar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ propertyId, dryRun: true }),
+    });
+    const body = (await res.json().catch(() => ({}))) as { ok?: boolean; warning?: unknown; error?: string; messages?: unknown };
+    if (res.ok && body.ok) return { ok: true, ...(typeof body.warning === 'string' ? { warning: body.warning } : {}) };
+    const error = (PUBLISH_ERRORS as string[]).includes(body.error ?? '') ? (body.error as PublishError) : 'conexion';
+    const messages = Array.isArray(body.messages) ? body.messages.filter((m): m is string => typeof m === 'string').slice(0, 5) : [];
+    return failure(error, messages);
+  } catch (err) {
+    console.warn('[portales] No se pudo probar el aviso en Mercado Libre:', err);
     return failure('conexion');
   }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { publishProperty, rowToPortalProperty, listingStatus, type PublishDeps, type PropertyRow } from './publicarPropiedad';
+import { publishProperty, validateProperty, rowToPortalProperty, listingStatus, type PublishDeps, type PropertyRow } from './publicarPropiedad';
 import type { TokenFetcher } from './oauth';
 
 const ahora = new Date('2026-11-09T12:00:00Z');
@@ -284,6 +284,51 @@ describe('publishProperty (H-068.3)', () => {
       const r = await publishProperty('prop-1', d);
       expect(r.status).toBe(200);
       expect(r.body).toMatchObject({ ok: true, warning: expect.stringMatching(/renovación de la conexión/) });
+    });
+  });
+
+  describe('validateProperty: probar sin publicar', () => {
+    const valido: TokenFetcher = vi.fn(async () => ({ ok: true, status: 204, json: async () => ({}) }));
+
+    it('valida con Mercado Libre y no reserva, no publica ni guarda ningún aviso', async () => {
+      const d = deps({ fetcher: valido });
+      const r = await validateProperty('prop-1', d);
+      expect(r).toEqual({ status: 200, body: { ok: true, validated: true } });
+      expect(d.claim).not.toHaveBeenCalled();
+      expect(d.saveListing).not.toHaveBeenCalled();
+      expect(d.release).not.toHaveBeenCalled();
+      const [url] = (valido as ReturnType<typeof vi.fn>).mock.calls.at(-1) as [string];
+      expect(url).toBe('https://api.mercadolibre.com/items/validate');
+    });
+
+    it('también sirve con una propiedad aún sin aprobar (es solo una prueba)', async () => {
+      const d = deps({ fetcher: valido, loadProperty: vi.fn(async () => ({ ...fila, publication_status: 'borrador' })) });
+      expect((await validateProperty('prop-1', d)).status).toBe(200);
+    });
+
+    it('exige ser administrador, existir y tener la cuenta conectada', async () => {
+      expect(await validateProperty('x', deps({ loadProperty: vi.fn(async () => null) }))).toEqual({ status: 404, body: { error: 'not_found' } });
+      expect(await validateProperty('prop-1', deps({ isAdminOf: vi.fn(async () => false) }))).toEqual({ status: 403, body: { error: 'not_admin' } });
+      expect(await validateProperty('prop-1', deps({ loadConnection: vi.fn(async () => null) }))).toEqual({ status: 409, body: { error: 'not_connected' } });
+    });
+
+    it('devuelve los motivos de Mercado Libre (422) o los datos que faltan', async () => {
+      const rechazo: TokenFetcher = async () => ({ ok: false, status: 400, json: async () => ({ cause: [{ type: 'error', message: 'Falta el atributo X' }] }) });
+      expect(await validateProperty('prop-1', deps({ fetcher: rechazo }))).toEqual({ status: 422, body: { error: 'rechazado', messages: ['Falta el atributo X'] } });
+      const r = await validateProperty('prop-1', deps({ loadProperty: vi.fn(async () => ({ ...fila, images: [] })) }));
+      expect(r.body).toMatchObject({ error: 'datos' });
+    });
+
+    it('guarda los tokens renovados y un 401 pide reconectar', async () => {
+      const fetcher: TokenFetcher = async (url) =>
+        url.endsWith('/oauth/token')
+          ? { ok: true, status: 200, json: async () => ({ access_token: 'N', refresh_token: 'NR', expires_in: 21600, user_id: 1 }) }
+          : { ok: false, status: 401, json: async () => ({}) };
+      const d = deps({ fetcher, loadConnection: vi.fn(async () => ({ accessToken: 'A', refreshToken: 'R', expiresAt: new Date(ahora.getTime() - 1000).toISOString() })) });
+      const r = await validateProperty('prop-1', d);
+      expect(r.status).toBe(409);
+      expect(r.body).toMatchObject({ error: 'reconnect' });
+      expect(d.saveTokens).toHaveBeenCalledWith('tenant-1', expect.objectContaining({ accessToken: 'N' }));
     });
   });
 });
