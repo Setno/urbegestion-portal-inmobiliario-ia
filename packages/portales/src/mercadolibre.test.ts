@@ -34,8 +34,9 @@ describe('toMercadoLibreItem', () => {
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.item.category_id).toBe('MLC-CAT-VD');
-    expect(r.item.currency_id).toBe('CLP');
-    expect(r.item.price).toBe(190000000); // 5000 UF × 38000
+    // la UF se publica en UF (CLF en Mercado Libre), sin convertir a pesos
+    expect(r.item.currency_id).toBe('CLF');
+    expect(r.item.price).toBe(5000);
     expect(r.item.buying_mode).toBe('classified');
     expect(r.item.listing_type_id).toBe('silver');
     expect(r.item.pictures).toEqual([
@@ -56,9 +57,28 @@ describe('toMercadoLibreItem', () => {
     expect(r.ok && r.item.price).toBe(600000);
   });
 
-  it('acepta la moneda en minúsculas o con espacios y redondea a pesos', () => {
-    const r = toMercadoLibreItem({ ...propiedad, priceAmount: 1.5, priceCurrency: ' uf ' }, { ...opciones, rates: { UF: 38650.5 } });
-    expect(r.ok && r.item.price).toBe(57976); // 1,5 × 38650,5 = 57975,75
+  it('acepta la moneda en minúsculas o con espacios; la UF conserva sus decimales (hasta 2)', () => {
+    const r = toMercadoLibreItem({ ...propiedad, priceAmount: 1234.567, priceCurrency: ' uf ' }, { ...opciones, rates: {} });
+    expect(r.ok && r.item.currency_id).toBe('CLF');
+    expect(r.ok && r.item.price).toBe(1234.57);
+  });
+
+  it('la UF no necesita tasa de conversión: se publica igual sin ella', () => {
+    expect(toMercadoLibreItem(propiedad, { ...opciones, rates: {} }).ok).toBe(true);
+  });
+
+  it('USD se publica en dólares y los pesos redondean a enteros', () => {
+    const usd = toMercadoLibreItem({ ...propiedad, priceAmount: 250000.5, priceCurrency: 'USD' }, opciones);
+    expect(usd.ok && usd.item.currency_id).toBe('USD');
+    expect(usd.ok && usd.item.price).toBe(250000.5);
+    const clp = toMercadoLibreItem({ ...propiedad, priceAmount: 150000.6, priceCurrency: 'CLP' }, opciones);
+    expect(clp.ok && clp.item.price).toBe(150001);
+  });
+
+  it('otra moneda se convierte a pesos con su tasa', () => {
+    const r = toMercadoLibreItem({ ...propiedad, priceAmount: 100, priceCurrency: 'EUR' }, { ...opciones, rates: { EUR: 1000 } });
+    expect(r.ok && r.item.currency_id).toBe('CLP');
+    expect(r.ok && r.item.price).toBe(100000);
   });
 
   it('usa el tipo de aviso indicado, o silver si viene vacío', () => {
@@ -106,9 +126,9 @@ describe('toMercadoLibreItem', () => {
     });
 
     it('precio en una moneda sin tasa (no se inventa la conversión)', () => {
-      const r = toMercadoLibreItem(propiedad, { ...opciones, rates: {} });
+      const r = toMercadoLibreItem({ ...propiedad, priceCurrency: 'EUR' }, { ...opciones, rates: {} });
       expect(r.ok).toBe(false);
-      expect(errores(r)[0]).toMatch(/UF/);
+      expect(errores(r)[0]).toMatch(/EUR/);
     });
 
     it('precio cero o negativo', () => {
@@ -117,8 +137,8 @@ describe('toMercadoLibreItem', () => {
     });
 
     it.each([0, -5, NaN, Infinity])('tasa inválida (%s) no se usa para convertir', (tasa) => {
-      const r = toMercadoLibreItem(propiedad, { ...opciones, rates: { UF: tasa } });
-      expect(errores(r)[0]).toMatch(/UF/);
+      const r = toMercadoLibreItem({ ...propiedad, priceCurrency: 'EUR' }, { ...opciones, rates: { EUR: tasa } });
+      expect(errores(r)[0]).toMatch(/EUR/);
     });
 
     it.each([NaN, Infinity])('monto inválido (%s)', (monto) => {

@@ -59,7 +59,7 @@ describe('publishToMercadoLibre (H-068.3)', () => {
     expect(llamadas[0].url).toBe('https://api.mercadolibre.com/items');
     expect(llamadas[0].init.headers.Authorization).toBe('Bearer ACCESO');
     const item = JSON.parse(llamadas[0].init.body);
-    expect(item).toMatchObject({ category_id: 'MLC-VD', currency_id: 'CLP', price: 190000000 });
+    expect(item).toMatchObject({ category_id: 'MLC-VD', currency_id: 'CLF', price: 5000 });
     expect(llamadas[1].url).toBe('https://api.mercadolibre.com/items/MLC999/description');
     expect(JSON.parse(llamadas[1].init.body)).toEqual({ plain_text: 'Hermoso departamento.' });
     expect('tokens' in r && r.tokens).toBeFalsy();
@@ -195,7 +195,7 @@ describe('publishToMercadoLibre (H-068.3)', () => {
       const r = await publishToMercadoLibre(base(fetcher, { dryRun: true }));
       expect(r).toMatchObject({ ok: true, validated: true });
       expect(llamadas.map((l) => l.url)).toEqual(['https://api.mercadolibre.com/items/validate']);
-      expect(JSON.parse(llamadas[0].init.body)).toMatchObject({ category_id: 'MLC-VD', currency_id: 'CLP' });
+      expect(JSON.parse(llamadas[0].init.body)).toMatchObject({ category_id: 'MLC-VD', currency_id: 'CLF' });
     });
 
     it('un 204 sin cuerpo (json que falla) igual cuenta como válido', async () => {

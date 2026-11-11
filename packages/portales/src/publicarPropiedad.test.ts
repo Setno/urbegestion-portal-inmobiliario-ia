@@ -93,12 +93,12 @@ describe('publishProperty (H-068.3)', () => {
     expect(d.release).not.toHaveBeenCalled();
   });
 
-  it('usa la UF del día para convertir a pesos', async () => {
+  it('publica el precio en UF (CLF) sin convertir y sin pedir ninguna tasa', async () => {
     const d = deps();
     await publishProperty('prop-1', d);
-    expect(d.getRates).toHaveBeenCalledWith('UF');
+    expect(d.getRates).not.toHaveBeenCalled();
     const [, init] = (d.fetcher as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(JSON.parse(init.body).price).toBe(190000000);
+    expect(JSON.parse(init.body)).toMatchObject({ price: 5000, currency_id: 'CLF' });
   });
 
   it('no pide tasa si el precio ya está en pesos', async () => {
@@ -151,11 +151,11 @@ describe('publishProperty (H-068.3)', () => {
     expect(d.release).toHaveBeenCalledWith('prop-1');
   });
 
-  it('si no se pudo obtener la UF, lo dice y libera el cupo (422)', async () => {
-    const d = deps({ getRates: vi.fn(async () => ({})) });
+  it('si una moneda que sí necesita tasa no la tiene, lo dice y libera el cupo (422)', async () => {
+    const d = deps({ getRates: vi.fn(async () => ({})), loadProperty: vi.fn(async () => ({ ...fila, price_currency: 'EUR' })) });
     const r = await publishProperty('prop-1', d);
     expect(r.status).toBe(422);
-    expect(JSON.stringify(r.body)).toMatch(/UF/);
+    expect(JSON.stringify(r.body)).toMatch(/EUR/);
     expect(d.release).toHaveBeenCalled();
   });
 
@@ -229,7 +229,7 @@ describe('publishProperty (H-068.3)', () => {
     });
 
     it('si algo revienta tras reservar, libera la reserva y propaga el error', async () => {
-      const d = deps({ getRates: vi.fn(async () => { throw new Error('UF caída'); }) });
+      const d = deps({ getRates: vi.fn(async () => { throw new Error('UF caída'); }), loadProperty: vi.fn(async () => ({ ...fila, price_currency: 'EUR' })) });
       await expect(publishProperty('prop-1', d)).rejects.toThrow('UF caída');
       expect(d.release).toHaveBeenCalledWith('prop-1');
     });

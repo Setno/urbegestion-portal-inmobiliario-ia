@@ -31,7 +31,7 @@ export interface PropiedadParaPortal {
 export interface OpcionesMercadoLibre {
   // Categoría de Mercado Libre por "operación:tipo" (por ejemplo "venta:departamento"). Se obtiene de su API de categorías.
   categories: Record<string, string>;
-  // Valor de 1 unidad de cada moneda en pesos chilenos (en Chile: { UF: 38650 }). El peso vale 1.
+  // Valor de 1 unidad de cada moneda EXTRANJERA en pesos chilenos. La UF y el dólar no la necesitan (se publican tal cual).
   rates: Record<string, number>;
   listingTypeId?: string; // por defecto "silver"
 }
@@ -46,7 +46,7 @@ export interface AvisoMercadoLibre {
   title: string;
   category_id: string;
   price: number;
-  currency_id: 'CLP';
+  currency_id: MonedaML;
   buying_mode: 'classified';
   listing_type_id: string;
   channels: string[];
@@ -65,14 +65,39 @@ const esFotoPublica = (url: string): boolean => /^https?:\/\//i.test(url.trim())
 
 const esPositivo = (n: number): boolean => Number.isFinite(n) && n > 0;
 
-// Precio en pesos redondeado; sin tasa válida para la moneda del precio no se inventa la conversión.
-function precioEnPesos(monto: number, moneda: string, rates: Record<string, number>): number | null {
+// Monedas que la categoría de inmuebles de Mercado Libre acepta tal cual: CLP, USD y CLF (la UF). La UF NO se convierte a pesos:
+// se publica en UF con el valor que cargó la corredora (no depende de ninguna fuente externa). Cualquier otra moneda se convierte
+// a pesos con su tasa; sin tasa válida no se inventa la conversión.
+const EN_MERCADO_LIBRE: Record<string, MonedaML> = { UF: 'CLF', USD: 'USD' };
+
+export type MonedaML = 'CLP' | 'CLF' | 'USD';
+
+const redondear = (n: number, decimales: number): number => {
+  const f = 10 ** decimales;
+  return Math.round((n + Number.EPSILON) * f) / f;
+};
+
+function precioParaMercadoLibre(monto: number, moneda: string, rates: Record<string, number>): { price: number; currency: MonedaML } | null {
   if (!esPositivo(monto)) return null;
   const codigo = moneda.trim().toUpperCase();
+  const directa = EN_MERCADO_LIBRE[codigo];
+  if (directa) {
+    const price = redondear(monto, 2);
+    return price >= 0.01 ? { price, currency: directa } : null;
+  }
   const tasa = codigo === 'CLP' ? 1 : rates[codigo];
   if (!esPositivo(tasa)) return null;
   const pesos = Math.round(monto * tasa);
-  return Number.isFinite(pesos) && pesos >= 1 ? pesos : null;
+  return Number.isFinite(pesos) && pesos >= 1 ? { price: pesos, currency: 'CLP' } : null;
+}
+
+// El motivo por el que no hay precio, en el mismo orden de preguntas que usa el resto del traductor.
+function motivoSinPrecio(monto: number, moneda: string, rates: Record<string, number>): string {
+  const codigo = moneda.trim().toUpperCase();
+  if (!esPositivo(monto)) return 'El precio debe ser mayor que cero.';
+  if (!codigo) return 'Falta la moneda del precio.';
+  if (!EN_MERCADO_LIBRE[codigo] && codigo !== 'CLP' && !esPositivo(rates[codigo])) return `No hay valor de ${codigo} para convertir el precio a pesos.`;
+  return 'El precio es demasiado bajo (menos de $1).';
 }
 
 const conteo = (id: string, n: number): AtributoML[] =>
@@ -93,19 +118,8 @@ export function toMercadoLibreItem(p: PropiedadParaPortal, opciones: OpcionesMer
   const title = p.title.trim().slice(0, MAX_TITULO).trim();
   if (!title) errors.push('Falta el título.');
 
-  const price = precioEnPesos(p.priceAmount, p.priceCurrency, opciones.rates);
-  if (price === null) {
-    const moneda = p.priceCurrency.trim();
-    errors.push(
-      !esPositivo(p.priceAmount)
-        ? 'El precio debe ser mayor que cero.'
-        : !moneda
-          ? 'Falta la moneda del precio.'
-          : !esPositivo(moneda.toUpperCase() === 'CLP' ? 1 : opciones.rates[moneda.toUpperCase()])
-            ? `No hay valor de ${moneda.toUpperCase()} para convertir el precio a pesos.`
-            : 'El precio es demasiado bajo (menos de $1).',
-    );
-  }
+  const precio = precioParaMercadoLibre(p.priceAmount, p.priceCurrency, opciones.rates);
+  if (!precio) errors.push(motivoSinPrecio(p.priceAmount, p.priceCurrency, opciones.rates));
 
   const pictures = p.images.filter(esFotoPublica).map((source) => ({ source: source.trim() }));
   if (pictures.length === 0) errors.push('Falta al menos una foto con dirección pública.');
@@ -121,7 +135,7 @@ export function toMercadoLibreItem(p: PropiedadParaPortal, opciones: OpcionesMer
     c && Number.isFinite(c.lat) && Number.isFinite(c.lng) && Math.abs(c.lat) <= 90 && Math.abs(c.lng) <= 180 ? c : undefined;
   if (!address && !coordenadas) errors.push('Falta la dirección o las coordenadas.');
 
-  if (errors.length > 0 || price === null || !category_id) return { ok: false, errors };
+  if (errors.length > 0 || !precio || !category_id) return { ok: false, errors };
 
   const location: AvisoMercadoLibre['location'] = {
     ...(address ? { address_line: address } : {}),
@@ -134,8 +148,8 @@ export function toMercadoLibreItem(p: PropiedadParaPortal, opciones: OpcionesMer
     item: {
       title,
       category_id,
-      price,
-      currency_id: 'CLP',
+      price: precio.price,
+      currency_id: precio.currency,
       buying_mode: 'classified',
       listing_type_id: opciones.listingTypeId?.trim() || 'silver',
       channels: ['marketplace'],

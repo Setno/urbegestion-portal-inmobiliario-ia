@@ -30,6 +30,9 @@ export interface PropertyRow {
   publication_status: string;
 }
 
+// CLP, UF y USD se publican en su propia moneda (Mercado Libre las acepta); solo el resto necesita una tasa a pesos.
+const needsRate = (currency: string): boolean => !(['CLP', 'UF', 'USD'] as string[]).includes(currency);
+
 export function rowToPortalProperty(r: PropertyRow): PropiedadParaPortal {
   const n = (v: unknown): number => {
     const x = Number(v ?? 0);
@@ -113,7 +116,7 @@ export async function publishProperty(propertyId: string, deps: PublishDeps): Pr
   // Desde aquí hay una reserva puesta: si algo revienta antes de hablar con Mercado Libre, se libera para no dejarla atascada.
   let result;
   try {
-    const rates = currency === 'CLP' ? {} : await deps.getRates(currency);
+    const rates = needsRate(currency) ? await deps.getRates(currency) : {};
     const run = (session: PortalSession) =>
       publishToMercadoLibre({
         property,
@@ -179,7 +182,7 @@ export async function validateProperty(propertyId: string, deps: ValidateDeps): 
 
   const property = rowToPortalProperty(row);
   const currency = property.priceCurrency.trim().toUpperCase();
-  const rates = currency === 'CLP' ? {} : await deps.getRates(currency);
+  const rates = needsRate(currency) ? await deps.getRates(currency) : {};
   const result = await publishToMercadoLibre({
     property,
     options: { categories: deps.categories, rates },
