@@ -25,6 +25,27 @@ const motivo = (body: unknown): string => {
   return partes.length ? ` (${partes.join(' · ')})` : '';
 };
 
+
+// Pruebas de validación (/items/validate no crea nada): sirven para ver si el rechazo es general o solo de inmuebles.
+// Un error de datos (falta un atributo, etc.) significa que la autorización pasó; UNAUTHORIZED significa que no.
+async function validar(fetcher: TokenFetcher, accessToken: string, etiqueta: string, item: unknown): Promise<string> {
+  try {
+    const r = await fetcher(`${API}/items/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify(item),
+    });
+    const body = await r.json().catch(() => ({}));
+    if (r.status === 204 || r.status === 200) return `Validación ${etiqueta}: aceptada.`;
+    const causas = isObj(body) && Array.isArray(body.cause) ? body.cause.map((c) => (isObj(c) ? corto(c.message) : '')).filter(Boolean).slice(0, 2).join(' | ') : '';
+    return `Validación ${etiqueta}: código ${r.status}${causas ? ` (${causas})` : motivo(body)}.`;
+  } catch {
+    return `Validación ${etiqueta}: sin respuesta.`;
+  }
+}
+
+const FOTO_PRUEBA = 'https://http2.mlstatic.com/D_NQ_NP_000000-MLC00000000-000000_000000-F.jpg';
+
 export async function diagnoseMercadoLibre(input: { accessToken: string; clientId: string; categoryId?: string; fetcher: TokenFetcher }): Promise<string[]> {
   const { accessToken, fetcher } = input;
   const lines: string[] = [];
@@ -59,6 +80,39 @@ export async function diagnoseMercadoLibre(input: { accessToken: string; clientI
       } else {
         lines.push(`Tipos de aviso en ${input.categoryId}: código ${types.status}${motivo(types.body)}.`);
       }
+    }
+  }
+
+  // ¿El rechazo es general o solo de inmuebles? Un artículo cualquiera, y un inmueble mínimo con cada tipo de aviso.
+  lines.push(
+    await validar(fetcher, accessToken, 'de un artículo común', {
+      title: 'Articulo de prueba',
+      category_id: 'MLC3530',
+      price: 10000,
+      currency_id: 'CLP',
+      available_quantity: 1,
+      buying_mode: 'buy_it_now',
+      listing_type_id: 'free',
+      condition: 'new',
+      pictures: [{ source: FOTO_PRUEBA }],
+    }),
+  );
+  if (input.categoryId) {
+    for (const tipo of ['free', 'silver']) {
+      lines.push(
+        await validar(fetcher, accessToken, `de un inmueble mínimo (tipo ${tipo})`, {
+          title: 'Casa de prueba',
+          category_id: input.categoryId,
+          price: 500000,
+          currency_id: 'CLP',
+          buying_mode: 'classified',
+          listing_type_id: tipo,
+          channels: ['marketplace'],
+          pictures: [{ source: FOTO_PRUEBA }],
+          attributes: [],
+          location: { address_line: 'El Alba 2919, Buin' },
+        }),
+      );
     }
   }
 

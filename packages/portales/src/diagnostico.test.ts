@@ -28,7 +28,12 @@ describe('diagnoseMercadoLibre (solo lectura)', () => {
     expect(texto).toContain('silver');
     expect(texto).toContain('read/write');
     expect(texto).not.toContain('SECRETO');
-    expect(llamadas.every((l) => l.init?.method === 'GET')).toBe(true);
+    // solo lectura: las únicas llamadas que no son GET son validaciones, que Mercado Libre no guarda
+    expect(llamadas.every((l) => l.init?.method === 'GET' || l.url.endsWith('/items/validate'))).toBe(true);
+    expect(llamadas.some((l) => l.url.endsWith('/items') || l.url.includes('/description'))).toBe(false);
+    expect(texto).toContain('Validación de un artículo común');
+    expect(texto).toContain('inmueble mínimo (tipo free)');
+    expect(texto).toContain('inmueble mínimo (tipo silver)');
   });
 
   it('si la cuenta no se puede leer, lo dice con el motivo de Mercado Libre', async () => {
