@@ -59,6 +59,32 @@ describe('diagnoseMercadoLibre (solo lectura)', () => {
     expect(texto).toMatch(/Paquetes de inmuebles: código 403.*UNAUTHORIZED/);
   });
 
+  it('muestra el estado completo de la cuenta: vender, facturar, comprar, acción requerida, correo y términos de Mercado Pago', async () => {
+    const { fetcher } = respuestas({
+      '/users/me': {
+        status: 200,
+        body: {
+          id: 1,
+          status: {
+            sell: { allow: false, codes: ['tc_pending'] },
+            billing: { allow: true, codes: [] },
+            buy: { allow: true, codes: [] },
+            required_action: 'accept_tc',
+            confirmed_email: false,
+            mercadopago_tc_accepted: false,
+            list: { allow: true, codes: [] },
+          },
+        },
+      },
+    });
+    const texto = (await diagnoseMercadoLibre({ accessToken: 't', clientId: '', fetcher })).join('\n');
+    expect(texto).toContain('sell: no (tc_pending)');
+    expect(texto).toContain('billing: sí · buy: sí');
+    expect(texto).toContain('acción requerida: accept_tc');
+    expect(texto).toContain('correo confirmado: no');
+    expect(texto).toContain('términos de Mercado Pago aceptados: no');
+  });
+
   it('muestra si la cuenta puede publicar y los motivos cuando no', async () => {
     const { fetcher } = respuestas({ '/users/me': { status: 200, body: { id: 1, status: { site_status: 'active', list: { allow: false, codes: ['address_pending'] } } } } });
     const texto = (await diagnoseMercadoLibre({ accessToken: 't', clientId: '', fetcher })).join('\n');

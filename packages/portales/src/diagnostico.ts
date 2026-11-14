@@ -67,6 +67,21 @@ export async function diagnoseMercadoLibre(input: { accessToken: string; clientI
   );
   if (tags.length) lines.push(`Etiquetas de la cuenta: ${tags.join(', ')}.`);
 
+  // Las demás partes del estado de la cuenta (según la guía "Validar datos de vendedores"): cualquiera en "no" bloquea las escrituras.
+  const partes = ['sell', 'billing', 'buy']
+    .map((clave) => {
+      const parte = status[clave];
+      if (!isObj(parte) || typeof parte.allow !== 'boolean') return `${clave}: ?`;
+      const cod = Array.isArray(parte.codes) ? parte.codes.map(corto).slice(0, 5).join(', ') : '';
+      return `${clave}: ${parte.allow ? 'sí' : 'no'}${cod ? ` (${cod})` : ''}`;
+    })
+    .join(' · ');
+  const accion = status.required_action == null ? 'ninguna' : corto(typeof status.required_action === 'string' ? status.required_action : JSON.stringify(status.required_action));
+  const etiqueta = (v: unknown) => (typeof v === 'boolean' ? (v ? 'sí' : 'no') : '?');
+  lines.push(
+    `Estado de la cuenta → ${partes} · acción requerida: ${accion} · correo confirmado: ${etiqueta(status.confirmed_email)} · términos de Mercado Pago aceptados: ${etiqueta(status.mercadopago_tc_accepted)}.`,
+  );
+
   if (userId) {
     const packs = await get(fetcher, accessToken, `/users/${encodeURIComponent(userId)}/classifieds_promotion_packs`);
     const n = Array.isArray(packs.body) ? packs.body.length : isObj(packs.body) && Array.isArray(packs.body.results) ? packs.body.results.length : null;
