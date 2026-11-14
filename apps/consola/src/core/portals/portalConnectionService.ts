@@ -226,6 +226,29 @@ export async function diagnoseMercadoLibre(): Promise<{ ok: true; lines: string[
   }
 }
 
+export type TestUserOutcome = { ok: true; id: string; nickname: string; password: string } | { ok: false; message?: string };
+
+// Solo previews y desarrollo (el servidor lo rechaza en producción): crea un usuario de prueba de Mercado Libre.
+// La contraseña llega una vez y solo se muestra en pantalla.
+export async function createMercadoLibreTestUser(): Promise<TestUserOutcome> {
+  if (!supabase) return { ok: false };
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { ok: false };
+    const res = await fetch('/api/portales/mercadolibre-usuario-prueba', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const body = (await res.json().catch(() => ({}))) as { ok?: boolean; user?: { id?: unknown; nickname?: unknown; password?: unknown }; message?: unknown };
+    const u = body.user;
+    if (res.ok && body.ok && u && typeof u.id === 'string' && typeof u.nickname === 'string' && typeof u.password === 'string') {
+      return { ok: true, id: u.id, nickname: u.nickname, password: u.password };
+    }
+    return { ok: false, ...(typeof body.message === 'string' ? { message: body.message } : {}) };
+  } catch (err) {
+    console.warn('[portales] No se pudo crear el usuario de prueba:', err);
+    return { ok: false };
+  }
+}
+
 export type PortalReturn = 'ml-ok' | 'ml-error' | 'ml-cancelado' | 'ml-no-configurado';
 const RETURNS: PortalReturn[] = ['ml-ok', 'ml-error', 'ml-cancelado', 'ml-no-configurado'];
 

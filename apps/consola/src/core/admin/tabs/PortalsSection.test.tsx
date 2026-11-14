@@ -8,6 +8,7 @@ import {
   disconnectPortal,
   consumePortalResult,
   diagnoseMercadoLibre,
+  createMercadoLibreTestUser,
 } from '../../portals/portalConnectionService';
 
 vi.mock('../../data/dataSource', () => ({ isRemoteData: true }));
@@ -17,6 +18,7 @@ vi.mock('../../portals/portalConnectionService', () => ({
   disconnectPortal: vi.fn(),
   consumePortalResult: vi.fn(),
   diagnoseMercadoLibre: vi.fn(),
+  createMercadoLibreTestUser: vi.fn(),
 }));
 const preview = vi.hoisted(() => ({ on: true }));
 vi.mock('../../portals/previewOnly', () => ({
@@ -51,6 +53,31 @@ describe('PortalsSection (conexión con Mercado Libre, H-068.2)', () => {
       expect(await screen.findByText('Cuenta: tipo normal.')).toBeTruthy();
     });
 
+    it('crea un usuario de prueba tras confirmar y muestra sus datos de acceso', async () => {
+      entrar('admin');
+      preview.on = true;
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      vi.mocked(fetchPortalConnections).mockResolvedValue(conectada);
+      vi.mocked(createMercadoLibreTestUser).mockReset().mockResolvedValue({ ok: true, id: '99', nickname: 'TEST1', password: 'clave-x' });
+      render(<PortalsSection />);
+      fireEvent.click(await screen.findByRole('button', { name: /Crear usuario de prueba/ }));
+      expect(await screen.findByText(/Usuario: TEST1/)).toBeTruthy();
+      expect(screen.getByText(/Contraseña: clave-x/)).toBeTruthy();
+      vi.restoreAllMocks();
+    });
+
+    it('si no confirma, no crea nada', async () => {
+      entrar('admin');
+      preview.on = true;
+      vi.spyOn(window, 'confirm').mockReturnValue(false);
+      vi.mocked(fetchPortalConnections).mockResolvedValue(conectada);
+      vi.mocked(createMercadoLibreTestUser).mockReset();
+      render(<PortalsSection />);
+      fireEvent.click(await screen.findByRole('button', { name: /Crear usuario de prueba/ }));
+      expect(createMercadoLibreTestUser).not.toHaveBeenCalled();
+      vi.restoreAllMocks();
+    });
+
     it('en producción el botón no existe', async () => {
       entrar('admin');
       preview.on = false;
@@ -58,6 +85,7 @@ describe('PortalsSection (conexión con Mercado Libre, H-068.2)', () => {
       render(<PortalsSection />);
       await screen.findByText(/Cuenta 987/);
       expect(screen.queryByRole('button', { name: /Diagnosticar/ })).toBeNull();
+      expect(screen.queryByRole('button', { name: /Crear usuario de prueba/ })).toBeNull();
       preview.on = true;
     });
   });

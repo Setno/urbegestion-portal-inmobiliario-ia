@@ -6,6 +6,7 @@ import { isRemoteData } from '../../data/dataSource';
 import { isPreviewBuild } from '../../portals/previewOnly';
 import {
   consumePortalResult,
+  createMercadoLibreTestUser,
   diagnoseMercadoLibre,
   disconnectPortal,
   fetchPortalConnections,
@@ -42,6 +43,8 @@ export const PortalsSection: React.FC<{ navigate?: (url: string) => void }> = ({
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosis, setDiagnosis] = useState<string[] | null>(null);
+  const [creatingTestUser, setCreatingTestUser] = useState(false);
+  const [testUser, setTestUser] = useState<{ ok: true; id: string; nickname: string; password: string } | { ok: false; message?: string } | null>(null);
 
   const reload = async () => {
     const list = await fetchPortalConnections();
@@ -78,6 +81,17 @@ export const PortalsSection: React.FC<{ navigate?: (url: string) => void }> = ({
     const result = await diagnoseMercadoLibre();
     setDiagnosing(false);
     setDiagnosis(result.ok ? result.lines : ['No se pudo hacer el diagnóstico. Inténtalo de nuevo.']);
+  };
+
+  // Solo previews: Mercado Libre no tiene sandbox; las pruebas se hacen con usuarios de prueba (máximo 10 por cuenta).
+  const handleCreateTestUser = async () => {
+    if (creatingTestUser) return;
+    if (!window.confirm('¿Crear un usuario de prueba en Mercado Libre? Es una cuenta ficticia para probar; Mercado Libre permite hasta 10.')) return;
+    setCreatingTestUser(true);
+    setTestUser(null);
+    const result = await createMercadoLibreTestUser();
+    setCreatingTestUser(false);
+    setTestUser(result);
   };
 
   const handleConnect = async () => {
@@ -149,6 +163,27 @@ export const PortalsSection: React.FC<{ navigate?: (url: string) => void }> = ({
               <button type="button" onClick={handleDiagnose} disabled={diagnosing} className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-[11px] font-bold disabled:opacity-50">
                 {diagnosing ? 'Consultando…' : 'Diagnosticar Mercado Libre'}
               </button>
+              <button
+                type="button"
+                onClick={handleCreateTestUser}
+                disabled={creatingTestUser}
+                className="ml-2 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-[11px] font-bold disabled:opacity-50"
+              >
+                {creatingTestUser ? 'Creando…' : 'Crear usuario de prueba'}
+              </button>
+              {testUser && (
+                <div role="status" className="text-[11px] text-slate-700">
+                  {'password' in testUser ? (
+                    <>
+                      <p className="font-bold">Usuario de prueba creado. Anota estos datos ahora: la contraseña no se vuelve a mostrar.</p>
+                      <p>Usuario: {testUser.nickname} · Número: {testUser.id}</p>
+                      <p>Contraseña: {testUser.password}</p>
+                    </>
+                  ) : (
+                    <p className="text-red-600">No se pudo crear el usuario de prueba.{testUser.message ? ` Mercado Libre dice: ${testUser.message}` : ''}</p>
+                  )}
+                </div>
+              )}
               {diagnosis && (
                 <div role="status" className="text-[11px] text-slate-700">
                   {diagnosis.map((line, i) => (
