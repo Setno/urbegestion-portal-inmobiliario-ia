@@ -39,6 +39,7 @@ function toRow(l: Partial<Lead>, clear = false): Row {
   put('next_action_due', 'nextActionDue', l.nextActionDue);
   put('closed_at', 'closedAtIso', l.closedAtIso);
   put('discard_reason', 'discardReason', l.discardReason);
+  put('assigned_to', 'assignedTo', l.assignedTo);
   put('source', 'source', l.source);
   put('attachments', 'attachments', l.attachments);
   put('property_specs', 'propertySpecs', l.propertySpecs);
@@ -88,6 +89,7 @@ export function fromRow(r: Row): Lead {
   set('convertedPropertyId', opt<string>(r.converted_property_id));
   set('closedAtIso', opt<string>(r.closed_at));
   set('discardReason', opt(r.discard_reason));
+  set('assignedTo', opt<string>(r.assigned_to));
   return lead;
 }
 

@@ -2,6 +2,8 @@ import type { DiscardReason, Lead, LeadStatus } from '../types/lead';
 import type { LeadEvent } from '../types/leadEvent';
 import { sourceLabel, attributionLabel } from './leadSource';
 import { actionState } from './leadTasks';
+import { memberLabel } from './leadAssignment';
+import type { TeamMember } from './teamRepository';
 
 // Reportes básicos del CRM (H-060). Todo se calcula con lo que el lead es hoy y con su historial de contactos.
 
@@ -50,6 +52,8 @@ const groupBy = (leads: Lead[], labelOf: (l: Lead) => string): GroupRow[] => {
 
 export const bySource = (leads: Lead[]): GroupRow[] => groupBy(leads, (l) => sourceLabel(l.source));
 export const byCampaign = (leads: Lead[]): GroupRow[] => groupBy(leads, (l) => attributionLabel(l.attribution));
+// Por responsable (H-069.1): el correo del miembro, "Sin asignar" o "Ex miembro del equipo".
+export const byAgent = (leads: Lead[], team: TeamMember[]): GroupRow[] => groupBy(leads, (l) => memberLabel(team, l.assignedTo));
 
 const HOUR = 3_600_000;
 // Llamada, WhatsApp, correo o visita: contactos reales con la persona. Las notas y los cambios de etapa no cuentan.

@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTimelineStore } from '../stores/useTimelineStore';
-import { bySource, byCampaign, funnel, inPeriod, responseStats, type GroupRow } from '../services/leadReports';
+import { byAgent, bySource, byCampaign, funnel, inPeriod, responseStats, type GroupRow } from '../services/leadReports';
 import { DashboardSummary } from './DashboardSummary';
 import { statusLabel } from '../services/leadTimeline';
 import type { Lead } from '../types/lead';
+import type { TeamMember } from '../services/teamRepository';
 
 const PERIODS: { label: string; days: number | null }[] = [
   { label: 'Últimos 7 días', days: 7 },
@@ -12,7 +13,7 @@ const PERIODS: { label: string; days: number | null }[] = [
   { label: 'Todo el tiempo', days: null },
 ];
 
-const GroupTable: React.FC<{ title: string; rows: GroupRow[] }> = ({ title, rows }) => (
+const GroupTable: React.FC<{ title: string; rows: GroupRow[]; column?: string }> = ({ title, rows, column = 'Origen' }) => (
   <section aria-label={title} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
     <h4 className="text-xs font-bold text-slate-800 mb-2">{title}</h4>
     {rows.length === 0 ? (
@@ -20,7 +21,7 @@ const GroupTable: React.FC<{ title: string; rows: GroupRow[] }> = ({ title, rows
     ) : (
       <table className="w-full text-xs text-left">
         <thead className="text-slate-500">
-          <tr><th className="py-1 font-bold">Origen</th><th className="py-1 font-bold">Leads</th><th className="py-1 font-bold">Cerrados</th><th className="py-1 font-bold">Cierre</th></tr>
+          <tr><th className="py-1 font-bold">{column}</th><th className="py-1 font-bold">Leads</th><th className="py-1 font-bold">Cerrados</th><th className="py-1 font-bold">Cierre</th></tr>
         </thead>
         <tbody>
           {rows.map((r) => (
@@ -35,7 +36,8 @@ const GroupTable: React.FC<{ title: string; rows: GroupRow[] }> = ({ title, rows
 );
 
 // Reportes básicos del CRM (H-060): embudo, origen y campaña, y tiempos de respuesta.
-export const Reports: React.FC<{ leads: Lead[] }> = ({ leads }) => {
+// Con equipo (datos en la base) suma la tabla por agente (H-069.1).
+export const Reports: React.FC<{ leads: Lead[]; team?: TeamMember[] }> = ({ leads, team = [] }) => {
   const [days, setDays] = useState<number | null>(30);
   const events = useTimelineStore((s) => s.events);
   const loadAll = useTimelineStore((s) => s.loadAll);
@@ -93,6 +95,7 @@ export const Reports: React.FC<{ leads: Lead[] }> = ({ leads }) => {
       <div className="grid gap-4 md:grid-cols-2">
         <GroupTable title="Por origen del contacto" rows={bySource(scoped)} />
         <GroupTable title="Por campaña" rows={byCampaign(scoped)} />
+        {team.length > 0 && <GroupTable title="Por agente" column="Responsable" rows={byAgent(scoped, team)} />}
       </div>
 
       <section aria-label="Tiempos de respuesta" className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1 text-xs">
@@ -110,7 +113,7 @@ export const Reports: React.FC<{ leads: Lead[] }> = ({ leads }) => {
           <strong className={response.unansweredOver24h > 0 ? 'text-red-600' : ''}>{response.unansweredOver24h}</strong>
         </p>
         {unmeasured > 0 && <p className="text-[11px] text-slate-500">{unmeasured} lead{unmeasured === 1 ? '' : 's'} sin hora exacta de registro no se midieron.</p>}
-        <p className="text-[11px] text-slate-400">Un lead movido de etapa sin registrar un contacto en el historial no cuenta como atendido ni como sin contactar. Cuenta llamadas, WhatsApp, correos y visitas registrados en el historial de contacto. El reporte por agente llegará con la asignación de leads.</p>
+        <p className="text-[11px] text-slate-400">Un lead movido de etapa sin registrar un contacto en el historial no cuenta como atendido ni como sin contactar. Cuenta llamadas, WhatsApp, correos y visitas registrados en el historial de contacto.</p>
       </section>
     </div>
   );

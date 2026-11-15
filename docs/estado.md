@@ -2,7 +2,7 @@
 
 - Modo: adoptado
 - Fase actual: A6 Adopción (documentos listos; faltan tests de caracterización y CI real)
-- Última actualización: 2026-11-08
+- Última actualización: 2026-11-15
 
 ## Puertas
 
@@ -22,6 +22,8 @@
 
 ## Siguiente paso
 El 2026-11-03 el responsable eligió para avanzar: cerrar el sitio y unirlo a `main`, el proyecto de Vercel del sitio, H-030 (dirección por corredora), H-031 (SEO), H-032 (editor de textos) y H-048 (vendidas, arrendadas y reservadas). El resto de la lista de pendientes no se descarta: el responsable decide después qué más entra al MVP.
+
+Actualización 2026-11-15 (H-069.1, asignación de leads a mano): el responsable eligió seguir con la asignación de leads mientras Mercado Libre responde (H-068.3d sigue bloqueada por el 403 de políticas). Decisiones: el agente sigue viendo todos los leads, pero el CRM le abre en "Mis leads"; primero a mano, después el reparto automático (H-069.2) y la reasignación (H-069.3). Hecha en código con 1403 pruebas, tipos, lint y build en verde; revisión por subagente sin bloqueantes, con sus 5 correcciones hechas. Migración `20261115100000` aplicada en desarrollo (cuenta B) con la prueba de seguridad en verde; **pendiente en producción** (cuenta A, junto con `20261109100000`, que tampoco está allí). Avance al MVP: 78 % (el total subió al dividir la asignación en tres historias).
 
 Actualización 2026-11-11 (corredora de demostración): con orden del responsable, la "Corredora de Prueba" de producción (cuenta A, id 0e7142fc…) pasó a llamarse **"Propiedades Demo"** y recibió datos ficticios para mostrar la plataforma a corredoras: 12 propiedades (10 disponibles, 1 reservada, 1 vendida, 1 arrendada), 10 leads en todas las etapas con historial, y textos del sitio sin testimonios ni cifras inventadas. Script repetible en `supabase/demo-corredora.sql` (ids fijos `d000…`, `d100…`, `d200…`; leads con el aviso ya marcado, sin correos). Probado antes en desarrollo con una corredora temporal, que se borró. Sitio verificado: https://portal-inmobiliario-sitio.vercel.app. Falta que el responsable mire la consola con su usuario. Manual de captación de pilotos en Claude Docs (https://claude.ai/artifact/D7Mu9BfRudggs5rA86GiNu).
 

@@ -18,6 +18,8 @@ interface LeadStore {
   updateLeadStatus: (id: string, status: LeadStatus) => void;
   // Motivo del descarte (H-061). Solo vale para contactos descartados.
   setDiscardReason: (id: string, reason: DiscardReason | undefined) => void;
+  // Responsable del lead (H-069.1). Sin valor = sin asignar. Si la base lo rechaza, vuelve al anterior y devuelve false.
+  assignLead: (id: string, userId: string | undefined) => Promise<boolean>;
   addNoteToLead: (id: string, note: string) => void;
   // Próxima acción del contacto (H-056). Devuelve false si falta el texto o la fecha no es válida.
   setNextAction: (id: string, text: string, due: string) => boolean;
@@ -179,6 +181,24 @@ export const useLeadStore = create<LeadStore>((set, get) => {
       const updated = get().leads.map((l) => (l.id === id ? { ...l, discardReason: reason } : l));
       set({ leads: updated });
       warnOnFail(getLeadRepository().update(id, { discardReason: reason }, updated), 'guardar el motivo del descarte');
+    },
+
+    assignLead: async (id, userId) => {
+      const lead = get().leads.find((l) => l.id === id);
+      if (!lead) return false;
+      const previous = lead.assignedTo;
+      const patch: Partial<Lead> = { assignedTo: userId };
+      const updated = get().leads.map((l) => (l.id === id ? { ...l, ...patch } : l));
+      set({ leads: updated });
+      try {
+        await getLeadRepository().update(id, patch, updated);
+        return true;
+      } catch (err) {
+        console.warn('[useLeadStore] No se pudo cambiar el responsable del lead', err);
+        // Solo se vuelve atrás si nadie lo cambió después: un segundo cambio que sí se guardó no se pisa.
+        set({ leads: get().leads.map((l) => (l.id === id && l.assignedTo === userId ? { ...l, assignedTo: previous } : l)) });
+        return false;
+      }
     },
 
     addNoteToLead: (id, note) => {

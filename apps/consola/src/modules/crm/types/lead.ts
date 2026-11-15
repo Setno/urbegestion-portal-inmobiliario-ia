@@ -69,6 +69,7 @@ export interface Lead {
   convertedPropertyId?: string; // propiedad en borrador creada a partir de este lead de propietario
   closedAtIso?: string; // cuándo pasó a Cerrado (sirve para medir el tiempo hasta el cierre)
   discardReason?: DiscardReason; // por qué se descartó (solo si está descartado)
+  assignedTo?: string; // id del miembro de la corredora responsable del lead (H-069.1); sin valor = sin asignar
   createdAt: string;
   createdAtIso?: string; // fecha y hora exactas del registro (sirve para medir tiempos de respuesta)
 }

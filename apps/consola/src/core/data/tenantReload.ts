@@ -1,6 +1,7 @@
 import { onTenantChange } from './dataSource';
 import { useLeadStore } from '../../modules/crm/stores/useLeadStore';
 import { useTimelineStore } from '../../modules/crm/stores/useTimelineStore';
+import { useTeamStore } from '../../modules/crm/stores/useTeamStore';
 import { usePropertyStore } from '../../modules/catalogo/stores/usePropertyStore';
 import { useMarketStore } from '../market/useMarketStore';
 import { useEntitlementsStore } from '../platform/useEntitlementsStore';
@@ -13,6 +14,7 @@ export function registerTenantReload(): () => void {
   return onTenantChange((tenantId) => {
     useLeadStore.getState().reset();
     useTimelineStore.getState().reset();
+    useTeamStore.getState().reset();
     usePropertyStore.getState().reset();
     useMarketStore.getState().reset();
     useEntitlementsStore.getState().reset();

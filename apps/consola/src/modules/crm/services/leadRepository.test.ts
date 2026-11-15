@@ -337,3 +337,37 @@ describe('leadRepository remoto: sesión de otra corredora (H-052, H-063)', () =
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe('leadRepository remoto: responsable del lead (H-069.1)', () => {
+  it('guarda y devuelve el responsable', async () => {
+    const fake = createFakeSupabase({ data: [{ id: 'x' }], error: null });
+    await createRemoteLeadRepository(fake.client, 'tenant-1').update('x', { assignedTo: 'agente-1' }, []);
+    expect((fake.argsOf(0, 'update')[0] as Record<string, unknown>).assigned_to).toBe('agente-1');
+
+    const lectura = createFakeSupabase({
+      data: [{ id: 'l1', full_name: 'Ana', email: '', phone: '', operation_interest: 'compra', status: 'nuevo', notes: [], source: 'asistente_ia', created_at: '2026-11-01T10:00:00Z', assigned_to: 'agente-1' }],
+      error: null,
+    });
+    const leads = await createRemoteLeadRepository(lectura.client, 'tenant-1').list();
+    expect(leads![0].assignedTo).toBe('agente-1');
+  });
+
+  it('al quitar el responsable envía null; un lead sin responsable no lo trae', async () => {
+    const fake = createFakeSupabase({ data: [{ id: 'x' }], error: null });
+    await createRemoteLeadRepository(fake.client, 'tenant-1').update('x', { assignedTo: undefined }, []);
+    expect((fake.argsOf(0, 'update')[0] as Record<string, unknown>).assigned_to).toBeNull();
+
+    const lectura = createFakeSupabase({
+      data: [{ id: 'l1', full_name: 'Ana', email: '', phone: '', operation_interest: 'compra', status: 'nuevo', notes: [], source: 'asistente_ia', created_at: '2026-11-01T10:00:00Z', assigned_to: null }],
+      error: null,
+    });
+    const leads = await createRemoteLeadRepository(lectura.client, 'tenant-1').list();
+    expect('assignedTo' in leads![0]).toBe(false);
+  });
+
+  it('cambiar otra cosa del lead no toca el responsable', async () => {
+    const fake = createFakeSupabase({ data: [{ id: 'x' }], error: null });
+    await createRemoteLeadRepository(fake.client, 'tenant-1').update('x', { status: 'contactado' }, []);
+    expect('assigned_to' in (fake.argsOf(0, 'update')[0] as Record<string, unknown>)).toBe(false);
+  });
+});

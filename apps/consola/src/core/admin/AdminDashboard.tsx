@@ -11,6 +11,7 @@ import {
   Building2,
   Globe
 } from 'lucide-react';
+import { useTeamStore } from '../../modules/crm/stores/useTeamStore';
 import { useLeadStore } from '../../modules/crm/stores/useLeadStore';
 import { getLeadRepository } from '../../modules/crm/services/leadRepository';
 import { usePropertyStore } from '../../modules/catalogo/stores/usePropertyStore';
@@ -50,6 +51,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose,
   // Con sesión y corredora, los leads se leen de la base (privados: sin sesión no se piden)
   useEffect(() => {
     if (status === 'con_sesion') void useLeadStore.getState().load();
+    if (status === 'con_sesion') void useTeamStore.getState().load();
     if (status === 'con_sesion') void useEntitlementsStore.getState().load();
   }, [status]);
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   X,
   LayoutDashboard,
@@ -28,13 +28,49 @@ import { Timeline } from './Timeline';
 import { Agenda } from './Agenda';
 import { Reports } from './Reports';
 import { DISCARD_LABELS } from '../services/leadReports';
+import { useTeamStore } from '../stores/useTeamStore';
+import { useAuthStore } from '../../../core/auth/useAuthStore';
+import { assignmentOptions, canChangeAssignment, defaultAssigneeFilter, matchesAssignee, memberLabel, type AssigneeFilter } from '../services/leadAssignment';
 
 export const LeadsTab: React.FC = () => {
-  const { leads, updateLeadStatus, setDiscardReason, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
+  const { leads, updateLeadStatus, setDiscardReason, assignLead, addNoteToLead, deleteLead, linkProperty } = useLeadStore();
+  // Asignación de leads (H-069.1): solo con equipo (datos en la base). Sin equipo no aparece nada de esto.
+  const team = useTeamStore((s) => s.members);
+  const hasTeam = team.length > 0;
+  const role = useAuthStore((s) => s.membership?.role ?? null);
+  const userId = useAuthStore((s) => s.membership?.userId);
+  const actor = { role, userId };
+  const [assigneeFilter, setAssigneeFilter] = useState<AssigneeFilter>(() => defaultAssigneeFilter(role, userId, hasTeam));
+  const [assignError, setAssignError] = useState<string | null>(null);
+  // El equipo llega después de abrir el CRM: cuando aparece se aplica el filtro inicial (el agente, "Mis leads"),
+  // salvo que la persona ya haya elegido otro.
+  const filterTouched = useRef(false);
+  useEffect(() => {
+    if (!filterTouched.current) setAssigneeFilter(defaultAssigneeFilter(role, userId, hasTeam));
+  }, [role, userId, hasTeam]);
+  // Un agente elegido en el filtro que ya no está en el equipo (otra corredora, otra recarga) dejaría la lista vacía.
+  const filterValid = ['mine', 'all', 'unassigned'].includes(assigneeFilter) || team.some((m) => m.userId === assigneeFilter);
+  useEffect(() => {
+    if (hasTeam && !filterValid) setAssigneeFilter(defaultAssigneeFilter(role, userId, hasTeam));
+  }, [hasTeam, filterValid, role, userId]);
+  const chooseAssigneeFilter = (value: AssigneeFilter) => {
+    filterTouched.current = true;
+    setAssigneeFilter(value);
+  };
+  const handleAssign = async (leadId: string, target: string | undefined) => {
+    setAssignError(null);
+    const ok = await assignLead(leadId, target);
+    if (!ok) setAssignError('No se pudo cambiar el responsable. Puede que otra persona lo haya cambiado: recarga y vuelve a intentar.');
+  };
   const { properties, addProperty } = usePropertyStore();
   const canExportCsv = useCan('crm.export');
 
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  // El aviso de un fallo al asignar es de la ficha donde ocurrió: al abrir otra (o cerrarla) se borra.
+  const selectedLeadId = selectedLead?.id;
+  useEffect(() => {
+    setAssignError(null);
+  }, [selectedLeadId]);
   const [newNote, setNewNote] = useState('');
   const [previewAttachment, setPreviewAttachment] = useState<string | null>(null);
 
@@ -67,6 +103,9 @@ export const LeadsTab: React.FC = () => {
         return false;
       }
     }
+
+    // 2a. Responsable (H-069.1)
+    if (hasTeam && !matchesAssignee(lead, assigneeFilter, userId)) return false;
 
     // 2b. Etapa del proceso
     if (leadStageFilter !== 'all' && lead.status !== leadStageFilter) return false;
@@ -210,6 +249,24 @@ export const LeadsTab: React.FC = () => {
             )}
           </div>
 
+          {hasTeam && (
+            <div className="w-full md:w-48 md:flex-none">
+              <select
+                aria-label="Filtrar por responsable"
+                value={assigneeFilter}
+                onChange={(e) => chooseAssigneeFilter(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
+              >
+                {userId && <option value="mine">👤 Mis leads</option>}
+                <option value="all">👥 Todos los responsables</option>
+                <option value="unassigned">Sin asignar</option>
+                {team.filter((m) => m.userId !== userId).map((m) => (
+                  <option key={m.userId} value={m.userId}>{memberLabel(team, m.userId)}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Property Filter Dropdown */}
           <div className="w-full md:w-56 md:flex-none">
             <select
@@ -302,7 +359,7 @@ export const LeadsTab: React.FC = () => {
         {/* Vista tabla de alta densidad (para 100 o más leads) */}
         {crmViewMode === 'agenda' && <Agenda leads={leads} onOpen={setSelectedLead} />}
 
-        {crmViewMode === 'reports' && <Reports leads={leads} />}
+        {crmViewMode === 'reports' && <Reports leads={leads} team={team} />}
 
         {crmViewMode === 'table' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col flex-1">
@@ -340,6 +397,9 @@ export const LeadsTab: React.FC = () => {
                                 <span className="text-[10px] text-slate-400">
                                   {lead.source === 'asistente_ia' ? '🤖 Chatbot IA' : lead.source === 'captacion_propietarios' ? '🏡 Propietario' : '📄 Ficha Web'}
                                 </span>
+                                {hasTeam && (
+                                  <span className="text-[10px] text-slate-500 block">👤 <span>{memberLabel(team, lead.assignedTo)}</span></span>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -475,6 +535,12 @@ export const LeadsTab: React.FC = () => {
 
                           <ActionBadge lead={lead} />
 
+                          {hasTeam && (
+                            <p className={`text-[10px] truncate ${lead.assignedTo ? 'text-slate-600' : 'text-amber-700 font-bold'}`}>
+                              👤 {memberLabel(team, lead.assignedTo)}
+                            </p>
+                          )}
+
                           {lead.attachments && lead.attachments.length > 0 && (
                             <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 w-fit">
                               <Paperclip className="w-3 h-3" />
@@ -549,6 +615,52 @@ export const LeadsTab: React.FC = () => {
                 <span className="text-slate-500 font-medium">Correo:</span>
                 <span className="font-bold text-slate-800">{displayEmail(selectedLead.email)}</span>
               </div>
+              {hasTeam && (() => {
+                const current = leads.find((l) => l.id === selectedLead.id) ?? selectedLead;
+                return (
+                  <div className="p-2.5 rounded-xl bg-slate-50 space-y-1.5">
+                    <div className="flex justify-between items-center gap-2">
+                      {role === 'admin' ? (
+                        <>
+                          <label htmlFor="responsable-lead" className="text-slate-500 font-medium">Responsable:</label>
+                          <select
+                            id="responsable-lead"
+                            aria-label="Responsable del lead"
+                            value={current.assignedTo ?? ''}
+                            onChange={(e) => void handleAssign(current.id, e.target.value || undefined)}
+                            className="text-xs bg-white border border-slate-200 rounded-lg p-1.5 font-bold text-slate-800"
+                          >
+                            {current.assignedTo && !team.some((m) => m.userId === current.assignedTo) && (
+                              <option value={current.assignedTo}>{memberLabel(team, current.assignedTo)}</option>
+                            )}
+                            {assignmentOptions(actor, team).map((o) => (
+                              <option key={o.userId} value={o.userId}>{o.label}</option>
+                            ))}
+                          </select>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-slate-500 font-medium">Responsable:</span>
+                          <span className="flex items-center gap-2">
+                            <span className="font-bold text-slate-800">{memberLabel(team, current.assignedTo)}</span>
+                            {canChangeAssignment(actor, current, userId) && (
+                              <button type="button" onClick={() => void handleAssign(current.id, userId)} className="px-2 py-1 rounded-lg bg-urbe-primary text-white text-[11px] font-bold">
+                                Tomar este lead
+                              </button>
+                            )}
+                            {canChangeAssignment(actor, current, undefined) && (
+                              <button type="button" onClick={() => void handleAssign(current.id, undefined)} className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 text-[11px] font-bold">
+                                Soltar este lead
+                              </button>
+                            )}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {assignError && <p role="alert" className="text-[11px] text-red-600">{assignError}</p>}
+                  </div>
+                );
+              })()}
               {leads.find((l) => l.id === selectedLead.id)?.status === 'descartado' && (
                 <div className="flex justify-between items-center gap-2 p-2.5 rounded-xl bg-slate-50">
                   <label htmlFor="motivo-descarte" className="text-slate-500 font-medium">Motivo del descarte:</label>

@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => {
     listener: null as null | ((tenantId: string | null) => void),
     leads: tienda('leads'),
     timeline: tienda('timeline'),
+    equipo: tienda('equipo'),
     propiedades: { ...tienda('propiedades'), load: vi.fn(() => orden.push('load:propiedades')) },
     mercado: { ...tienda('mercado'), load: vi.fn(() => orden.push('load:mercado')) },
     derechos: { ...tienda('derechos'), loadPublic: vi.fn(() => orden.push('load:derechos')) },
@@ -30,6 +31,7 @@ vi.mock('../platform/useEntitlementsStore', () => ({ useEntitlementsStore: { get
 vi.mock('../brand/useBrandStore', () => ({ useBrandStore: { getState: () => mocks.marca } }));
 vi.mock('../../modules/crm/stores/useLeadStore', () => ({ useLeadStore: { getState: () => mocks.leads } }));
 vi.mock('../../modules/crm/stores/useTimelineStore', () => ({ useTimelineStore: { getState: () => mocks.timeline } }));
+vi.mock('../../modules/crm/stores/useTeamStore', () => ({ useTeamStore: { getState: () => mocks.equipo } }));
 
 import { registerTenantReload } from './tenantReload';
 
@@ -42,9 +44,9 @@ describe('registerTenantReload', () => {
   });
   afterEach(() => dejar());
 
-  it('al cambiar la corredora vacía TODAS las tiendas con datos de la corredora (leads, historial, propiedades, mercado, derechos y marca)', () => {
+  it('al cambiar la corredora vacía TODAS las tiendas con datos de la corredora (leads, historial, equipo, propiedades, mercado, derechos y marca)', () => {
     mocks.listener?.('tenant-1');
-    for (const t of [mocks.leads, mocks.timeline, mocks.propiedades, mocks.mercado, mocks.derechos, mocks.marca]) {
+    for (const t of [mocks.leads, mocks.timeline, mocks.equipo, mocks.propiedades, mocks.mercado, mocks.derechos, mocks.marca]) {
       expect(t.reset).toHaveBeenCalledTimes(1);
     }
   });
@@ -62,7 +64,7 @@ describe('registerTenantReload', () => {
 
   it('al soltar la corredora (cerrar sesión) vacía todo y no recarga', () => {
     mocks.listener?.(null);
-    for (const t of [mocks.leads, mocks.timeline, mocks.propiedades, mocks.mercado, mocks.derechos, mocks.marca]) {
+    for (const t of [mocks.leads, mocks.timeline, mocks.equipo, mocks.propiedades, mocks.mercado, mocks.derechos, mocks.marca]) {
       expect(t.reset).toHaveBeenCalledTimes(1);
     }
     expect(mocks.propiedades.load).not.toHaveBeenCalled();

@@ -99,6 +99,11 @@ describe('authService', () => {
       expect(await getMembership()).toEqual({ tenantId: 'tenant-1', tenantName: 'UrbeGestión', role: 'admin', publicationMode: 'con_aprobacion' });
     });
 
+    it('incluye el id del usuario cuando la base lo entrega (sirve para "Mis leads", H-069.1)', async () => {
+      consulta.maybeSingle.mockResolvedValue({ data: { tenant_id: 'tenant-1', user_id: 'user-9', role: 'agente', tenants: { name: 'UrbeGestión' } }, error: null });
+      expect((await getMembership())?.userId).toBe('user-9');
+    });
+
     it('si el usuario tuviera más de una membresía, elige siempre la más antigua (orden estable)', async () => {
       consulta.maybeSingle.mockResolvedValue({ data: { tenant_id: 'tenant-1', role: 'admin', tenants: { name: 'UrbeGestión' } }, error: null });
       await getMembership();

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { funnel, bySource, byCampaign, responseStats, inPeriod, previousPeriod, leadToVisit, formatHours, change, weeklyLeads, followUp, visitsIn, timeToClose, discardReasons, DISCARD_LABELS } from './leadReports';
+import { funnel, bySource, byCampaign, responseStats, inPeriod, previousPeriod, leadToVisit, formatHours, change, weeklyLeads, followUp, visitsIn, timeToClose, discardReasons, DISCARD_LABELS, byAgent } from './leadReports';
 import type { Lead } from '../types/lead';
 import type { LeadEvent } from '../types/leadEvent';
 
@@ -194,5 +194,26 @@ describe('cierre y descarte (H-061)', () => {
     ]);
     expect(r.withoutReason).toBe(1);
     expect(r.total).toBe(4);
+  });
+});
+
+describe('por agente (H-069.1)', () => {
+  const team = [
+    { userId: 'u1', email: 'pedro@corredora.cl', role: 'agente' as const },
+    { userId: 'u2', email: 'sofia@corredora.cl', role: 'agente' as const },
+  ];
+  it('agrupa por responsable con su correo y deja aparte los sin asignar', () => {
+    const r = byAgent([
+      lead({ id: '1', assignedTo: 'u1', status: 'cerrado' }),
+      lead({ id: '2', assignedTo: 'u1' }),
+      lead({ id: '3', assignedTo: 'u2' }),
+      lead({ id: '4' }),
+      lead({ id: '5' }),
+    ], team);
+    expect(r).toEqual([
+      { label: 'pedro@corredora.cl', total: 2, closed: 1, rate: 50 },
+      { label: 'Sin asignar', total: 2, closed: 0, rate: 0 },
+      { label: 'sofia@corredora.cl', total: 1, closed: 0, rate: 0 },
+    ]);
   });
 });
