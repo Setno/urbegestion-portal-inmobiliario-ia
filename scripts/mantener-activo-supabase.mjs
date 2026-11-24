@@ -12,7 +12,12 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ENTORNOS = ['desarrollo', 'produccion'];
+// Cada proyecto: nombre, archivo de variables (raíz del proyecto, fuera de Git) y tabla a consultar.
+const PROYECTOS = [
+  { nombre: 'desarrollo', archivo: '.env.desarrollo', tabla: 'properties' },
+  { nombre: 'produccion', archivo: '.env.produccion', tabla: 'properties' },
+  { nombre: 'ventas', archivo: '.env.ventas', tabla: 'corredoras' }, // SaaS_Ventas (panel y funnel de ventas)
+];
 const INTENTOS = 5; // al iniciar el computador la red puede tardar en estar lista
 const ESPERA_MS = 30_000;
 
@@ -31,8 +36,8 @@ function registrar(linea) {
   }
 }
 
-function leerVariables(entorno) {
-  const archivo = join(raiz, `.env.${entorno}`);
+function leerVariables(nombreArchivo) {
+  const archivo = join(raiz, nombreArchivo);
   if (!existsSync(archivo)) return null;
   const vars = {};
   for (const linea of readFileSync(archivo, 'utf-8').split(/\r?\n/)) {
@@ -46,32 +51,47 @@ const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Consulta de solo lectura a la base de datos (cuenta como actividad). Con la política de acceso,
 // sin sesión la respuesta es una lista vacía; lo que importa es que la base respondió.
-async function tocarProyecto(url, key) {
-  const res = await fetch(`${url.replace(/\/$/, '')}/rest/v1/properties?select=id&limit=1`, {
+async function tocarProyecto(url, key, tabla) {
+  const res = await fetch(`${url.replace(/\/$/, '')}/rest/v1/${tabla}?select=id&limit=1`, {
     headers: { apikey: key },
     signal: AbortSignal.timeout(15_000),
   });
-  return res.status;
+  if (res.ok) return { estado: res.status, detalle: '', activo: true };
+  // Los errores de Supabase traen un código (p. ej. 42501 = sin permiso sobre la tabla); no incluyen claves.
+  let detalle = '';
+  try {
+    const cuerpo = await res.json();
+    detalle = [cuerpo.code, cuerpo.message].filter(Boolean).join(' ').slice(0, 120);
+  } catch {
+    // respuesta sin JSON
+  }
+  // 42501 = la base respondió y negó el acceso anónimo a la tabla: el proyecto está activo (y la tabla protegida).
+  return { estado: res.status, detalle, activo: detalle.startsWith('42501') };
 }
 
 let fallos = 0;
-for (const entorno of ENTORNOS) {
-  const vars = leerVariables(entorno);
+for (const { nombre: entorno, archivo, tabla } of PROYECTOS) {
+  const vars = leerVariables(archivo);
   const url = vars?.VITE_SUPABASE_URL;
   const key = vars?.VITE_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) {
-    registrar(`✗ ${entorno}: falta .env.${entorno} o sus variables de Supabase (se omite)`);
+    registrar(`✗ ${entorno}: falta ${archivo} o sus variables de Supabase (se omite)`);
     fallos++;
     continue;
   }
 
   let estado = null;
+  let activo = false;
   let motivo = '';
   for (let intento = 1; intento <= INTENTOS; intento++) {
     try {
-      estado = await tocarProyecto(url, key);
-      if (estado >= 200 && estado < 300) break;
-      motivo = `respondió ${estado}`;
+      const r = await tocarProyecto(url, key, tabla);
+      estado = r.estado;
+      if (r.activo) {
+        activo = true;
+        break;
+      }
+      motivo = `respondió ${estado}${r.detalle ? ` (${r.detalle})` : ''}`;
     } catch (err) {
       motivo = err?.name === 'TimeoutError' ? 'tiempo agotado' : 'sin conexión';
       estado = null;
@@ -79,7 +99,7 @@ for (const entorno of ENTORNOS) {
     if (intento < INTENTOS) await esperar(ESPERA_MS);
   }
 
-  if (estado !== null && estado >= 200 && estado < 300) {
+  if (activo) {
     registrar(`✓ ${entorno}: proyecto activo`);
   } else {
     registrar(`✗ ${entorno}: ${motivo}. Si pasa varios días seguidos, revisa si Supabase lo pausó (botón "Restore project" en el panel).`);
