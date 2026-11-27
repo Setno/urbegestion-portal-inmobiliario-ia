@@ -4,7 +4,7 @@
 // Uso manual:   node scripts/mantener-activo-supabase.mjs
 // Automático:   scripts/instalar-mantener-activo.ps1 lo programa al iniciar sesión en Windows.
 //
-// Lee las variables de `.env.desarrollo` y `.env.produccion` (en la raíz del proyecto, fuera de Git).
+// Lee las variables del archivo indicado en cada entrada de PROYECTOS (relativo a la raíz, fuera de Git).
 // NUNCA imprime URLs ni claves: solo el nombre del entorno y el estado.
 // Deja un registro en _archivo/registros/mantener-activo.log (fuera de Git)
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
@@ -17,6 +17,14 @@ const PROYECTOS = [
   { nombre: 'desarrollo', archivo: '.env.desarrollo', tabla: 'properties' },
   { nombre: 'produccion', archivo: '.env.produccion', tabla: 'properties' },
   { nombre: 'ventas', archivo: '.env.ventas', tabla: 'corredoras' }, // SaaS_Ventas (panel y funnel de ventas)
+  // Agente de WhatsApp (otro repositorio, Next.js): usa sus propias variables para no duplicar claves.
+  {
+    nombre: 'agente-whatsapp',
+    archivo: '../agentes-ia/whatsapps/.env.local',
+    tabla: 'workspaces',
+    varUrl: 'NEXT_PUBLIC_SUPABASE_URL',
+    varClave: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+  },
 ];
 const INTENTOS = 5; // al iniciar el computador la red puede tardar en estar lista
 const ESPERA_MS = 30_000;
@@ -70,31 +78,30 @@ async function tocarProyecto(url, key, tabla) {
 }
 
 let fallos = 0;
-for (const { nombre: entorno, archivo, tabla } of PROYECTOS) {
+for (const proyecto of PROYECTOS) {
+  const { nombre: entorno, archivo, tabla } = proyecto;
+  const { varUrl = 'VITE_SUPABASE_URL', varClave = 'VITE_SUPABASE_PUBLISHABLE_KEY' } = proyecto;
   const vars = leerVariables(archivo);
-  const url = vars?.VITE_SUPABASE_URL;
-  const key = vars?.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const url = vars?.[varUrl];
+  const key = vars?.[varClave];
   if (!url || !key) {
     registrar(`✗ ${entorno}: falta ${archivo} o sus variables de Supabase (se omite)`);
     fallos++;
     continue;
   }
 
-  let estado = null;
   let activo = false;
   let motivo = '';
   for (let intento = 1; intento <= INTENTOS; intento++) {
     try {
       const r = await tocarProyecto(url, key, tabla);
-      estado = r.estado;
       if (r.activo) {
         activo = true;
         break;
       }
-      motivo = `respondió ${estado}${r.detalle ? ` (${r.detalle})` : ''}`;
+      motivo = `respondió ${r.estado}${r.detalle ? ` (${r.detalle})` : ''}`;
     } catch (err) {
       motivo = err?.name === 'TimeoutError' ? 'tiempo agotado' : 'sin conexión';
-      estado = null;
     }
     if (intento < INTENTOS) await esperar(ESPERA_MS);
   }
